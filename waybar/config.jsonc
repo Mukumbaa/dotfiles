@@ -7,7 +7,6 @@
   "modules-left": ["hyprland/workspaces"],
   "modules-center": ["clock"],
   "modules-right": [
-    "group/tray-expander",
     "bluetooth",
     "network",
     "pulseaudio",
@@ -48,7 +47,6 @@
     "format": "{:L%A %H:%M}",
     "format-alt": "{:L%d %B W%V %Y}",
     "tooltip": false,
-    // "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
   },
   "network": {
     "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
@@ -61,12 +59,11 @@
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
     "spacing": 1,
-    // "on-click": "omarchy-launch-wifi"
   },
   "battery": {
     "format": "{capacity}% {icon}",
-    "format-discharging": "{icon}",
-    "format-charging": "{icon}",
+    "format-discharging": "{capacity}% {icon}",
+    "format-charging": "{capacity}% {icon}",
     "format-plugged": "",
     "format-icons": {
       "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
@@ -76,7 +73,6 @@
     "tooltip-format-discharging": "{power:>1.0f}W↓ {capacity}%",
     "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%",
     "interval": 5,
-    // "on-click": "omarchy-menu power",
     "states": {
       "warning": 20,
       "critical": 10
@@ -87,12 +83,9 @@
     "format-disabled": "󰂲",
     "format-connected": "",
     "tooltip-format": "Devices connected: {num_connections}",
-    // "on-click": "blueberry"
   },
   "pulseaudio": {
     "format": "{icon}",
-    // "on-click": "$TERMINAL --class=Wiremix -e wiremix",
-    // "on-click-right": "pamixer -t",
     "tooltip-format": "Playing at {volume}%",
     "scroll-step": 5,
     "format-muted": "",
@@ -106,20 +99,9 @@
       "transition-duration": 600,
       "children-class": "tray-group-item"
     },
-    // "modules": ["custom/expand-icon", "tray"]
   },
   "custom/expand-icon": {
     "format": "",
     "tooltip": false
   },
-  // "custom/screenrecording-indicator": {
-  //   "on-click": "omarchy-cmd-screenrecord",
-  //   "exec": "$OMARCHY_PATH/default/waybar/indicators/screen-recording.sh",
-  //   "signal": 8,
-  //   "return-type": "json"
-  // },
-  // "tray": {
-  //   "icon-size": 12,
-  //   "spacing": 17
-  // }
 }

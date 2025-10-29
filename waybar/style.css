@@ -30,36 +30,15 @@
   opacity: 0.5;
 }
 
-#cpu,
+#cpu ,
 #battery,
 #pulseaudio,
-
-#tray {
-  margin-right: 16px;
+#bluetooth ,
+#network{
+  margin-right: 15px;
 }
-
-#bluetooth {
-  margin-right: 17px;
-}
-
-#network {
-  margin-right: 13px;
-}
-
-#custom-expand-icon {
-  margin-right: 20px;
-}
-
-#tooltip {
-  padding: 2px;
-}
-
-#custom-update {
-  font-size: 10px;
-}
-
 #clock {
-  margin-left: 8.75px;
+  margin-left: 10px;
 }
 
 .hidden {
