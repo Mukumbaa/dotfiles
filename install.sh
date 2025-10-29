@@ -1,5 +1,5 @@
 sudo dnf copr enable solopasha/hyprland
-sudo dnf install hyprland hyprpaper hyprlock hypridle waybar alacritty wofi alacritty helix btop
+sudo dnf install hyprland hyprpaper swaylock hypridle waybar alacritty wofi alacritty helix btop
 
 rm -r ~/.config/waybar
 cp -r ./waybar ~/.config/waybar
@@ -12,3 +12,11 @@ cp -r ./helix ~/.config/helix
 
 rm -r ~/.config/btop
 cp -r ./btop ~/.config/btop
+
+rm -r ~/.config/alacritty
+cp -r ./alacritty ~/.config/alacritty
+
+
+
+
+
