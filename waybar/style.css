@@ -30,6 +30,7 @@
   opacity: 0.5;
 }
 
+#custom-expand-icon,
 #cpu ,
 #battery,
 #pulseaudio,
@@ -38,7 +39,7 @@
   margin-right: 15px;
 }
 #tray{
-  margin-right: 30px;
+  margin-right: 10px;
 }
 #clock {
   margin-left: 10px;

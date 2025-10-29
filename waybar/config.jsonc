@@ -8,7 +8,6 @@
   "modules-center": ["clock"],
   "modules-right": [
     "group/tray-expander",
-    "tray",
     "bluetooth",
     "network",
     "pulseaudio",
