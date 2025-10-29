@@ -10,3 +10,5 @@ cp -r ./hypr ~/.config/hypr
 rm -r ~/.config/helix
 cp -r ./helix ~/.config/helix
 
+rm -r ~/.config/btop
+cp -r ./btop ~/.config/btop
