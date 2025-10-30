@@ -85,21 +85,7 @@ else
     echo "⚠ Saltata configurazione Wofi menu - file sorgente non trovato"
 fi
 
-# 5. Ricaricare Bashrc (solo se esiste)
-echo "Ricaricando configurazione Bash..."
-if [ -f "$HOME/.bashrc" ]; then
-    # Usa source solo se lo script è eseguito in interactive shell
-    if [[ $- == *i* ]]; then
-        source "$HOME/.bashrc"
-        echo "✓ Bashrc ricaricato"
-    else
-        echo "ℹ Script eseguito in non-interactive shell, eseguire manualmente: source ~/.bashrc"
-    fi
-else
-    echo "⚠ Impossibile ricaricare bashrc - file non trovato"
-fi
-
-echo ""
-echo "Installazione completata!"
-echo "Nota: Per applicare completamente i cambiamenti, eseguire manualmente:"
-echo "source ~/.bashrc"
+#installazione dei linguaggi per helix
+source ~/.bashrc
+cargo install --git https://github.com/Myriad-Dreamin/tinymist --locked tinymist-cli 
+go install golang.org/x/tools/gopls@latest && go install github.com/nametake/golangci-lint-langserver@latest && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && go install golang.org/x/tools/cmd/goimports@latest && go install github.com/go-delve/delve/cmd/dlv@latest
