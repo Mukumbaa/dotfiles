@@ -1,5 +1,3 @@
-style = ~/.config/dotfiles/wofi/style.css
-
 width=600
 height=500
 location=center
@@ -14,4 +12,3 @@ content_halign=fill
 insensitive=true
 allow_images=true
 image_size=40
-gtk_dark=true
