@@ -1,10 +1,3 @@
-# echo "general.import = [\"~/.config/dotfiles/alacritty/alacritty.toml\"]" > ~/.config/alacritty/alacritty.toml
-# cat ~/.config/dotfiles/bash/bash > ~/.bashrc
-# cp ~/.config/dotfiles/starship/rose-pine.toml ~/.config/starship.toml
-# install -D ~/.config/dotfiles/wofi/config ~/.config/wofi/config
-# install -D ~/.config/dotfiles/wofi/menu ~/.config/wofi/menu
-
-# source ~/.bashrc
 #!/bin/bash
 
 # Exit on error and enable trace
@@ -13,7 +6,7 @@ set -e
 # Function to create directory if it doesn't exist
 create_dir_if_needed() {
     if [ ! -d "$1" ]; then
-        echo "Creando directory: $1"
+        echo "Creating directory: $1"
         mkdir -p "$1"
     fi
 }
@@ -21,81 +14,95 @@ create_dir_if_needed() {
 # Function to check if source file exists
 check_source_file() {
     if [ ! -f "$1" ]; then
-        echo "ERRORE: File sorgente non trovato: $1"
+        echo "ERROR: Source file not found: $1"
         return 1
     fi
     return 0
 }
 
-echo "Iniziando l'installazione della configurazione..."
+echo "Starting configuration installation..."
 
-# 1. Configuration Alacritty
-echo "Configurando Alacritty..."
+# 1. Alacritty Configuration
+echo "Configuring Alacritty..."
 create_dir_if_needed "$HOME/.config/alacritty"
 if check_source_file "$HOME/.config/dotfiles/alacritty/alacritty.toml"; then
     echo "general.import = [\"~/.config/dotfiles/alacritty/alacritty.toml\"]" > "$HOME/.config/alacritty/alacritty.toml"
-    echo "✓ Configuration Alacritty completata"
+    echo "✓ Alacritty configuration completed"
 else
-    echo "⚠ Saltata configurazione Alacritty - file sorgente non trovato"
+    echo "⚠ Skipping Alacritty configuration - source file not found"
 fi
 
-# 1. Configuration Helix
-echo "Configurando Helix..."
+# 2. Helix Configuration
+echo "Configuring Helix..."
 create_dir_if_needed "$HOME/.config/helix"
 if check_source_file "$HOME/.config/dotfiles/helix/config.toml"; then
     cp "$HOME/.config/dotfiles/helix/config.toml" "$HOME/.config/helix/config.toml"
-    echo "✓ Configuration Helix completata"
+    echo "✓ Helix configuration completed"
 else
-    echo "⚠ Saltata configurazione Helix - file sorgente non trovato"
+    echo "⚠ Skipping Helix configuration - source file not found"
 fi
 
-# 1. Configuration Hyprland
-echo "Configurando Hyprland..."
+# 3. Hyprland Configuration
+echo "Configuring Hyprland..."
 create_dir_if_needed "$HOME/.config/hypr"
 if check_source_file "$HOME/.config/dotfiles/hypr/hyprland.conf"; then
     echo "source = ~/.config/dotfiles/hypr/hyprland.conf" > "$HOME/.config/hypr/hyprland.conf"
-    echo "✓ Configuration Hyprland completata"
+    echo "✓ Hyprland configuration completed"
 else
-    echo "⚠ Saltata configurazione Hyprland - file sorgente non trovato"
+    echo "⚠ Skipping Hyprland configuration - source file not found"
 fi
 
-# 2. Configuration Bash
-echo "Configurando Bash..."
+# 4. Bash Configuration
+echo "Configuring Bash..."
 if check_source_file "$HOME/.config/dotfiles/bash/bash"; then
     cp "$HOME/.config/dotfiles/bash/bash" "$HOME/.bashrc"
-    echo "✓ Configuration Bash completata"
+    echo "✓ Bash configuration completed"
 else
-    echo "⚠ Saltata configurazione Bash - file sorgente non trovato"
+    echo "⚠ Skipping Bash configuration - source file not found"
 fi
 
-# 3. Configuration Starship
-echo "Configurando Starship..."
+# 5. Starship Configuration
+echo "Configuring Starship..."
 create_dir_if_needed "$HOME/.config"
 if check_source_file "$HOME/.config/dotfiles/starship/rose-pine.toml"; then
     cp "$HOME/.config/dotfiles/starship/rose-pine.toml" "$HOME/.config/starship.toml"
-    echo "✓ Configuration Starship completata"
+    echo "✓ Starship configuration completed"
 else
-    echo "⚠ Saltata configurazione Starship - file sorgente non trovato"
+    echo "⚠ Skipping Starship configuration - source file not found"
 fi
 
-# 4. Configuration Wofi
-echo "Configurando Wofi..."
+# 6. Wofi Configuration
+echo "Configuring Wofi..."
 create_dir_if_needed "$HOME/.config/wofi"
 if check_source_file "$HOME/.config/dotfiles/wofi/config"; then
     install -D "$HOME/.config/dotfiles/wofi/config" "$HOME/.config/wofi/config"
-    echo "✓ Configuration Wofi config completata"
+    echo "✓ Wofi config configuration completed"
 else
-    echo "⚠ Saltata configurazione Wofi config - file sorgente non trovato"
+    echo "⚠ Skipping Wofi config configuration - source file not found"
 fi
 
 if check_source_file "$HOME/.config/dotfiles/wofi/menu"; then
     install -D "$HOME/.config/dotfiles/wofi/menu" "$HOME/.config/wofi/menu"
-    echo "✓ Configuration Wofi menu completata"
+    echo "✓ Wofi menu configuration completed"
 else
-    echo "⚠ Saltata configurazione Wofi menu - file sorgente non trovato"
+    echo "⚠ Skipping Wofi menu configuration - source file not found"
 fi
 
-#installazione dei linguaggi per helix
-# source ~/.bashrc
-# cargo install --git https://github.com/Myriad-Dreamin/tinymist --locked tinymist-cli 
-# go install golang.org/x/tools/gopls@latest && go install github.com/nametake/golangci-lint-langserver@latest && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && go install golang.org/x/tools/cmd/goimports@latest && go install github.com/go-delve/delve/cmd/dlv@latest
+# 7. Reload Bashrc (only if it exists)
+echo "Reloading Bash configuration..."
+if [ -f "$HOME/.bashrc" ]; then
+    # Use source only if script is run in interactive shell
+    if [[ $- == *i* ]]; then
+        source "$HOME/.bashrc"
+        echo "✓ Bashrc reloaded"
+    else
+        echo "ℹ Script run in non-interactive shell, run manually: source ~/.bashrc"
+    fi
+else
+    echo "⚠ Cannot reload bashrc - file not found"
+fi
+
+echo ""
+echo "Installation completed!"
+echo "Note: To fully apply changes, run manually:"
+echo "source ~/.bashrc"
