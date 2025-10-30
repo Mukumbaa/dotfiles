@@ -17,11 +17,11 @@ systemctl --user start elephant.service
 sudo dnf install gcc clangd golang -y
 
 #DOCKER
-sudo dnf -y install dnf-plugins-core
-sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo systemctl enable --now docker
-sudo systemctl start --now docker
-sudo usermod -aG docker $USER
+sudo dnf install dnf-plugins-core -y
+sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo -y
+sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+sudo systemctl enable --now docker -y
+sudo systemctl start --now docker -y
+sudo usermod -aG docker $USER -y
 
 ./migrate.sh
