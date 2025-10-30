@@ -39,6 +39,16 @@ else
     echo "⚠ Saltata configurazione Alacritty - file sorgente non trovato"
 fi
 
+# 1. Configuration Helix
+echo "Configurando Helix..."
+create_dir_if_needed "$HOME/.config/helix"
+if check_source_file "$HOME/.config/dotfiles/helix/config.toml"; then
+    cp "$HOME/.config/dotfiles/helix/config.toml" "$HOME/.config/helix/config.toml"
+    echo "✓ Configuration Helix completata"
+else
+    echo "⚠ Saltata configurazione Helix - file sorgente non trovato"
+fi
+
 # 1. Configuration Hyprland
 echo "Configurando Hyprland..."
 create_dir_if_needed "$HOME/.config/hypr"
@@ -86,6 +96,6 @@ else
 fi
 
 #installazione dei linguaggi per helix
-source ~/.bashrc
-cargo install --git https://github.com/Myriad-Dreamin/tinymist --locked tinymist-cli 
-go install golang.org/x/tools/gopls@latest && go install github.com/nametake/golangci-lint-langserver@latest && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && go install golang.org/x/tools/cmd/goimports@latest && go install github.com/go-delve/delve/cmd/dlv@latest
+# source ~/.bashrc
+# cargo install --git https://github.com/Myriad-Dreamin/tinymist --locked tinymist-cli 
+# go install golang.org/x/tools/gopls@latest && go install github.com/nametake/golangci-lint-langserver@latest && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && go install golang.org/x/tools/cmd/goimports@latest && go install github.com/go-delve/delve/cmd/dlv@latest
