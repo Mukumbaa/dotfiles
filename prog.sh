@@ -4,6 +4,7 @@ sudo dnf copr enable solopasha/hyprland -y
 sudo dnf install hyprland hyprpaper swaylock waybar alacritty alacritty helix btop -y
 sudo dnf copr enable atim/starship -y
 sudo dnf install starship -y
+sudo dnf install google-chrome-stable
 
 sudo dnf install fd-find -y
 sudo dnf install qalculate -y
