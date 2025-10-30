@@ -42,7 +42,7 @@
   "cpu": {
     "interval": 5,
     "format": "󰍛",
-    "on-click": "$TERMINAL -e btop"
+    "on-click": "$TERMINAL btop"
   },
   "clock": {
     "format": "{:L%A %H:%M}",
