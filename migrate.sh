@@ -39,6 +39,16 @@ else
     echo "⚠ Saltata configurazione Alacritty - file sorgente non trovato"
 fi
 
+# 1. Configuration Hyprland
+echo "Configurando Hyprland..."
+create_dir_if_needed "$HOME/.config/hypr"
+if check_source_file "$HOME/.config/dotfiles/hypr/hyprland.conf"; then
+    echo "source = ~/.config/dotfiles/hypr/hyprland.conf" > "$HOME/.config/hypr/hyprland.conf"
+    echo "✓ Configuration Hyprland completata"
+else
+    echo "⚠ Saltata configurazione Hyprland - file sorgente non trovato"
+fi
+
 # 2. Configuration Bash
 echo "Configurando Bash..."
 if check_source_file "$HOME/.config/dotfiles/bash/bash"; then
