@@ -4,6 +4,15 @@ sudo dnf install hyprland hyprpaper swaylock waybar alacritty alacritty helix bt
 sudo dnf copr enable atim/starship -y
 sudo dnf install starship -y
 
+sudo dnf install fd-find -y
+sudo dnf install qalculate -y
+sudo dnf copr enable errornointernet/walker -y
+sudo dnf install walker -y
+sudo dnf install elephant -y
+elephant service enable
+systemctl --user start elephant.service
+
+
 #LANGAUGES
 sudo dnf install gcc clangd golang -y
 
