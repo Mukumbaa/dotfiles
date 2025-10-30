@@ -10,10 +10,10 @@ sudo dnf install qalculate -y
 sudo dnf copr enable errornointernet/walker -y
 sudo dnf install walker -y
 sudo dnf install elephant -y
-sudo dnf install rustup -y
 
 sudo dnf install cascadia-mono-nf-fonts -y
 #LANGAUGES
+sudo dnf install gcc clangd golang rustup -y
 
 #REMOVE BLOAT
 sudo dnf group remove libreoffice -y
