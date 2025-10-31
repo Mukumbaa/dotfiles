@@ -11,6 +11,7 @@ sudo dnf install qalculate -y
 sudo dnf copr enable errornointernet/walker -y
 sudo dnf install walker -y
 sudo dnf install elephant -y
+sudo dnf install iwd -y
 
 sudo dnf install cascadia-mono-nf-fonts -y
 #LANGAUGES
