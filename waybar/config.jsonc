@@ -63,9 +63,9 @@
     "on-click": "alacritty -e $HOME/.cargo/bin/impala \"$@\""
   },
   "battery": {
-    "format": "{capacity}% {icon}",
-    "format-discharging": "{capacity}% {icon}",
-    "format-charging": "{capacity}% {icon}",
+    "format": "{icon}",
+    "format-discharging": "{icon}",
+    "format-charging": "{icon}",
     "format-plugged": "",
     "format-icons": {
       "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
