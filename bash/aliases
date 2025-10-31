@@ -1,3 +1,4 @@
 alias ..='cd ..'
 alias py='python'
 alias migrate='~/.config/dotfiles/migrate.sh'
+alias dot='cd ~/.config/dotfiles'

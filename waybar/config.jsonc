@@ -42,7 +42,7 @@
   "cpu": {
     "interval": 5,
     "format": "󰍛",
-    "on-click": "$TERMINAL btop"
+    "on-click": "$TERMINAL -e btop"
   },
   "clock": {
     "format": "{:L%A %H:%M}",
@@ -60,6 +60,7 @@
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
     "spacing": 1,
+    "on-click": "$TERMINAL -e impala"
   },
   "battery": {
     "format": "{capacity}% {icon}",
