@@ -60,7 +60,7 @@
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
     "spacing": 1,
-    "on-click": "alacritty -e impala"
+    "on-click": "alacritty -e $HOME/.cargo/bin/impala \"$@\""
   },
   "battery": {
     "format": "{capacity}% {icon}",
