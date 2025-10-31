@@ -29,10 +29,12 @@
 #workspaces button.empty {
   opacity: 0.5;
 }
-
+#battery,
+#backlight{
+  margin-right: 15px;
+}
 #custom-expand-icon,
 #cpu ,
-#battery,
 #pulseaudio,
 #bluetooth ,
 #network{

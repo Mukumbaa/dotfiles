@@ -8,6 +8,7 @@
   "modules-center": ["clock"],
   "modules-right": [
     "group/tray-expander",
+    "backlight",
     "bluetooth",
     "network",
     "pulseaudio",
@@ -63,9 +64,9 @@
     "on-click": "alacritty -e nmtui"
   },
   "battery": {
-    "format": "{icon}",
-    "format-discharging": "{icon}",
-    "format-charging": "{icon}",
+    "format": "{capacity}% {icon}",
+    "format-discharging": "{capacity}% {icon}",
+    "format-charging": "{capacity}% {icon}",
     "format-plugged": "",
     "format-icons": {
       "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
@@ -95,6 +96,11 @@
     "format-icons": {
       "default": ["", "", ""]
     }
+  },
+  "backlight": {
+    "device": "brightnessctl", // Adjust this to your specific backlight device
+    "format": "{percent}% {icon}",
+    "format-icons": ["", ""],
   },
   "group/tray-expander": {
     "orientation": "inherit",
