@@ -65,7 +65,7 @@ fi
 echo "Configuring Starship..."
 create_dir_if_needed "$HOME/.config"
 if check_source_file "$HOME/.config/dotfiles/starship/rose-pine.toml"; then
-    cp "$HOME/.config/dotfiles/starship/rose-pine.toml" "$HOME/.config/starship.toml"
+    cp "$HOME/.config/dotfiles/starship/starship.toml" "$HOME/.config/starship.toml"
     echo "✓ Starship configuration completed"
 else
     echo "⚠ Skipping Starship configuration - source file not found"
