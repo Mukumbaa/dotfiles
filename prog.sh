@@ -14,6 +14,7 @@ sudo dnf install walker -y
 sudo dnf install elephant -y
 sudo dnf install iwd -y
 sudo dnf install -y dbus-devel pkgconf-pkg-config -y
+sudo dnf install gh -y
 
 sudo dnf install cascadia-mono-nf-fonts -y
 #LANGAUGES
