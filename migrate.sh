@@ -41,6 +41,12 @@ if check_source_file "$HOME/.config/dotfiles/helix/config.toml"; then
 else
     echo "⚠ Skipping Helix configuration - source file not found"
 fi
+if check_source_file "$HOME/.config/dotfiles/helix/languages.toml"; then
+    cp "$HOME/.config/dotfiles/helix/languages.toml" "$HOME/.config/helix/languages.toml"
+    echo "✓ Helix configuration completed"
+else
+    echo "⚠ Skipping Helix configuration - source file not found"
+fi
 
 # 3. Hyprland Configuration
 echo "Configuring Hyprland..."
