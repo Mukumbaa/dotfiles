@@ -60,7 +60,7 @@
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
     "spacing": 1,
-    "on-click": "alacritty -e $HOME/.cargo/bin/impala \"$@\""
+    "on-click": "alacritty -e nmtui"
   },
   "battery": {
     "format": "{icon}",
@@ -85,7 +85,7 @@
     "format-disabled": "󰂲",
     "format-connected": "",
     "tooltip-format": "Devices connected: {num_connections}",
-    "on-click": "alacritty -e $HOME/.cargo/bin/bluetui"
+    "on-click": "blueman-manager"
   },
   "pulseaudio": {
     "format": "{icon}",
