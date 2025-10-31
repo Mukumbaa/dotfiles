@@ -77,6 +77,21 @@ else
     echo "⚠ Skipping Starship configuration - source file not found"
 fi
 
+echo "Configuring btop..."
+create_dir_if_needed "$HOME/.config/btop/themes"
+if check_source_file "$HOME/.config/dotfiles/btop/themes/rose-pine.theme"; then
+    cp "$HOME/.config/dotfiles/btop/themes/rose-pine.theme" "$HOME/.config/btop/themes/rose-pine.theme"
+    echo "✓ Btop configuration completed"
+else
+    echo "⚠ Skipping Btop configuration - source file not found"
+fi
+if check_source_file "$HOME/.config/dotfiles/btop/btop.conf"; then
+    cp "$HOME/.config/dotfiles/btop/btop.conf" "$HOME/.config/btop/btop.conf"
+    echo "✓ Btop configuration completed"
+else
+    echo "⚠ Skipping Btop configuration - source file not found"
+fi
+
 # 6. Wofi Configuration
 echo "Configuring Wofi..."
 create_dir_if_needed "$HOME/.config/wofi"
