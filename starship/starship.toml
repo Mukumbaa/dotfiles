@@ -9,6 +9,7 @@ success_symbol = "[❯](bold #f6c177)"
 [directory]
 truncation_length = 2
 truncation_symbol = "…/"
+style = "bold #f6c177"
 repo_root_style = "bold #f6c177"
 repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
 
