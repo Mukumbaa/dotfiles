@@ -91,7 +91,7 @@
     "format": "{icon}",
     "tooltip-format": "Playing at {volume}%",
     "scroll-step": 5,
-    "format-muted": "x",
+    "format-muted": "󰝟",
     "format-icons": {
       "default": ["", "", ""]
     }
