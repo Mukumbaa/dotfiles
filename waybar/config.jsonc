@@ -85,6 +85,7 @@
     "format-disabled": "󰂲",
     "format-connected": "",
     "tooltip-format": "Devices connected: {num_connections}",
+    "on-click": "alacritty -e $HOME/.cargo/bin/bluetui"
   },
   "pulseaudio": {
     "format": "{icon}",
