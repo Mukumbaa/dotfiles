@@ -91,5 +91,4 @@ bind = $mainMod SHIFT, I, exec, $terminal -e nmtui
 bind = $mainMod SHIFT, P, exec, blueman-manager
 bind = $mainMod SHIFT, C, exec, gnome-calendar
 bind = $mainMod SHIFT, X, exec, $(xdg-settings get default-web-browser | sed 's/\.desktop//') --app="https://x.com"
-bind = $mainMod SHIFT, Y, exec, $(xdg-settings get default-web-browser | sed 's/\.desktop//') --app="https://youtube.com"
-bind = $mainMod SHIFT, T, exec, $(xdg-settings get default-web-browser | sed 's/\.desktop//') --app="https://twitch.com"
+bind = $mainMod SHIFT, Y, exec, $(xdg-settings get default-web-browser | sed 's/\.desktop//') --app="https://x.com"
