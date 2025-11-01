@@ -1,0 +1,3 @@
+Balanced|tuned-adm profile balanced-battery
+Power Saver|tuned-adm profile powersave
+Performance|tuned-adm profile throughput-performance

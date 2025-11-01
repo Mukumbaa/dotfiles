@@ -1,12 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-options=("Balanced" "Power Saver" "Performance")
+# Definisci un file con voci + comandi
+# Ogni linea: “Nome della voce|comando da eseguire”
+MENU_FILE="$HOME/.config/dotfiles/wofi/custom-menus/power-profile-menu.txt"
 
-choice=$(printf "%s\n" "${options[@]}" | fzf --prompt="Choise: ")
+# ad esempio:
+# Apri browser|firefox
+# Terminale|alacritty
+# Editor|nvim
 
-case $choice in
-  "Balanced") tuned-adm profile balanced-battery;;
-  "Power Saver") tuned-adm profile powersave;;
-  "Performance") tuned-adm profile throughput-performance;;
-  *) echo "Terminated";;
-esac
+CONFIG_WOFI="--conf ~/.config/dotfiles/wofi/config2 --style ~/.config/dotfiles/wofi/style2.css"
+
+choice=$(cut -d '|' -f1 "$MENU_FILE" | wofi --conf ~/.config/dotfiles/wofi/config2 --style ~/.config/dotfiles/wofi/style2.css --show dmenu)
+if [ -n "$choice" ]; then
+  cmd=$(grep "^${choice}|" "$MENU_FILE" | cut -d '|' -f2-)
+  eval $cmd
+fi

@@ -10,8 +10,8 @@ sudo dnf install google-chrome-stable -y
 sudo dnf install fd-find -y
 sudo dnf install qalculate -y
 sudo dnf copr enable errornointernet/walker -y
-sudo dnf install walker -y
-sudo dnf install elephant -y
+# sudo dnf install walker -y
+# sudo dnf install elephant -y
 sudo dnf install -y dbus-devel pkgconf-pkg-config -y
 sudo dnf install gh -y
 sudo dnf install blueman nmtui -y

@@ -4,8 +4,8 @@ if [ "$EUID" -ne 0 ]; then
 fi
 echo "Done Installing"
 echo "System things..."
-elephant service enable
-systemctl --user start elephant.service
+# elephant service enable
+# systemctl --user start elephant.service
 
 ./migrate.sh
 # source ~/.bashrc
