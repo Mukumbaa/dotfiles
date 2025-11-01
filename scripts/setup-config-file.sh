@@ -11,6 +11,9 @@ case $choice in
   "Keybindings") hx ~/.config/dotfiles/hypr/keybindings.conf;;
   "Hyprpaper") hx ~/.config/dotfiles/hypr/hyprpaper.conf;;
   "Default Programs") hx ~/.config/dotfiles/hypr/default-programs.conf;;
-  "Alacritty") hx ~/.config/dotfiles/alacritty/alacritty.toml;;
-  *) echo "Terminated";;
+  "Alacritty") echo "Starting Alacritty..." >> /tmp/alacritty-debug.log
+  alacritty -e hx ~/.config/dotfiles/alacritty/alacritty.toml \
+    >/tmp/alacritty.out 2>/tmp/alacritty.err &
+  echo "Command launched" >> /tmp/alacritty-debug.log
+  ;;
 esac
