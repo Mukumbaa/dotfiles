@@ -52,8 +52,8 @@
 @define-color	crust-rgb  rgb(17, 17, 27);
 
 * {
-  font-family: 'Inconsolata Nerd Font', monospace;
-  font-size: 14px;
+  font-family: 'Cascadia Mono NF', monospace;
+  font-size: 16px;
 }
 
 /* Window */
@@ -130,7 +130,7 @@ window {
 }
 
 #input * {
-  outline: 4px solid @red!important;
+  outline: 4px solid @red;
 }
 
 /* Text */
@@ -160,5 +160,5 @@ window {
 }
 
 #entry:drop(active) {
-  background-color: @lavender!important;
+  background-color: @lavender;
 }
