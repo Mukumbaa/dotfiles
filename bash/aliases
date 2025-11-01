@@ -6,3 +6,17 @@ alias dot='cd ~/.config/dotfiles'
 alias git-conf='~/.config/dotfiles/git-setup.sh'
 alias ffi='~/.config/dotfiles/scripts/install-fzf.sh'
 alias ffr='~/.config/dotfiles/scripts/remove-fzf.sh'
+alias envc='python -m venv venv'
+alias enva='source venv/bin/activate; pip install ruff basedpyright'
+alias envd='deactivate'
+
+# Crea directory e ci entra
+mkcd() {
+    if [ $# -ne 1 ]; then
+        echo "Usage: mkcd <directory>"
+        return 1
+    fi
+    
+    mkdir -p "$1" && cd "$1"
+}
+
