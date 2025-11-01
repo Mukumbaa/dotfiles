@@ -8,3 +8,4 @@ print_command=true
 insensitive=true
 prompt=
 columns=1
+normal_window=true
