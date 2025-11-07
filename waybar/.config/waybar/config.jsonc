@@ -94,10 +94,10 @@
     "on-click": "blueman-manager"
   },
   "pulseaudio": {
-    "format": "<span rise='500' size='9216'>{volume}%</span> <span size='large'>{icon}</span>",
+    "format": "<span rise='1500' size='9216'>{volume}%</span> <span size='x-large'>{icon}</span>",
     "tooltip-format": "Playing at {volume}%",
     "scroll-step": 5,
-    "format-muted": "<span rise='500' size='9216'>0%</span> <span size='large'>󰝟</span>",
+    "format-muted": "<span rise='1500' size='9216'>0%</span> <span size='x-large'>󰝟</span>",
     "format-icons": {
       "default": ["", "", ""]
     }
