@@ -1,0 +1,15 @@
+#!/bin/bash
+
+stow alacritty
+stow bash-config
+stow --adopts bashrc
+stow btop
+stow fastfetch
+stow helix
+stow hypr
+stow scripts
+stow starship
+stow swaylock
+stow waybar
+stow wofi
+
