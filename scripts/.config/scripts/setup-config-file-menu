@@ -10,7 +10,7 @@ MENU_FILE="$HOME/.config/wofi/custom-menus/setup-config-menu.txt"
 # Editor|nvim
 
 
-choice=$(cut -d '|' -f1 "$MENU_FILE" | ~/.config/dotfiles/scripts/wofi-cmd --show dmenu)
+choice=$(cut -d '|' -f1 "$MENU_FILE" | wofi --show dmenu)
 if [ -n "$choice" ]; then
   cmd=$(grep "^${choice}|" "$MENU_FILE" | cut -d '|' -f2-)
   eval $cmd
