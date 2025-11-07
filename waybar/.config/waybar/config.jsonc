@@ -58,7 +58,7 @@
     // "format-ethernet": "󰀂",
     // "format-disconnected": "󰤮",
     "format": "<span size='large'>{icon}</span>",
-    "format-wifi": "<span size='large'>{icon}</span> <span rise='1500' size='small'>{essid}</span>",
+    "format-wifi": "<span size='large'>{icon}</span> <span rise='1500' size='9216'>{essid}</span>",
     "format-ethernet": "<span size='large'>󰀂</span>",
     "format-disconnected": "<span size='large'>󰤮</span>",
     "tooltip-format-wifi": "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
