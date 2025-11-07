@@ -6,6 +6,7 @@ sudo dnf copr enable atim/starship -y
 sudo dnf install starship -y
 sudo dnf install foot dolphin -y
 sudo dnf install google-chrome-stable -y
+sudo dnf install stow -y
 
 sudo dnf install fd-find -y
 sudo dnf install qalculate -y
