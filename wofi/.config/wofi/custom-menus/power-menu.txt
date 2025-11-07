@@ -1,3 +1,3 @@
-Shutdown|~/.config/dotfiles/scripts/power-off
+Shutdown|~/.config/scripts/power-off
 Reboot|reboot
-Lock|~/.config/dotfiles/scripts/swaylock-cmd
+Lock|~/.config/scripts/swaylock-cmd
