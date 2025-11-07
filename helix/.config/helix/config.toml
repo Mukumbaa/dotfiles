@@ -41,7 +41,7 @@ layout = ["diagnostics", "line-numbers", "spacer", "spacer"]
 
 [keys.normal." "."c"]
 "c" = ":config-open"
-"l" = ":open /home/uni/.config/helix/languages.toml"
+"l" = ":open /home/mukumba/.config/helix/languages.toml"
 "r" = ":config-reload"
 
 [keys.normal]
