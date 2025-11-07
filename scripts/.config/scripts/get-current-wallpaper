@@ -1,0 +1,8 @@
+#!/bin/bash
+# Usage: ./get-current-wallpaper
+# Restituisce solo "num.ext" (es: 3.png)
+
+hyprctl hyprpaper listactive \
+  | awk -F'= ' '/= \// {print $2}' \
+  | head -n 1 \
+  | xargs basename

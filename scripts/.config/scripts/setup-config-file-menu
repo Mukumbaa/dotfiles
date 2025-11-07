@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Definisci un file con voci + comandi
+# Ogni linea: “Nome della voce|comando da eseguire”
+MENU_FILE="$HOME/.config/wofi/custom-menus/setup-config-menu.txt"
+
+# ad esempio:
+# Apri browser|firefox
+# Terminale|alacritty
+# Editor|nvim
+
+
+choice=$(cut -d '|' -f1 "$MENU_FILE" | ~/.config/dotfiles/scripts/wofi-cmd --show dmenu)
+if [ -n "$choice" ]; then
+  cmd=$(grep "^${choice}|" "$MENU_FILE" | cut -d '|' -f2-)
+  eval $cmd
+fi

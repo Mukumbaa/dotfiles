@@ -1,0 +1,38 @@
+#!/bin/bash
+# Usage: ./remove_wallpaper <number> 
+
+num=$1
+dir="$HOME/.config/hypr/wallpaper"
+
+if [[ -z "$num" ]]; then
+  echo "Usage: $0 <number> "
+  exit 1
+fi
+
+cd "$dir" || { echo "Folder not found"; exit 1; }
+
+# Trova il file da eliminare, indipendentemente dall'estensione
+file_to_delete=$(ls | grep -E "^${num}\.(jpg|png)$" | head -n 1)
+
+if [[ -z "$file_to_delete" ]]; then
+  echo "File not found."
+  exit 1
+fi
+
+# Elimina il file
+rm "$file_to_delete"
+echo "Removed: $file_to_delete"
+
+# Rinomina quelli successivi
+# Ordina per numero crescente
+for f in $(ls | grep -E '^[0-9]+\.(jpg|png)$' | sort -n); do
+  current_num=$(echo "$f" | sed -E 's/^([0-9]+)\..*/\1/')
+  ext="${f##*.}"
+
+  if (( current_num > num )); then
+    new_num=$((current_num - 1))
+    new_name="${new_num}.${ext}"
+    mv "$f" "$new_name"
+    echo "Rename: $f → $new_name"
+  fi
+done

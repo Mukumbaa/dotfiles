@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Configurazione
+STEP=10  # Numero di pixel per ogni movimento
+
+# Funzione per ottenere la posizione corrente del mouse
+get_cursor_pos() {
+    hyprctl -j cursorpos
+}
+
+# Funzione per muovere il mouse
+move_cursor() {
+    local direction=$1
+    local current_pos
+    local current_x current_y
+    local new_x new_y
+    
+    # Ottieni la posizione corrente
+    current_pos=$(get_cursor_pos)
+    current_x=$(echo "$current_pos" | jq -r '.x')
+    current_y=$(echo "$current_pos" | jq -r '.y')
+    
+    # Calcola la nuova posizione in base alla direzione
+    case $direction in
+        "up")
+            new_x=$current_x
+            new_y=$((current_y - STEP))
+            ;;
+        "down")
+            new_x=$current_x
+            new_y=$((current_y + STEP))
+            ;;
+        "left")
+            new_x=$((current_x - STEP))
+            new_y=$current_y
+            ;;
+        "right")
+            new_x=$((current_x + STEP))
+            new_y=$current_y
+            ;;
+        *)
+            echo "Direzione non valida: $direction"
+            echo "Usage: $0 {up|down|left|right}"
+            exit 1
+            ;;
+    esac
+    
+    # Assicurati che le coordinate non siano negative
+    if [ $new_x -lt 0 ]; then
+        new_x=0
+    fi
+    if [ $new_y -lt 0 ]; then
+        new_y=0
+    fi
+    
+    # Esegui il movimento
+    echo "Muovo il mouse $direction: da ($current_x, $current_y) a ($new_x, $new_y)"
+    
+    # Prova diversi formati del comando
+    hyprctl dispatch movecursor $new_x $new_y
+}
+
+# Controlla che sia stata fornita una direzione
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 {up|down|left|right}"
+    exit 1
+fi
+
+# Esegui il movimento
+move_cursor "$1"

@@ -1,0 +1,32 @@
+#!/bin/bash
+# Usage: ./set-default-wallpaper <number>
+
+num=$1
+dir="$HOME/.config/hypr/wallpaper"
+
+cd "$dir" || { echo "Errore: directory non trovata"; exit 1; }
+
+# Trova i file 1.* e $num.*
+file1=$(ls 1.* 2>/dev/null | head -n 1)
+fileN=$(ls ${num}.* 2>/dev/null | head -n 1)
+
+if [[ -z "$fileN" ]]; then
+  echo "Errore: nessun wallpaper trovato per il numero $num"
+  exit 1
+fi
+
+if [[ -z "$file1" ]]; then
+  echo "Errore: nessun wallpaper 1.* trovato"
+  exit 1
+fi
+
+# Estrai le estensioni
+ext1="${file1##*.}"
+extN="${fileN##*.}"
+
+# Usa un nome temporaneo per evitare conflitti
+mv "$fileN" "temp.${extN}"
+mv "$file1" "${num}.${ext1}"
+mv "temp.${extN}" "1.${extN}"
+
+echo "Wallpaper $num impostato come predefinito!"

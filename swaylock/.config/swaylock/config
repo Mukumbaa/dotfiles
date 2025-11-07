@@ -1,0 +1,91 @@
+# # Immagine di sfondo
+# # image=~/.config/dotfiles/hypr/wallpaper/wall.jpg
+# color=000000
+
+# # Indicatore
+# indicator-idle-visible
+# indicator-radius=125
+
+# # Colori interni
+# inside-color=00000033
+# inside-clear-color=ffffff00
+# inside-caps-lock-color=ffffff00
+# inside-ver-color=ffffff00
+# inside-wrong-color=ffffff00
+
+# # Colori anelli
+# ring-color=ffffff
+# ring-clear-color=ffffff
+# ring-caps-lock-color=ffffff
+# ring-ver-color=ffffff
+# ring-wrong-color=ffffff
+
+# # Colori linee
+# line-color=00000000
+# line-clear-color=ffffffFF
+# line-caps-lock-color=ffffffFF
+# line-ver-color=ffffffFF
+# line-wrong-color=ffffffFF
+
+# # Colori testo
+# text-color=ffffff
+# text-clear-color=ffffff
+# text-ver-color=ffffff
+# text-wrong-color=ffffff
+
+# # Colori highlight
+# key-hl-color=00000066
+# bs-hl-color=ffffff
+# caps-lock-key-hl-color=ffffffFF
+# caps-lock-bs-hl-color=ffffffFF
+
+# # Opzioni caps lock
+# disable-caps-lock-text
+# text-caps-lock-color=ffffff
+
+# # Separatore
+# separator-color=00000000
+# Background color
+color=#191724
+
+# Layout text colors
+layout-bg-color=#00000000
+layout-border-color=#00000000
+layout-text-color=#e0def4
+
+# Text color
+text-color=#31748f
+text-clear-color=#9ccfd8
+text-caps-lock-color=#f6c177
+text-ver-color=#c4a7e7
+text-wrong-color=#eb6f92
+
+# Highlight segments
+bs-hl-color=#19172466
+key-hl-color=#31748f
+caps-lock-bs-hl-color=#19172466
+caps-lock-key-hl-color=#f6c177
+
+# Highlight segments separator
+separator-color=#00000000
+
+# Inside of the indicator
+inside-color=#31748f55
+inside-clear-color=#9ccfd855
+inside-caps-lock-color=#f6c17755
+inside-ver-color=#c4a7e755
+inside-wrong-color=#eb6f9255
+
+# Line between the inside and ring
+line-color=#31748f11
+line-clear-color=#9ccfd811
+line-caps-lock-color=#f6c17711
+line-ver-color=#c4a7e711
+line-wrong-color=#eb6f9211
+
+# Indicator ring
+ring-color=#31748faa
+ring-clear-color=#9ccfd8aa
+ring-caps-lock-color=#f6c177aa
+ring-ver-color=#c4a7e7aa
+ring-wrong-color=#eb6f92aa

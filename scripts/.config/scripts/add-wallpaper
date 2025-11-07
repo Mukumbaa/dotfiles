@@ -1,0 +1,17 @@
+#!/bin/bash
+# Usage: ./remove_wallpaper <image_path>
+
+
+image=$1 
+dir="$HOME/.config/hypr/wallpaper/"
+
+num=$(find "$dir" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" \) | wc -l)
+
+# echo $num 
+
+next=$((num + 1))
+ext="${image##*.}"
+mv "$image" "$dir/$next.$ext"
+
+
+echo "Added as: $dir/$next.$ext"

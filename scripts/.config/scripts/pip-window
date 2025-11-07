@@ -1,0 +1,51 @@
+#!/bin/bash
+
+active=$(hyprctl activewindow -j)
+pinned=$(echo "$active" | jq .pinned)
+addr=$(echo "$active" | jq -r ".address")
+[ -z "$addr" ] && { echo "No active window"; exit 0; }
+
+# Dimensioni e posizione
+# Ottieni le dimensioni dello schermo
+monitor=$(hyprctl monitors -j | jq -r '.[0]')
+screen_width=$(echo "$monitor" | jq -r '.width')
+screen_height=$(echo "$monitor" | jq -r '.height')
+
+WIDTH=600
+HEIGHT=338
+# POS_X="100%-$((WIDTH+40))"
+# POS_Y="4%"
+$MARGIN=40
+POS_X=$MARGIN
+POS_Y=$((screen_height - HEIGHT - MARGIN))
+
+if [ "$pinned" = "true" ]; then
+  # Ripristina finestra normale
+  hyprctl -q --batch \
+    "dispatch pin address:$addr;" \
+    "dispatch togglefloating address:$addr;" \
+    "dispatch tagwindow -pip address:$addr;"
+else
+  # PRIMA: Rendi floating e pin
+  hyprctl -q --batch \
+    "dispatch togglefloating address:$addr;" \
+    "dispatch pin address:$addr;"
+  
+  sleep 0.2
+  
+  # SECONDO: Applica dimensioni e proprietà
+  hyprctl -q --batch \
+    "dispatch resizeactive exact $WIDTH $HEIGHT address:$addr;" \
+    "dispatch setprop keepaspectratio true address:$addr;" \
+    "dispatch setprop bordersize 2 address:$addr;" \
+    "dispatch setprop bordercolor rgb(f6c177) address:$addr;" \
+    "dispatch setprop rounding 10 address:$addr;"
+  
+  sleep 0.1
+  
+  # TERZO: Sposta nella posizione finale e metti in primo piano
+  hyprctl -q --batch \
+    "dispatch centerwindow address:$addr;" \
+    "dispatch alterzorder top address:$addr;" \
+    "dispatch tagwindow +pip address:$addr;"
+fi

@@ -1,0 +1,128 @@
+theme="rose_pine"
+  
+[editor]
+line-number = "relative"
+mouse = true
+cursorline = true
+# bufferline = "multiple"
+color-modes = true
+true-color = true
+completion-trigger-len = 1
+end-of-line-diagnostics = "hint"
+auto-completion = true
+
+
+[editor.soft-wrap]
+enable = true
+max-wrap = 25 # increase value to reduce forced mid-word wrapping
+max-indent-retain = 0
+wrap-indicator = ""  # set wrap-indicator to "" to hide it
+
+[editor.inline-diagnostics]
+cursor-line = "warning"
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "block"
+
+[editor.lsp]
+# Disable automatically popups of signature parameter help
+auto-signature-help = false
+#LSP messages in the status line
+display-messages = true
+
+[editor.gutters]
+layout = ["diagnostics", "line-numbers", "spacer", "spacer"]
+
+[keys.normal."m"]
+"w" = "@miw"
+"t" = "@T<S-gt>;vt<lt><esc>"
+
+[keys.normal." "."c"]
+"c" = ":config-open"
+"l" = ":open /home/uni/.config/helix/languages.toml"
+"r" = ":config-reload"
+
+[keys.normal]
+"esc" = ":w!"
+"A-b" = ":buffer-close"
+"A-B" = ":buffer-close-others"
+"R" = ["delete_selection", "move_char_left", "paste_clipboard_after"]
+"C-A-[" = { d = "goto_prev_diag", D = "goto_first_diag", f = "goto_prev_function", c = "goto_prev_comment", a = "goto_prev_parameter", t = "goto_prev_class", p = "goto_prev_paragraph", T = "goto_prev_test", g = "goto_prev_change", G = "goto_first_change", space = "add_newline_above" }
+"C-A-]" = { d = "goto_next_diag", D = "goto_last_diag", f = "goto_next_function", c = "goto_next_comment", a = "goto_next_parameter", t = "goto_next_class", p = "goto_next_paragraph", T = "goto_next_test", g = "goto_next_change", G = "goto_last_change", space = "add_newline_below" }
+#append remap in order to not see the selection 
+# "a" = ["move_prev_word_start","move_next_word_end","move_char_right","insert_mode"]
+"a" = ["move_char_right","insert_mode"]
+#tab remap to move between buffers
+"tab" = "goto_next_buffer"
+"S-tab" = "goto_previous_buffer"
+#move line or selection up/down
+"A-j" = ["extend_to_line_bounds","delete_selection","paste_after"]
+"A-k" = ["extend_to_line_bounds","delete_selection","move_line_up","paste_before"]
+#paste the line or selection up/down
+"A-J" = ["extend_to_line_bounds","yank","paste_after"]
+"A-K" = ["extend_to_line_bounds","yank","paste_before"]
+#start the selection
+"C-d" = ["keep_primary_selection",  "search_selection", "select_mode"]
+#jump 15 lines up/down
+"A-8" = "@15j"
+"A-9" = "@15k"
+#universal yank/paste
+"y" = "yank_main_selection_to_clipboard"
+"p" = "paste_clipboard_after"
+#remap to trim whitespacese and for b to face always forward
+"w" = ["move_next_word_end","trim_selections"]
+"b" = ["flip_selections","move_prev_word_start","trim_selections","flip_selections"]
+"A-d" = ["yank_main_selection_to_clipboard", "delete_selection"]
+#go back one line
+"X" = ["extend_line_up", "extend_to_line_bounds"]
+"D" =["goto_first_nonwhitespace", "select_mode", "goto_line_end", "change_selection"]
+
+[keys.insert]
+esc = [":w!", "normal_mode"]
+"A-w" = ["move_char_left","move_next_word_start","append_mode","move_char_left","move_char_right"]
+"A-b" = ["normal_mode","move_prev_word_start","insert_mode","move_char_right","move_char_left"] 
+"A-p" = ["normal_mode","paste_clipboard_before","append_mode","move_char_right","move_char_left"] 
+#movement with hjkl in insert mode
+"A-h" =["normal_mode","move_char_left","insert_mode"]
+"A-l" =["normal_mode","move_char_right","insert_mode"]
+"A-j" =["normal_mode","move_visual_line_down","insert_mode"]
+"A-k" =["normal_mode","move_visual_line_up","insert_mode"]
+"A-u" = ["normal_mode", "undo", "insert_mode"]
+
+[keys.select]
+esc = ["normal_mode",":write-all!"]
+#select the next occurence of the selected text
+"C-d" = ["search_selection", "extend_search_next"]
+"y" = "yank_main_selection_to_clipboard"
+"p" = "paste_clipboard_after"
+
+[editor.statusline]
+left = [
+  "mode", 
+  "separator",
+  "spinner", 
+  "separator",
+  "version-control",
+  "separator",
+  "file-modification-indicator"
+]
+center = ["file-name"]
+right = [ 
+  "diagnostics",
+  "separator",
+  "selections",
+  "separator",
+  "position",
+  "separator",
+  "file-encoding",
+  "separator",
+  "file-line-ending",
+  "separator",
+  "file-type",
+]
+separator = ""
+mode.normal = "NORMAL"
+mode.insert = "INSERT"
+mode.select = "SELECT"

@@ -1,0 +1,9 @@
+Monitor|alacritty -e hx ~/.config/dotfiles/hypr/monitor.conf
+Windows|alacritty -e hx ~/.config/dotfiles/hypr/windows.conf
+Input|alacritty -e hx ~/.config/dotfiles/hypr/input.conf
+Look and Feel|alacritty -e hx ~/.config/dotfiles/hypr/look-and-feel.conf
+Keybindings|alacritty -e hx ~/.config/dotfiles/hypr/keybindings.conf
+Hyprpaper|alacritty -e hx ~/.config/dotfiles/hypr/hyprpaper.conf
+Default Programs|alacritty -e hx ~/.config/dotfiles/hypr/default-programs.conf
+Alacritty|alacritty -e hx ~/.config/dotfiles/alacritty/alacritty.toml
+Alias|alacritty -e hx ~/.config/dotfiles/bash/aliases

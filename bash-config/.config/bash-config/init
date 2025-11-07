@@ -1,0 +1,8 @@
+eval "$(starship init bash)"
+
+bind "set completion-ignore-case on"
+
+export PATH="$HOME/go/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.config/scripts:$PATH"
+export XDG_DATA_DIRS="$HOME/.local/share:$XDG_DATA_DIRS"

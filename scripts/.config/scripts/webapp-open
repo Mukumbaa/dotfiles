@@ -1,0 +1,3 @@
+#!/bin/bash
+
+$(xdg-settings get default-web-browser | sed 's/\.desktop//') --app=$1

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+INTERNAL="eDP-1"
+EXTERNAL=$(hyprctl monitors | grep "Monitor" | awk '{print $2}' | grep -v "$INTERNAL" | head -n 1)
+
+# Controlla se esiste un monitor esterno
+if [ -z "$EXTERNAL" ]; then
+    echo "Nessun monitor esterno trovato!"
+    exit 1
+fi
+
+if [ "$1" == "i" ]; then
+    hyprctl keyword monitor "$EXTERNAL,disable"
+    sleep 5
+    hyprctl reload
+    hyprctl dispatch focusmonitor "$INTERNAL"
+else
+    hyprctl keyword monitor "$INTERNAL,disable"
+    hyprctl keyword monitor "$EXTERNAL,preferred,auto,1"
+    hyprctl dispatch focusmonitor "$EXTERNAL"
+fi

@@ -1,0 +1,68 @@
+# PYTHON
+# (in the venv)
+# pip install ruff basedpyright
+
+[[language]]
+name = "python"
+language-servers = ["basedpyright", "ruff"]
+[language-server.basedpyright.config.python.analysis]
+typeCheckingMode = "off"
+[language-server.ruff]
+command = "ruff"
+args = ["server"]
+
+
+# JAVASCRIPT / TYPESCRIPT
+# npm install -g typescript typescript-language-server
+# npm i -g vscode-langservers-extracted@4.8
+# npm install -g typescript typescript-language-server && npm install -g typescript typescript-language-server
+# npm install -g typescript typescript-language-server && npm i -g vscode-langservers-extracted@4.8 && npm install -g typescript typescript-language-server && npm install -g typescript typescript-language-server
+[[language]]
+name = "javascript"
+language-servers = [
+  "typescript-language-server", # optional
+  "vscode-eslint-language-server",
+]
+[[language]]
+name = "typescript"
+language-servers = [
+  "typescript-language-server",
+  "vscode-eslint-language-server",
+]
+
+# GO
+# go install golang.org/x/tools/gopls@latest                            # LSP
+# go install github.com/nametake/golangci-lint-langserver@latest        # Linter
+# go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest # Linter cli
+# go install golang.org/x/tools/cmd/goimports@latest                    # Formatter
+# go install github.com/go-delve/delve/cmd/dlv@latest                   # Debugger
+# go install golang.org/x/tools/gopls@latest && go install github.com/nametake/golangci-lint-langserver@latest && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && go install golang.org/x/tools/cmd/goimports@latest && go install github.com/go-delve/delve/cmd/dlv@latest
+[[language]]
+name = "go"
+auto-format = false
+language-servers = [ "gopls" ]
+
+# C
+# scoop bucket add versions
+# scoop install versions/mingw-winlibs-llvm-msvcrt
+# scoop bucket add versions && scoop install versions/mingw-winlibs-llvm-msvcrt
+[[language]]
+name = "c"
+file-types = ["c", "h"]
+
+[[language]]
+name = "cpp"
+file-types = ["cpp", "hpp", "cc", "hh"]
+
+
+# rustup install stable-x86_64-pc-windows-gnu
+# rustup default stable-x86_64-pc-windows-gnu
+# cargo install --git https://github.com/Myriad-Dreamin/tinymist --locked tinymist-cli
+# rustup install stable-x86_64-pc-windows-gnu && rustup default stable-x86_64-pc-windows-gnu && cargo install --git https://github.com/Myriad-Dreamin/tinymist --locked tinymist-cli 
+[language-server.tinymist]
+command = "tinymist"
+config = { preview = { background = { enabled = true, args = [
+  "--data-plane-host=127.0.0.1:23635",
+  "--invert-colors=never",
+  "--open"
+] } } }

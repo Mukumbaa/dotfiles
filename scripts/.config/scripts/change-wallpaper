@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WALLPAPER_DIR="$HOME/.config/hypr/wallpaper"
+CURRENT_WALL="$HOME/.config/hypr/current_wallpaper"
+
+# Estensioni riconosciute (aggiungi se vuoi)
+exts="jpg jpeg png webp bmp"
+
+# Crea il file di stato se non esiste
+mkdir -p "$(dirname "$CURRENT_WALL")"
+if [ ! -f "$CURRENT_WALL" ]; then
+    echo "0" > "$CURRENT_WALL"
+fi
+
+# Leggi numero corrente (assicurati sia un numero; altrimenti 0)
+current_num=$(cat "$CURRENT_WALL" 2>/dev/null || echo "1")
+if ! [[ "$current_num" =~ ^[0-9]+$ ]]; then
+    current_num=1
+fi
+
+# Raccogli file con nomi numerici (basename senza estensione è solo cifre)
+shopt -s nullglob
+files=()
+for f in "$WALLPAPER_DIR"/*; do
+    base="$(basename "$f")"
+    name="${base%.*}"
+    if [[ "$name" =~ ^[0-9]+$ ]]; then
+        files+=("$f")
+    fi
+done
+shopt -u nullglob
+
+if [ ${#files[@]} -eq 0 ]; then
+    echo "Nessun wallpaper numerato trovato in $WALLPAPER_DIR"
+    exit 1
+fi
+
+# Mappa numero -> percorso e crea lista di numeri
+declare -A map
+nums=()
+for f in "${files[@]}"; do
+    base="$(basename "$f")"
+    num="${base%.*}"
+    map[$num]="$f"
+    nums+=("$num")
+done
+
+# Ordina numeri numericamente
+IFS=$'\n' sorted_nums=($(printf "%s\n" "${nums[@]}" | sort -n))
+unset IFS
+
+# Trova la posizione del current_num nella lista ordinata
+len=${#sorted_nums[@]}
+next_index=0
+found=false
+for i in "${!sorted_nums[@]}"; do
+    if [ "${sorted_nums[$i]}" -eq "$current_num" ] 2>/dev/null; then
+        next_index=$(( (i + 1) % len ))
+        found=true
+        break
+    fi
+done
+
+# Se current_num non è nella lista (es. primo avvio o file cambiati), scegli il primo
+if [ "$found" = false ]; then
+    next_index=0
+fi
+
+chosen_num="${sorted_nums[$next_index]}"
+wallpaper="${map[$chosen_num]}"
+
+# Salva il nuovo numero corrente
+echo "$chosen_num" > "$CURRENT_WALL"
+
+# Applica il wallpaper su Hyprland
+if [ -n "$wallpaper" ] && [ -f "$wallpaper" ]; then
+    # killall hyprpaper 2>/dev/null
+    # sleep 0.5
+    hyprctl hyprpaper preload "$wallpaper"
+    hyprctl hyprpaper wallpaper ",$wallpaper"
+    # uccide il processo hyprpaper (se presente) e fa la chiamata
+    # killall hyprpaper 2>/dev/null || true
+    # sleep 0.3
+    # La tua riga funzionante era: hyprctl hyprpaper ",$wallpaper"
+    # Manteniamo quella sintassi
+    # hyprctl hyprpaper ",$wallpaper"
+    echo "Wallpaper impostato: $wallpaper"
+else
+    echo "Errore: file wallpaper non trovato per il numero $chosen_num"
+    exit 1
+fi
