@@ -1,3 +1,5 @@
 ```
-sudo dnf install stow; stow-all; source ~/.bashrc; sudo install_1; source ~/.bashrc; install_2
+cd ~\
+git clone https://github.com/Mukumbaa/dotfiles\
+source install
 ```
