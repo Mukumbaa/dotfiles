@@ -124,7 +124,9 @@
     "spacing": 10,
   },
   "hyprland/language": {
-    "format": "{short}",
-    "on-click": "hyprctl switchxkblayout current next"
+    "format": "{}",
+    "format-it": "IT",
+    "format-en-altgr-intl": "US",
+    "on-click": "hyprctl switchxkblayout all next"
   }
 }
