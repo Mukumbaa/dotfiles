@@ -30,6 +30,7 @@
   opacity: 0.5;
 }
 #battery,
+#cpu,
 #backlight,
 #pulseaudio,
 #network,
