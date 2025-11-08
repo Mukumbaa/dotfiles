@@ -45,6 +45,7 @@ layout = ["diagnostics", "line-numbers", "spacer", "spacer"]
 "r" = ":config-reload"
 
 [keys.normal]
+"ret" = "@gw"
 "esc" = ":w!"
 "A-b" = ":buffer-close"
 "A-B" = ":buffer-close-others"
