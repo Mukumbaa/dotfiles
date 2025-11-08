@@ -39,6 +39,13 @@
   margin-right: 15px;
 }
 
+#language{
+  margin-top: 1px;
+}
+#custom-expand-icon{
+  margin-top: 2px;
+}
+
 #tray{
   margin-right: 10px;
 }
