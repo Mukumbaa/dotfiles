@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo "Installing all..."
+
+sudo bash -c "
+dnf install stow -y
+./stow-all
+source ~/.bashrc
+./install_1
+source ~/.bashrc
+./install_2
+"
+
+echo "Done!"
