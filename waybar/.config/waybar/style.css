@@ -30,18 +30,15 @@
   opacity: 0.5;
 }
 #battery,
-#language,
+#backlight,
 #pulseaudio,
-#backlight{
-  margin-right: 15px;
-}
+#network,
+#bluetooth,
 #custom-expand-icon,
-#cpu ,
-#bluetooth ,
-#network{
-  font-size: 16px;
+#language{
   margin-right: 15px;
 }
+
 #tray{
   margin-right: 10px;
 }

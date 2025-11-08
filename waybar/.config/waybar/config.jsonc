@@ -57,10 +57,10 @@
     // "format-wifi": "{icon} {essid}",
     // "format-ethernet": "󰀂",
     // "format-disconnected": "󰤮",
-    "format": "<span size='large'>{icon}</span>",
-    "format-wifi": "<span size='large'>{icon}</span> <span rise='1500' size='9216'>{essid}</span>",
+    "format": "<span size='x-large'>{icon}</span>",
+    "format-wifi": "<span size='x-large'>{icon}</span> <span rise='1500' size='9216'>{essid}</span>",
     "format-ethernet": "<span size='large'>󰀂</span>",
-    "format-disconnected": "<span size='large'>󰤮</span>",
+    "format-disconnected": "<span size='x-large'>󰤮</span>",
     "tooltip-format-wifi": "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
     "tooltip-format-ethernet": "⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
     "tooltip-format-disconnected": "Disconnected",
@@ -69,9 +69,9 @@
     "on-click": "alacritty -e nmtui"
   },
   "battery": {
-    "format": "<span rise='500' size='9216'>{capacity}%</span> <span size='large'>{icon}</span>",
-    "format-discharging": "<span rise='500' size='9216'>{capacity}%</span> <span size='large'>{icon}</span>",
-    "format-charging": "<span rise='500' size='9216'>{capacity}%</span> <span size='x-large'>{icon}</span>",
+    "format": "<span rise='1500' size='9216'>{capacity}%</span> <span size='large'>{icon}</span>",
+    "format-discharging": "<span rise='1500' size='9216'>{capacity}%</span> <span size='large'>{icon}</span>",
+    "format-charging": "<span rise='1500' size='9216'>{capacity}%</span> <span size='x-large'>{icon}</span>",
     "format-plugged": "",
     "format-icons": {
       "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
@@ -87,9 +87,9 @@
     }
   },
   "bluetooth": {
-    "format": "",
-    "format-disabled": "󰂲",
-    "format-connected": "󰂱",
+    "format": "<span size='x-large'></span>",
+    "format-disabled": "<span size='x-large'>󰂲</span>",
+    "format-connected": "<span size='x-large'>󰂱</span>",
     "tooltip-format": "Devices connected: {num_connections}",
     "on-click": "blueman-manager"
   },
@@ -104,7 +104,7 @@
   },
   "backlight": {
     "device": "brightnessctl", // Adjust this to your specific backlight device
-    "format": "<span rise='500' size='9216'>{percent}%</span> <span size='large'>{icon}</span>",
+    "format": "<span rise='1500' size='9216'>{percent}%</span> <span size='x-large'>{icon}</span>",
     "format-icons": ["", ""],
   },
   "group/tray-expander": {
@@ -116,7 +116,7 @@
     "modules": ["custom/expand-icon", "tray"]
   },
   "custom/expand-icon": {
-    "format": "",
+    "format": "<span size='x-large'></span>",
     "tooltip": false
   },
   "tray": {
