@@ -125,6 +125,6 @@
   },
   "hyprland/language": {
     "format": "{short}",
-    "on-click": "hyprctl switchxkblayout at-translated-set-2-keyboard next"
+    "on-click": "hyprctl switchxkblayout current next"
   }
 }
