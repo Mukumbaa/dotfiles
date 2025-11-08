@@ -22,7 +22,6 @@ _darcs
 ^/LICENSE.*
 ^/COPYING
 
-\.setup
 stow-all
 install
 install_1
