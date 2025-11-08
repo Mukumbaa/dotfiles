@@ -23,3 +23,7 @@ _darcs
 ^/COPYING
 
 \.setup
+stow-all
+install
+install_1
+install_2
