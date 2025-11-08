@@ -125,8 +125,10 @@
   },
   "hyprland/language": {
     "format": "{}",
+    "format-Italian": "IT",
     "format-it": "IT",
     "format-en-altgr-intl": "US",
-    "on-click": "hyprctl switchxkblayout all next"
+    "on-click": "hyprctl switchxkblayout all next",
   }
+    
 }
