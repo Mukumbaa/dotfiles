@@ -19,6 +19,7 @@
   margin-right: 8px;
 }
 
+#custom-fedoraicon,
 #workspaces button {
   all: initial;
   padding: 0 6px;
@@ -29,6 +30,10 @@
 #workspaces button.empty {
   opacity: 0.5;
 }
+/* #custom-fedoraicon{ */
+  /* margin-left: 5px; */
+  /* margin-right: 10px; */
+/* } */
 #battery,
 #cpu,
 #backlight,
