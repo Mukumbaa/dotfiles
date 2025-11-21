@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ "$(ps -fC waybar | grep waybar | wc -l)" -gt 0 ]; then
+  pkill waybar
+else
+  waybar & disown
+fi 
