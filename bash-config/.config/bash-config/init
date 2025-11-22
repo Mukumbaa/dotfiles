@@ -1,5 +1,4 @@
 eval "$(starship init bash)"
-eval "$(<Homebrew prefix path>/bin/brew shellenv)"
 
 bind "set completion-ignore-case on"
 
