@@ -107,6 +107,7 @@
   "backlight": {
     "device": "brightnessctl", // Adjust this to your specific backlight device
     "format": "<span rise='1500' size='9216'>{percent}%</span> <span size='x-large'>{icon}</span>",
+    "tooltip-format": "Monitor light: {percent}%",
     "format-icons": ["", ""],
   },
   "group/tray-expander": {
