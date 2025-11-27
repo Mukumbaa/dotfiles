@@ -1,9 +1,14 @@
+#REMOVE BLOAT
+sudo dnf group remove libreoffice -y
+sudo dnf remove libreoffice* -y
+
 sudo dnf update -y
+
 #PROGRAMS
+curl -sS https://starship.rs/install.sh | sh
 sudo dnf copr enable lionheartp/Hyprland -y
 sudo dnf install hyprland hyprpaper -y
 sudo dnf install swaylock waybar alacritty alacritty helix btop -y
-curl -sS https://starship.rs/install.sh | sh
 sudo dnf install foot dolphin -y
 sudo dnf install google-chrome-stable -y
 sudo dnf install stow -y
@@ -25,9 +30,6 @@ sudo dnf install cascadia-mono-nf-fonts -y
 #LANGAUGES
 sudo dnf install gcc clangd golang rustup -y
 
-#REMOVE BLOAT
-sudo dnf group remove libreoffice -y
-sudo dnf remove libreoffice* -y
 
 #Install wifi gui
 sudo curl -L https://github.com/s-adi-dev/nmgui/releases/download/v1.0.0/main.bin -o /usr/bin/nmgui
