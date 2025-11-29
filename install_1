@@ -11,7 +11,7 @@ sudo dnf install hyprland hyprpaper -y
 sudo dnf install swaylock waybar alacritty alacritty helix btop -y
 sudo dnf install foot dolphin -y
 sudo dnf install google-chrome-stable -y
-sudo dnf install stow -y
+sudo dnf install stow lsd -y
 
 sudo dnf install fd-find -y
 sudo dnf install qalculate -y
