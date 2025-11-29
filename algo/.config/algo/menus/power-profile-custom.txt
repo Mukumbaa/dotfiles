@@ -1,0 +1,3 @@
+Name=Balanced|Exec=tuned-adm profile balanced-battery|Terminal=true
+Name=Power Saver|Exec=tuned-adm profile powersave|Terminal=true
+Name=Performance|Exec=tuned-adm profile throughput-performance|Terminal=true
