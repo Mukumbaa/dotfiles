@@ -1,3 +1,10 @@
 #!/bin/bash
 
-$(xdg-settings get default-web-browser | sed 's/\.desktop//') --app=$1
+# $(xdg-settings get default-web-browser | sed 's/\.desktop//') --app=$1
+
+
+if [ $# -eq 1 ]; then
+  $(xdg-settings get default-web-browser | sed 's/\.desktop//') --app=$1
+elif [ $# -eq 2 ]; then
+  $1 --app=$2
+fi
