@@ -98,6 +98,7 @@
   "pulseaudio": {
     "format": "<span rise='1500' size='9216'>{volume}%</span> <span size='x-large'>{icon}</span>",
     "tooltip-format": "Playing at {volume}%",
+    "on-click": "alacritty --class menus -e wiremix",
     "scroll-step": 5,
     "format-muted": "<span rise='1500' size='9216'>0%</span> <span size='x-large'>󰝟</span>",
     "format-icons": {
