@@ -86,7 +86,8 @@
     "states": {
       "warning": 20,
       "critical": 10
-    }
+    },
+    "on-click": "alacritty --class algo -e algo ~/.config/algo/menus/power-profile-custom.txt"
   },
   "bluetooth": {
     "format": "<span size='x-large'></span>",
