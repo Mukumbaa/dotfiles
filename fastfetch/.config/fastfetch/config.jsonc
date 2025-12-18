@@ -98,14 +98,9 @@
     },
     {
       "type": "command",
-      "key": "├󰸌",
+      "key": "└󰸌",
       "keyColor": "blue",
       "text": "echo -e \"\\e[38m●\\e[37m●\\e[36m●\\e[35m●\\e[34m●\\e[33m●\\e[32m●\\e[31m●\""
-    },
-    {
-      "type": "terminalfont",
-      "key": "└",
-      "keyColor": "blue"
     },
     {
       "type": "custom",
