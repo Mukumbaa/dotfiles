@@ -7,7 +7,7 @@ sudo dnf update -y
 #PROGRAMS
 curl -sS https://starship.rs/install.sh | sh
 sudo dnf copr enable lionheartp/Hyprland -y
-sudo dnf install hyprland hyprpaper -y
+sudo dnf install hyprland hyprpaper hyprlock -y
 sudo dnf install swaylock waybar alacritty alacritty helix btop -y
 sudo dnf install foot dolphin wiremix -y
 sudo dnf install google-chrome-stable -y
