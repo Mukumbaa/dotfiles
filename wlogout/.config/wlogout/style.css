@@ -13,7 +13,7 @@ window {
 button {
     background-repeat: no-repeat;
     background-position: center;
-    background-size: 30%;
+    background-size: 10%;
     border: none;
     background-color: rgba(22, 22, 22, 1);
     margin: 18px;
@@ -21,6 +21,8 @@ button {
     border-radius: 30px;
     outline: none;
     transition: box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    min-width: 150px;
+    min-height: 150px;
 }
 
 
@@ -40,28 +42,12 @@ button:hover {
 #lock:focus, #lock:hover {
     background-image: image(url("./icons/lock_dark.svg"));
 }
-
-#logout {
-    background-image: image(url("./icons/logout_light.svg"));
-}
-#logout:focus, #logout:hover {
-    background-image: image(url("./icons/logout_dark.svg"));
-}
-
-#suspend {
-    background-image: image(url("./icons/suspend_light.svg"));
-}
-#suspend:focus, #suspend:hover {
-    background-image: image(url("./icons/suspend_dark.svg"));
-}
-
 #shutdown {
     background-image: image(url("./icons/shutdown_light.svg"));
 }
 #shutdown:focus, #shutdown:hover {
     background-image: image(url("./icons/shutdown_dark.svg"));
 }
-
 #reboot {
     background-image: image(url("./icons/reboot_light.svg"));
 }
@@ -69,9 +55,3 @@ button:hover {
     background-image: image(url("./icons/reboot_dark.svg"));
 }
 
-#hibernate {
-    background-image: image(url("./icons/hibernate_light.svg"));
-}
-#hibernate:focus, #hibernate:hover {
-    background-image: image(url("./icons/hibernate_dark.svg"));
-}

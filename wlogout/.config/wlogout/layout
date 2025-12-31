@@ -5,14 +5,32 @@
     "keybind" : "l"
 }
 {
-    "label" : "shutdown",
-    "action" : "~/.config/scripts/power-off",
-    "text" : "Power off",
-    "keybind" : "p"
+    "label" : "balanced",
+    "action" : "tuned-adm profile balanced-battery",
+    "text" : "Balanced",
+    "keybind" : "b"
 }
 {
     "label" : "reboot",
     "action" : "reboot",
     "text" : "Reboot",
     "keybind" : "r"
+}
+{
+    "label" : "powersaver",
+    "action" : "tuned-adm profile powersave",
+    "text" : "Power saver",
+    "keybind" : "p"
+}
+{
+    "label" : "shutdown",
+    "action" : "~/.config/scripts/power-off",
+    "text" : "Shutdown",
+    "keybind" : "s"
+}
+{
+    "label" : "performance",
+    "action" : "tuned-adm profile throughput-performance",
+    "text" : "Performance",
+    "keybind" : "t"
 }
