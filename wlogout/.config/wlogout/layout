@@ -6,7 +6,7 @@
 }
 {
     "label" : "shutdown",
-    "action" : "~/.config/scripts/power-off.sh",
+    "action" : "~/.config/scripts/power-off",
     "text" : "Power off",
     "keybind" : "p"
 }
