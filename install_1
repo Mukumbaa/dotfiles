@@ -32,7 +32,7 @@ sudo dnf copr enable lionheartp/Hyprland -y
 sudo dnf install -y \
 hyprland hyprpaper hyprlock hyprland-guiutils \
 swaylock wlogout waybar alacritty helix btop \
-foot dolphin wiremix \
+wiremix \
 google-chrome-stable \
 stow lsd \
 fd-find qalculate \
