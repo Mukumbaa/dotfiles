@@ -6,27 +6,45 @@ sudo dnf update -y
 
 #PROGRAMS
 curl -sS https://starship.rs/install.sh | sh
+# sudo dnf copr enable lionheartp/Hyprland -y
+# sudo dnf install hyprland hyprpaper hyprlock -y
+# sudo dnf install swaylock wlogout waybar alacritty alacritty helix btop -y
+# sudo dnf install foot dolphin wiremix -y
+# sudo dnf install google-chrome-stable -y
+# sudo dnf install stow lsd -y
+
+# sudo dnf install fd-find -y
+# sudo dnf install qalculate -y
+# sudo dnf install -y dbus-devel pkgconf-pkg-config -y
+# sudo dnf install gh -y
+# sudo dnf install blueman nmtui -y
+# sudo dnf install flameshot -y
+# sudo dnf install pipx
+# pipx install calcure
+# pipx ensurepath
+
+# sudo dnf install cascadia-mono-nf-fonts -y
+# #LANGAUGES
+# sudo dnf install gcc clangd golang rustup -y
+
 sudo dnf copr enable lionheartp/Hyprland -y
-sudo dnf install hyprland hyprpaper hyprlock -y
-sudo dnf install swaylock wlogout waybar alacritty alacritty helix btop -y
-sudo dnf install foot dolphin wiremix -y
-sudo dnf install google-chrome-stable -y
-sudo dnf install stow lsd -y
 
-sudo dnf install fd-find -y
-sudo dnf install qalculate -y
-sudo dnf install -y dbus-devel pkgconf-pkg-config -y
-sudo dnf install gh -y
-sudo dnf install blueman nmtui -y
-sudo dnf install flameshot -y
-sudo dnf install pipx
-pipx install calcure
-pipx ensurepath
+sudo dnf install -y \
+hyprland hyprpaper hyprlock hyprland-guiutils \
+swaylock wlogout waybar alacritty helix btop \
+foot dolphin wiremix \
+google-chrome-stable \
+stow lsd \
+fd-find qalculate \
+dbus-devel pkgconf-pkg-config \
+gh \
+blueman nmtui \
+flameshot \
+pipx \
+cascadia-mono-nf-fonts \
+gcc clangd golang rustup
 
-sudo dnf install cascadia-mono-nf-fonts -y
-#LANGAUGES
-sudo dnf install gcc clangd golang rustup -y
-
+pipx install ensurepath
 
 #Install wifi gui
 sudo curl -L https://github.com/s-adi-dev/nmgui/releases/download/v1.0.0/main.bin -o /usr/bin/nmgui

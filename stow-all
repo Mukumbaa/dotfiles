@@ -2,7 +2,8 @@
 
 stow alacritty
 stow bash-config
-stow --adopts bashrc
+rm ~/.bashrc
+stow bashrc
 stow btop
 stow fastfetch
 stow helix
@@ -11,5 +12,4 @@ stow scripts
 stow starship
 stow swaylock
 stow waybar
-stow wofi
-
+stow wlogout
