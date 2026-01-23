@@ -36,6 +36,7 @@ wiremix \
 google-chrome-stable \
 stow lsd \
 fd-find qalculate \
+gnome-tweaks gnome-themes-extra \
 dbus-devel pkgconf-pkg-config \
 gh \
 blueman nmtui \
