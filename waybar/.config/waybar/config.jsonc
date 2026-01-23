@@ -145,7 +145,7 @@
     "signal": 8,
     "format": "{}",
     // When you click the module, switch layout AND tell waybar to update
-    "on-click": "hyprlandctl switchxkblayout all next; pkill -RTMIN+8 waybar",
+    "on-click": "hyprctl switchxkblayout all next; pkill -RTMIN+8 waybar",
     "tooltip": false
   },
 }
