@@ -2,8 +2,13 @@
 profile docked {
   output "ASUSTek COMPUTER INC ROG PG278QR H4LMQS046450" enable mode 2560x1440 position 0,0 scale 1
   output "eDP-1" disable
+  exec hyprctl keyword unbind  , switch:on:Lid Switch, exec, hyprlock
+  exec hyprctl keyword unbind  , switch:off:Lid Switch, exec, hyprctl dispatch dpms on
 }
 
 profile undocked {
   output "eDP-1" enable position 0,0
+  exec hyprctl keyword bind  , switch:on:Lid Switch, exec, hyprlock
+  exec hyprctl keyword bind  , switch:off:Lid Switch, exec, hyprctl dispatch dpms on
+  exec hyprctl reload
 }
