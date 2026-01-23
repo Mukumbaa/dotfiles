@@ -5,12 +5,13 @@
   "spacing": 0,
   "height": 26,
   "modules-left": [
-    "hyprland/workspaces"
+    "hyprland/workspaces",
   ],
   "modules-center": ["clock"],
   "modules-right": [
     "group/tray-expander",
-    "hyprland/language",
+    // "hyprland/language",
+    "custom/language",
     "cpu",
     "bluetooth",
     "network",
@@ -133,6 +134,18 @@
     "format-Italian": "IT",
     "format-it": "IT",
     "format-en-altgr-intl": "US",
-  }
-    
+    "keyboard-name": "at-translated-set-2-keyboard"
+
+  },
+  
+"custom/language": {
+    "exec": "hyprctl devices -j | jq -r '.keyboards[] | select(.main == true) | .active_keymap' | sed 's/Italian/IT/g;s/English.*/US/g'",
+    // Only run once on startup, then wait for signal
+    "interval": "once",
+    "signal": 8,
+    "format": "{}",
+    // When you click the module, switch layout AND tell waybar to update
+    "on-click": "hyprlandctl switchxkblayout all next; pkill -RTMIN+8 waybar",
+    "tooltip": false
+  },
 }

@@ -29,6 +29,7 @@
 #workspaces button.empty {
   opacity: 0.5;
 }
+#prova,
 #battery,
 #cpu,
 #backlight,
@@ -36,6 +37,7 @@
 #network,
 #bluetooth,
 #custom-expand-icon,
+#custom-language,
 #language{
   margin-right: 15px;
 }
