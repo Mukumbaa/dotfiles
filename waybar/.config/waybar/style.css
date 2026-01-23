@@ -30,7 +30,6 @@
   opacity: 0.5;
 }
 #prova,
-#battery,
 #cpu,
 #backlight,
 #pulseaudio,
@@ -40,6 +39,9 @@
 #custom-language,
 #language{
   margin-right: 15px;
+}
+#battery{
+  margin-right: 8px;
 }
 
 #language{
