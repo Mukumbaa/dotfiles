@@ -33,6 +33,7 @@ sudo dnf install -y \
 hyprland hyprpaper hyprlock hyprland-guiutils \
 swaylock wlogout waybar alacritty helix btop \
 wiremix \
+kanshi \
 google-chrome-stable \
 stow lsd \
 fd-find qalculate \

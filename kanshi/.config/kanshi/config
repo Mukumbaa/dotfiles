@@ -1,6 +1,6 @@
 
 profile docked {
-  output "DP-2" enable mode 2560x1440@60 position 0,0 scale 1
+  output "ASUSTek COMPUTER INC ROG PG278QR H4LMQS046450" enable mode 2560x1440 position 0,0 scale 1
   output "eDP-1" disable
 }
 
