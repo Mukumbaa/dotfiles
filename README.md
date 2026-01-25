@@ -2,7 +2,9 @@
 cd
 git clone https://github.com/Mukumbaa/dotfiles
 cd dotfiles
-source install
+./install
+source ~/.bashrc
+./install_2
 ```
 
 
