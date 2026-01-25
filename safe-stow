@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# 1. SETUP BACKUP DIRECTORY
+# -------------------------
+BACKUP_DIR="$HOME/.dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+echo ":: Any conflicting files will be moved to: $BACKUP_DIR"
+
+# 2. DEFINE THE LOGIC
+# -------------------
+safe_stow() {
+    PKG=$1
+    TARGET_PATH=$2
+
+    # Check if the target exists
+    if [ -e "$TARGET_PATH" ]; then
+        if [ -L "$TARGET_PATH" ]; then
+            # It's a symlink: Safe to remove
+            echo "   Removing old symlink for $PKG"
+            rm "$TARGET_PATH"
+        else
+            # It's a real file/directory: MUST BACKUP
+            echo "!! Real config found for $PKG. Moving to backup..."
+            # Create the parent dir in backup to maintain structure
+            mkdir -p "$BACKUP_DIR/$(dirname "${TARGET_PATH#$HOME/}")"
+            mv "$TARGET_PATH" "$BACKUP_DIR/${TARGET_PATH#$HOME/}"
+        fi
+    fi
+
+    # Run Stow
+    echo "-> Stowing $PKG"
+    stow "$PKG"
+}
+
+# 3. APPLY TO PACKAGES
+# --------------------
+
+# --- GROUP A: Standard .config folders ---
+# These packages all map to ~/.config/<name>
+CONFIG_PACKAGES=(
+    "alacritty"
+    "bash-config"
+    "btop"
+    "fastfetch"
+    "helix"
+    "hypr"
+    "scripts"
+    "waybar"
+    "wlogout"
+    "kanshi"
+    "algo"
+)
+
+for pkg in "${CONFIG_PACKAGES[@]}"; do
+    safe_stow "$pkg" "$HOME/.config/$pkg"
+done
+
+# --- GROUP B: Specific Files / Weird Paths ---
+# These don't follow the folder name = config path rule perfectly
+
+# bashrc lives in home, not .config
+safe_stow "bashrc" "$HOME/.bashrc"
+
+# starship is a single file in .config, not a folder
+safe_stow "starship" "$HOME/.config/starship.toml"
+
+echo ":: Done! Setup complete."
