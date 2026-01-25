@@ -1,15 +1,28 @@
 #!/bin/bash
-
+rm -r ~/.config/alacritty
 stow alacritty
+rm -r ~/.config/bash-config
 stow bash-config
 rm ~/.bashrc
 stow bashrc
+rm -r ~/.config/btop
 stow btop
+rm -r ~/.config/fastfetch
 stow fastfetch
+rm -r ~/.config/helix
 stow helix
+rm -r ~/.config/hypr
 stow hypr
+rm -r ~/.config/scripts
 stow scripts
+rm ~/.config/starship.toml
 stow starship
-stow swaylock
+# stow swaylock
+rm -r ~/.config/waybar
 stow waybar
+rm -r ~/.config/wlogout
 stow wlogout
+rm -r ~/.config/kanshi
+stow kanshi
+rm -r ~/.config/algo
+stow algo
