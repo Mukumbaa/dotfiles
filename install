@@ -4,7 +4,7 @@ echo "Installing all..."
 
 sudo bash -c "
 dnf install stow -y
-./stow-all
+./safe-stow
 source ~/.bashrc
 ./install_1
 source ~/.bashrc

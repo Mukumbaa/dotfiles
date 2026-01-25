@@ -14,11 +14,7 @@ safe_stow() {
 
     # Check if the target exists
     if [ -e "$TARGET_PATH" ]; then
-        if [ -L "$TARGET_PATH" ]; then
-            # It's a symlink: Safe to remove
-            # echo "   Removing old symlink for $PKG"
-            # rm "$TARGET_PATH"
-        else
+        if [ ! -L "$TARGET_PATH" ]; then
             # It's a real file/directory: MUST BACKUP
             echo "!! Real config found for $PKG. Moving to backup..."
             # Create the parent dir in backup to maintain structure
