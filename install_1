@@ -2,7 +2,7 @@
 sudo dnf group remove libreoffice -y
 sudo dnf remove libreoffice* -y
 
-sudo dnf update -y
+# sudo dnf update -y
 
 #PROGRAMS
 curl -sS https://starship.rs/install.sh | sh
