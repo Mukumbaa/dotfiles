@@ -7,8 +7,6 @@ dnf install stow -y
 ./safe-stow
 source ~/.bashrc
 ./install_1
-source ~/.bashrc
-./install_2
 "
 
 echo "Done!"
