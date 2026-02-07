@@ -45,6 +45,40 @@
   margin-right: 8px;
 }
 
+/* --- CONFIGURAZIONE BATTERIA MODIFICATA --- */
+#battery {
+  margin-right: 8px;
+  transition: color 0.5s; /* Cambio colore fluido */
+}
+
+/* Quando è in carica (Verde/Foam) */
+#battery.charging, #battery.plugged {
+  color: #9ccfd8; 
+}
+
+/* Livello Warning (Sotto il 20% - Arancione/Gold) */
+#battery.warning {
+  color: #f6c177; 
+}
+
+/* Livello Critico (Sotto il 10% - Rosso/Love + Lampeggiante) */
+#battery.critical {
+  color: #eb6f92; 
+  animation-name: blink;
+  animation-duration: 0.5s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+/* Animazione del lampeggiamento */
+@keyframes blink {
+  to {
+    color: @foreground; /* Lampeggia tra Rosso e il colore del testo normale */
+  }
+}
+/* ------------------------------------------ */
+
 #language{
   margin-top: 1px;
 }
