@@ -8,7 +8,7 @@ sudo dnf remove libreoffice* -y
 sudo dnf copr enable lionheartp/Hyprland -y
 
 sudo dnf install -y \
-hyprland hyprpaper hyprlock hyprland-guiutils \
+hyprland hyprpaper hyprlock hyprland-guiutils hyprshot \
 swaylock wlogout waybar alacritty helix btop \
 wiremix \
 kanshi \
