@@ -15,6 +15,7 @@ alias open='xdg-open'
 alias fucking='sudo'
 alias cm='~/.config/scripts/change-monitor'
 alias ls='lsd'
+alias ff='fastfetch'
 
 # Crea directory e ci entra
 mkcd() {
