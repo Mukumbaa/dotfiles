@@ -22,6 +22,14 @@
             "key" : "de    ",
         },
         {
+            "type": "cpu",
+            "key": "cpu   "
+        },
+        {
+            "type": "gpu",
+            "key": "gpu   "
+        },
+        {
             "type": "packages",
             "format": "{}",
             "key": "pkgs  ", 
