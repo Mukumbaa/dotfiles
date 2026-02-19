@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Script to set mirroring of a monitor onto another in Hyprland
+# Usage: ./mirror.sh <source_monitor> <mirror_monitor>
+# Example: ./mirror.sh eDP-1 HDMI-A-1
+
+# Check that exactly two parameters were passed
+if [ $# -ne 2 ]; then
+    echo "Error: wrong number of parameters."
+    echo "Usage: mirror <source_monitor> <mirror_monitor>"
+    echo "Example: mirror eDP-1 HDMI-A-1"
+    exit 1
+fi
+
+SOURCE="$1"
+MIRROR="$2"
+
+# (Optional) You could add validation that the monitors exist,
+# for example using `hyprctl monitors` and grep, but for simplicity we assume they are correct.
+
+# Set mirroring
+echo "Setting $MIRROR as a mirror of $SOURCE..."
+hyprctl keyword monitor "$MIRROR",preferred,0x0,1,mirror,"$SOURCE"
+
+# Check if the command succeeded
+if [ $? -eq 0 ]; then
+    echo "Mirroring activated: $MIRROR shows the same content as $SOURCE"
+else
+    echo "Error while setting mirroring."
+    echo "Verify that the monitor names are correct (use 'hyprctl monitors' to see them)."
+    exit 1
+fi
