@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
 
-image=$1
-
 
 hyprctl hyprpaper wallpaper ",~/.config/hypr/wallpaper/$1.png"
