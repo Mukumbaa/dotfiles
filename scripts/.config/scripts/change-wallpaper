@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 
+if [[ ! -f "$HOME/.config/hypr/wallpaper/$1.png" ]]; then
+  echo "wallpaper $1.png not found in .config/hypr/wallpaper dir."
+  exit 1
+fi
 
 hyprctl hyprpaper wallpaper ",~/.config/hypr/wallpaper/$1.png"
