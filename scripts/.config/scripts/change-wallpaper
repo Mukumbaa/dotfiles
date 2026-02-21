@@ -6,3 +6,6 @@ if [[ ! -f "$HOME/.config/hypr/wallpaper/$1.png" ]]; then
 fi
 
 hyprctl hyprpaper wallpaper ",~/.config/hypr/wallpaper/$1.png"
+
+CURRENT_WALL="$HOME/.config/hypr/current_wallpaper"
+echo "$1" > "$CURRENT_WALL"
