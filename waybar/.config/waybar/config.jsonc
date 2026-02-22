@@ -38,62 +38,12 @@
       "1": [], "2": [], "3": [], "4": [], "5": []
     }
   },
-
-  "cpu": {
-    "interval": 5,
-    "format": "<span size='x-large'>󰍛</span>",
-    "on-click": "alacritty -e btop"
-  },
   "clock": {
     "format": "{:L%A %H:%M}",
     "format-alt": "{:L%d %B W%V %Y}",
     "tooltip": false
   },
-  "network": {
-    "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
-    "format": "<span size='x-large'>{icon}</span>",
-    "format-wifi": "<span size='x-large'>{icon}</span> <span rise='2000'>{essid}</span>",
-    "format-ethernet": "<span size='x-large'>󰀂</span>",
-    "format-disconnected": "<span size='x-large'>󰤮</span>",
-    "tooltip-format-wifi": "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
-    "tooltip-format-ethernet": "⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
-    "tooltip-format-disconnected": "Disconnected",
-    "interval": 3,
-    "spacing": 1,
-    "on-click": "alacritty -e nmtui"
-  },
-  "battery": {
-    "format": "<span rise='2000'>{capacity}%</span> <span size='x-large'>{icon}</span>",
-    "format-discharging": "<span rise='2000'>{capacity}%</span> <span size='x-large'>{icon}</span>",
-    "format-charging": "<span rise='2000'>{capacity}%</span> <span size='x-large'>{icon}</span>",
-    "format-plugged": "<span size='x-large'></span>",
-    "format-icons": {
-      "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
-      "default": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-    },
-    "format-full": "<span rise='2000'>{capacity}%</span> <span size='x-large'>󰂅</span>",
-    "tooltip-format-discharging": "{power:>1.0f}W↓ {capacity}%",
-    "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%",
-    "interval": 5,
-    "states": {
-      "warning": 20,
-      "critical": 10
-    },
-    "on-click": "alacritty --class algo -e algo ~/.config/algo/menus/power-profile-custom.txt"
-  },
-  "bluetooth": {
-    "format": "<span size='x-large'></span>",
-    "format-disabled": "<span size='x-large'>󰂲</span>",
-    "format-connected": "<span size='x-large'>󰂱</span>",
-    "tooltip-format": "Devices connected: {num_connections}",
-    "on-click": "blueman-manager"
-  },
-  "backlight": {
-    "device": "brightnessctl",
-    "format": "<span rise='2000'>{percent}%</span> <span size='x-large'>{icon}</span>",
-    "tooltip-format": "Monitor light: {percent}%",
-    "format-icons": ["", ""]
-  },
+
   "group/tray-expander": {
     "orientation": "inherit",
     "drawer": {
@@ -118,6 +68,37 @@
     "on-click": "hyprctl switchxkblayout all next; pkill -RTMIN+8 waybar",
     "tooltip": false
   },
+  "cpu": {
+    "interval": 5,
+    "format": "<span size='x-large'>󰍛</span>",
+    "on-click": "alacritty -e btop"
+  },
+  "bluetooth": {
+    "format": "<span size='x-large'></span>",
+    "format-disabled": "<span size='x-large'>󰂲</span>",
+    "format-connected": "<span size='x-large'>󰂱</span>",
+    "tooltip-format": "Devices connected: {num_connections}",
+    "on-click": "blueman-manager"
+  },
+  "network": {
+    "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+    "format": "<span size='x-large'>{icon}</span>",
+    "format-wifi": "<span size='x-large'>{icon}</span> <span rise='2000'>{essid}</span>",
+    "format-ethernet": "<span size='x-large'>󰀂</span>",
+    "format-disconnected": "<span size='x-large'>󰤮</span>",
+    "tooltip-format-wifi": "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
+    "tooltip-format-ethernet": "⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
+    "tooltip-format-disconnected": "Disconnected",
+    "interval": 3,
+    "spacing": 1,
+    "on-click": "alacritty -e nmtui"
+  },
+  "backlight": {
+    "device": "brightnessctl",
+    "format": "<span rise='2000'>{percent}%</span> <span size='x-large'>{icon}</span>",
+    "tooltip-format": "Monitor light: {percent}%",
+    "format-icons": ["", ""]
+  },
   "wireplumber": {
     "format": "<span rise='2000'>{volume}%</span> <span size='x-large'>{icon}</span>",
     "tooltip-format": "Playing at {volume}%",
@@ -125,5 +106,24 @@
     "scroll-step": 5,
     "format-muted": "<span rise='2000'>0%</span> <span size='x-large'>󰝟</span>",
     "format-icons": ["", "", ""]
-  }
+  },
+  "battery": {
+    "format": "<span rise='2000'>{capacity}%</span> <span size='x-large'>{icon}</span>",
+    "format-discharging": "<span rise='2000'>{capacity}%</span> <span size='x-large'>{icon}</span>",
+    "format-charging": "<span rise='2000'>{capacity}%</span> <span size='x-large'>{icon}</span>",
+    "format-plugged": "<span size='x-large'></span>",
+    "format-icons": {
+      "charging": ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"],
+      "default": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+    },
+    "format-full": "<span rise='2000'>{capacity}%</span> <span size='x-large'>󰂅</span>",
+    "tooltip-format-discharging": "{power:>1.0f}W↓ {capacity}%",
+    "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%",
+    "interval": 5,
+    "states": {
+      "warning": 20,
+      "critical": 10
+    },
+    "on-click": "alacritty --class algo -e algo ~/.config/algo/menus/power-profile-custom.txt"
+  },
 }

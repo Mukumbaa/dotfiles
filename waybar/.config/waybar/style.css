@@ -53,5 +53,5 @@
 @keyframes blink { to { color: @foreground; } }
 
 #tray { margin-right: 10px; }
-#clock { margin-left: 10px; }
+#clock { margin-left: 0px; }
 .hidden { opacity: 0; }
