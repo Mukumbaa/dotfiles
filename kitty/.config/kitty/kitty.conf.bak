@@ -1,0 +1,10 @@
+include rosepine.conf
+confirm_os_window_close 0
+# [font]
+# normal = { family = "CaskaydiaMono Nerd Font Mono", style = "Regular" }
+# bold = { family = "CaskaydiaMono Nerd Font Mono", style = "Bold" }
+# italic = { family = "CaskaydiaMono Nerd Font Mono", style = "Italic" }
+# size = 12
+
+
+# font_fami
