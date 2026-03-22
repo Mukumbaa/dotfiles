@@ -39,3 +39,6 @@ prepend_rules =[
     # Regola di "fallback": per qualsiasi altra cosa, usa l'app di sistema
     { name = "*", use = "system" },
 ]
+
+
+

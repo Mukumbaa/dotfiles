@@ -1,0 +1,17 @@
+[[mgr.prepend_keymap]]
+on = [ "z" ]
+run = '''
+    shell '
+        file=$(fd . --type f --hidden \
+          --exclude .git \
+          --exclude .cache \
+          --exclude node_modules \
+          --exclude .local/share/Trash \
+          | fzf)
+        
+        if [ -n "$file" ]; then
+            ya emit reveal "$file"
+        fi
+        exit 0
+    ' --block
+'''
