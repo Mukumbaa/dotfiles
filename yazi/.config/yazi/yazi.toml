@@ -9,9 +9,9 @@ edit =[
 ]
 
 # Definiamo un opener per i video/musica (es. MPV o VLC)
-play =[
-    { run = 'mpv "$@"', orphan = true, desc = "Riproduci multimedia", for = "unix" },
-]
+# play =[
+#     { run = 'mpv "$@"', orphan = true, desc = "Riproduci multimedia", for = "unix" },
+# ]
 
 # Definiamo un opener generico di sistema (apre l'app predefinita del tuo OS)
 system =[
@@ -29,8 +29,8 @@ prepend_rules =[
     { mime = "text/*", use = "edit" },
     
     # Se è un video o un audio, usa "play"
-    { mime = "video/*", use = "play" },
-    { mime = "audio/*", use = "play" },
+    # { mime = "video/*", use = "play" },
+    # { mime = "audio/*", use = "play" },
 
     # Se l'estensione è .json o .md, forza l'uso di "edit"
     { name = "*.json", use = "edit" },

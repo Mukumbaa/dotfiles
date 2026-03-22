@@ -6,10 +6,11 @@ sudo dnf remove libreoffice* -y
 #PROGRAMS
 
 sudo dnf copr enable lionheartp/Hyprland -y
+sudo dnf copr enable lihaohong/yazi -y
 
 sudo dnf install -y \
 hyprland hyprpaper hyprlock hyprland-guiutils hyprshot \
-swaylock wlogout waybar alacritty helix btop \
+swaylock wlogout waybar alacritty kitty yazi helix btop \
 wiremix \
 kanshi \
 google-chrome-stable \
