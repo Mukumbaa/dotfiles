@@ -1,3 +1,4 @@
+
 @import "./rose-pine.css";
 
 * {
@@ -11,7 +12,7 @@
 }
 
 .modules-left { margin-left: 8px; }
-.modules-right { margin-right: 8px; }
+.modules-right { margin-right: 16px; }
 
 #workspaces button {
   all: initial;
@@ -22,24 +23,67 @@
 }
 #workspaces button.empty { opacity: 0.5; }
 
-#cpu, #backlight, #pulseaudio, #wireplumber, #network, 
-#bluetooth, #custom-expand-icon, #custom-language, #battery {
-  margin-right: 10px;
-  padding: 0 2px;
+/* ---------------------------------------------------
+   GRANDZZA DELLE ICONE E DEI TESTI
+--------------------------------------------------- */
+#custom-expand-icon,
+#cpu, 
+#bluetooth, 
+#network.icon, 
+#backlight.icon, 
+#wireplumber.icon, 
+#battery.icon {
+  font-size: 18px; 
 }
 
+/* ---------------------------------------------------
+   SPAZIATURA TRA I MODULI (Gruppi)
+   Applichiamo il margine destro all'ultimo elemento 
+   di ogni "gruppo" logico per staccarlo dal successivo.
+--------------------------------------------------- */
+#custom-language,
+#cpu,
+#bluetooth,
+#network.text,
+#backlight.icon,
+#wireplumber.icon {
+  margin-right: 14px;
+}
+
+/* ---------------------------------------------------
+   SPAZIATURA INTERNA AI MODULI SDOPPIATI
+   Spazio tra il testo e l'icona dello stesso modulo.
+--------------------------------------------------- */
+/* Per Backlight, Audio e Batteria (Testo a sinistra, Icona a destra) */
+#backlight.text, 
+#wireplumber.text, 
+#battery.text {
+  margin-right: 6px;
+}
+
+/* Per il Network (Icona a sinistra, Testo a destra) */
+#network.icon {
+  margin-right: 6px;
+}
+
+/* ---------------------------------------------------
+   ALLINEAMENTO VERTICALE FINE (TWEAKS)
+   Se noti che le icone o i testi sono sfalsati in alto o
+   in basso, gioca con 'padding-bottom' o 'padding-top' qui.
+--------------------------------------------------- */
+#custom-expand-icon { padding-bottom: 2px; }
+#custom-language { padding-bottom: 1px; }
+
+/* Esempio: se i testi ti sembrano troppo bassi rispetto alle icone, decommenta la riga sotto: */
+/* #network.text, #backlight.text, #wireplumber.text, #battery.text { padding-bottom: 2px; } */
+
+/* ---------------------------------------------------
+   COLORI DINAMICI DELLA BATTERIA
+   Ora si applicano in automatico sia all'icona che al testo!
+--------------------------------------------------- */
 #battery {
-  margin-right: 8px;
   transition: color 0.5s;
 }
-
-#custom-language{
-  margin-top: 1px;
-}
-#custom-expand-icon{
-  margin-top: 2px;
-}
-
 #battery.charging, #battery.plugged { color: #9ccfd8; }
 #battery.warning { color: #f6c177; }
 #battery.critical { 
@@ -52,6 +96,19 @@
 
 @keyframes blink { to { color: @foreground; } }
 
-#tray { margin-right: 10px; }
+#tray {
+  /* margin-right: 10px; */
+  margin-left: 10px;
+  
+}
 #clock { margin-left: 0px; }
 .hidden { opacity: 0; }
+
+#custom-language{
+  margin-left: 12px;
+}
+
+#custom-expand-icon, 
+#tray {
+  margin-top: 2px;
+}
