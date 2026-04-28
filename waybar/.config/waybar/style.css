@@ -28,10 +28,10 @@
 --------------------------------------------------- */
 #custom-expand-icon,
 #cpu, 
-#bluetooth, 
 #network.icon, 
 #backlight.icon, 
 #wireplumber.icon, 
+#bluetooth,
 #battery.icon {
   font-size: 18px; 
 }
