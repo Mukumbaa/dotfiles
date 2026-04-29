@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 
 if [[ ! -f "$HOME/.config/hypr/wallpaper/$1.png" ]]; then
