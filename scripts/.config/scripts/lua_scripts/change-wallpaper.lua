@@ -1,7 +1,9 @@
 #!/usr/bin/env lua
 
+local home = os.getenv("HOME")
 local target_num = tonumber(arg[1])
-local dir = os.getenv("HOME") .. "/.config/hypr/wallpaper"
+local dir = home .. "/.config/hypr/wallpaper"
+local current_wall_file = home .. "/.config/hypr/current_wallpaper"
 
 if not target_num then
     print("Uso: " .. arg[0] .. " <numero>")
@@ -29,3 +31,9 @@ end
 
 os.execute('hyprctl hyprpaper wallpaper ",' .. dir .. '/' .. fileN.name .. '"')
 print("Wallpaper impostato: " .. fileN.name)
+
+local f = io.open(current_wall_file, "w")
+if f then
+    f:write(tostring(target_num) .. "\n")
+    f:close()
+end
