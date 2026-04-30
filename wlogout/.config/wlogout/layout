@@ -24,7 +24,7 @@
 }
 {
     "label" : "shutdown",
-    "action" : "~/.config/scripts/lua_scripts/power-off.lua",
+    "action" : "~/.config/scripts/power-off.lua",
     "text" : "Shutdown",
     "keybind" : "s"
 }
