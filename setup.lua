@@ -146,4 +146,29 @@ for _, conf in ipairs(stow_configs) do
     os.execute("stow " .. pkg)
 end
 
+
+---------------------------------------------------------
+-- FASE 5: Installazione di Algo da GitHub
+---------------------------------------------------------
+print_step("Installazione di Algo")
+
+local algo_repo = "https://github.com/Mukumbaa/algo"
+local algo_dir = home .. "/algo"
+
+-- Controllo se la cartella ~/algo esiste già
+-- [ -d ... ] verifica se è una directory valida
+if os.execute('[ -d "' .. algo_dir .. '" ]') then
+    print_info("La cartella ~/algo esiste già. Scarico gli ultimi aggiornamenti (git pull)...")
+    os.execute("cd " .. algo_dir .. " && git pull")
+else
+    print_info("Clonazione della repository Algo...")
+    os.execute("git clone " .. algo_repo .. " " .. algo_dir)
+end
+
+print_info("Esecuzione di install.sh di Algo...")
+-- Usiamo && per assicurarci di entrare nella cartella PRIMA di eseguire lo script.
+-- Aggiungiamo anche un chmod +x preventivo per sicurezza!
+os.execute("cd " .. algo_dir .. " && chmod +x install.sh && ./install.sh")
+
+
 print_step("Setup Completato con Successo! Riavvia la sessione.")
