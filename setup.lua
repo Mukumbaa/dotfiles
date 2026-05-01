@@ -76,7 +76,7 @@ os.execute("sudo dnf copr enable lihaohong/yazi -y")
 
 print_step("Installazione Pacchetti DNF")
 -- Uniamo tutta la tabella in una singola stringa separata da spazi
-local dnf_cmd = "sudo dnf install -y --skip-broken " .. table.concat(dnf_packages, " ")
+local dnf_cmd = "sudo dnf install -y --skip-unavailable " .. table.concat(dnf_packages, " ")
 os.execute(dnf_cmd)
 
 ---------------------------------------------------------
