@@ -63,10 +63,14 @@
   },
 
   "custom/expand-icon": {
-    "format": "",
-    "tooltip": false
+    "format": "",
+    "tooltip": false,
+    "on-scroll-up": "",
+    "on-scroll-down": "",
+    "on-scroll-left": "",
+    "on-scroll-right": ""
   },
-
+  
   "tray": {
     "icon-size": 14,
     "spacing": 10
