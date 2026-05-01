@@ -71,8 +71,8 @@
    Se noti che le icone o i testi sono sfalsati in alto o
    in basso, gioca con 'padding-bottom' o 'padding-top' qui.
 --------------------------------------------------- */
-#custom-expand-icon { padding-bottom: 2px; }
-#custom-language { padding-bottom: 1px; }
+/* #custom-expand-icon { padding-bottom: 2px; } */
+/* #custom-language { padding-bottom: 1px; } */
 
 /* Esempio: se i testi ti sembrano troppo bassi rispetto alle icone, decommenta la riga sotto: */
 /* #network.text, #backlight.text, #wireplumber.text, #battery.text { padding-bottom: 2px; } */
@@ -108,7 +108,7 @@
   margin-left: 12px;
 }
 
-#custom-expand-icon, 
-#tray {
-  margin-top: 2px;
-}
+/* #custom-expand-icon, */ 
+/* #tray { */
+  /* margin-top: 2px; */
+/* } */
