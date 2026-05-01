@@ -5,12 +5,41 @@ local home = os.getenv("HOME")
 
 -- Pacchetti da installare con DNF
 local dnf_packages = {
-    "stow", "hyprland", "hyprpaper", "hyprlock", "hyprland-guiutils", "hyprshot",
-    "swaylock", "wlogout", "waybar", "alacritty", "kitty", "yazi", "helix", "btop",
-    "wiremix", "kanshi", "google-chrome-stable", "lsd", "fd-find", "qalculate",
-    "gnome-tweaks", "gnome-themes-extra", "dbus-devel", "pkgconf-pkg-config",
-    "gh", "blueman", "nmtui", "flameshot", "pipx", "cascadia-mono-nf-fonts",
-    "gcc", "clangd", "golang", "rustup"
+    "stow",
+    "hyprland",
+    "hyprpaper",
+    "hyprlock",
+    "hyprland-guiutils",
+    "hyprshot",
+    "swaylock",
+    "wlogout",
+    "waybar",
+    "alacritty",
+    "kitty",
+    "yazi",
+    "helix",
+    "btop",
+    "fastfetch",
+    "wiremix",
+    "kanshi",
+    "google-chrome-stable",
+    "lsd",
+    "fd-find",
+    "qalculate",
+    "gnome-tweaks",
+    "gnome-themes-extra",
+    "dbus-devel",
+    "pkgconf-pkg-config",
+    "gh",
+    "blueman",
+    "nmtui",
+    "flameshot",
+    "pipx",
+    "cascadia-mono-nf-fonts",
+    "gcc",
+    "clangd",
+    "golang",
+    "rustup"
 }
 
 -- Pacchetti Go da installare
