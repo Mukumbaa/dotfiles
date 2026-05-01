@@ -36,6 +36,8 @@ local stow_configs = {
     { pkg = "wlogout",     target = home .. "/.config/wlogout" },
     { pkg = "kanshi",      target = home .. "/.config/kanshi" },
     { pkg = "algo",        target = home .. "/.config/algo" },
+    { pkg = "yazi",        target = home .. "/.config/yazi" },
+    { pkg = "kitty",       target = home .. "/.config/kitty" },
     -- Gruppo B (File speciali)
     { pkg = "bashrc",      target = home .. "/.bashrc" },
     { pkg = "starship",    target = home .. "/.config/starship.toml" },
