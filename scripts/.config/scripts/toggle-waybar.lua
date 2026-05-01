@@ -7,7 +7,7 @@ local function is_waybar_running()
     local handle = io.popen("pidof waybar")
     local result = handle:read("*a")
     handle:close()
-    
+
     -- Se il risultato contiene almeno un numero (%d+), allora è in esecuzione
     return result:match("%d+") ~= nil
 end
