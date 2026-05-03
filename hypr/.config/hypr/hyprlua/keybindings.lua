@@ -1,12 +1,12 @@
 -- =========================
 -- Applicazioni base
 -- =========================
-hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(terminal))
+hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(Terminal))
 hl.bind("SUPER + W", hl.dsp.window.kill())
 hl.bind("SUPER + M", hl.dsp.exit())
-hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(fileManager))
+hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(FileManager))
 hl.bind("SUPER + V", hl.dsp.window.float({ action = "toggle" }))
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd(terminal .. " --class algo -e algo"))
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd(Terminal .. " --class algo -e algo"))
 hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))
 
 -- =========================
@@ -111,17 +111,17 @@ hl.bind("SUPER + SHIFT + DOWN",
 hl.bind("SUPER + L", hl.dsp.exec_cmd("hyprlock"))
 hl.bind("ALT + TAB", hl.dsp.window.cycle_next())
 
-hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd(browser))
+hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd(Browser))
 hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("wlogout"))
 
 hl.bind("SUPER + SHIFT + ESCAPE",
-    hl.dsp.exec_cmd(terminal .. " --class algo -e algo ~/.config/algo/menus/power-profile-custom.txt"))
+    hl.dsp.exec_cmd(Terminal .. " --class algo -e algo ~/.config/algo/menus/power-profile-custom.txt"))
 
 hl.bind("SUPER + SHIFT + SPACE",
-    hl.dsp.exec_cmd(terminal .. " --class algo -e algo ~/.config/algo/menus/setup-configs-custom.txt"))
+    hl.dsp.exec_cmd(Terminal .. " --class algo -e algo ~/.config/algo/menus/setup-configs-custom.txt"))
 
 hl.bind("SUPER + I", hl.dsp.exec_cmd("nmgui"))
-hl.bind("SUPER + SHIFT + I", hl.dsp.exec_cmd(terminal .. " -e nmtui"))
+hl.bind("SUPER + SHIFT + I", hl.dsp.exec_cmd(Terminal .. " -e nmtui"))
 
 hl.bind("SUPER + B", hl.dsp.exec_cmd("blueman-manager"))
 hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("gnome-calendar"))

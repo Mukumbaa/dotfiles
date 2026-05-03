@@ -1,9 +1,9 @@
 
-terminal2 = "alacritty"
-terminal = "foot"
-fileManager = "kitty --single-instance yazi"
-browser = "google-chrome"
-browser2 = "brave-browser"
+Terminal = "alacritty"
+Terminal2 = "foot"
+FileManager = "kitty --single-instance yazi"
+Browser = "google-chrome"
+Browser2 = "brave-browser"
 
 hl.on("hyprland.start", function()
         hl.exec_cmd("waybar")
