@@ -63,7 +63,8 @@
   },
 
   "custom/expand-icon": {
-    "format": "",
+    //
+    "format": "\uf053",
     "tooltip": false,
     "on-scroll-up": "",
     "on-scroll-down": "",
