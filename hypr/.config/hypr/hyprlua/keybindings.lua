@@ -29,7 +29,7 @@ for i = 1, 9 do
         hl.dsp.window.move({ workspace = ws }))
 
     hl.bind("SUPER + ALT + " .. ws,
-        hl.dsp.window.move({ workspace = ws, silent = true }))
+        hl.dsp.window.move({ workspace = ws, follow = false }))
 end
 
 -- =========================
@@ -37,7 +37,7 @@ end
 -- =========================
 hl.bind("SUPER + 0", hl.dsp.focus({ workspace = "10" }))
 hl.bind("SUPER + SHIFT + 0", hl.dsp.window.move({ workspace = "10" }))
-hl.bind("SUPER + ALT + 0", hl.dsp.window.move({ workspace = "10", silent = true }))
+hl.bind("SUPER + ALT + 0", hl.dsp.window.move({ workspace = "10", follow = false }))
 
 -- =========================
 -- Mouse
