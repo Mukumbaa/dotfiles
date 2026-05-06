@@ -1,44 +1,25 @@
-
-# ==========================================
-# 1. DEFINIAMO I PROGRAMMI (OPENERS)
-# ==========================================
 [opener]
-# Definiamo un opener per i file di testo (es. Neovim o Nano)
 edit =[
-    { run = 'hx "$@"', block = true, desc = "Modifica testo", for = "unix" },
+    { run = 'hx %s', block = true, desc = "Modifica testo", for = "unix" },
 ]
 
-# Definiamo un opener per i video/musica (es. MPV o VLC)
-# play =[
-#     { run = 'mpv "$@"', orphan = true, desc = "Riproduci multimedia", for = "unix" },
-# ]
-
-# Definiamo un opener generico di sistema (apre l'app predefinita del tuo OS)
 system =[
-    { run = 'xdg-open "$@"', desc = "Apri nel sistema", for = "linux" },
-    # Usa questo se sei su macOS: { run = 'open "$@"', desc = "Apri nel sistema", for = "macos" }
+    { run = 'xdg-open %s', desc = "Apri nel sistema", for = "linux" },
 ]
 
-# ==========================================
-# 2. DEFINIAMO LE REGOLE DI ASSOCIAZIONE
-# ==========================================
 [open]
-# Usiamo "prepend_rules" per aggiungere le nostre regole in cima a quelle di default di Yazi
 prepend_rules =[
     # Se il sistema riconosce il file come testo, usa "edit"
     { mime = "text/*", use = "edit" },
-    
+
     # Se è un video o un audio, usa "play"
     # { mime = "video/*", use = "play" },
     # { mime = "audio/*", use = "play" },
 
     # Se l'estensione è .json o .md, forza l'uso di "edit"
-    { name = "*.json", use = "edit" },
-    { name = "*.md", use = "edit" },
+    { url = "*.json", use = "edit" },
+    { url = "*.md", use = "edit" },
 
     # Regola di "fallback": per qualsiasi altra cosa, usa l'app di sistema
-    { name = "*", use = "system" },
+    { url = "*", use = "system" },
 ]
-
-
-
