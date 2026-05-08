@@ -49,7 +49,7 @@ if is_pip then
     -- Rimuoviamo il tag e togliamo il floating (senza toccare il pin)
     local cmds = {
         "dispatch togglefloating address:" .. addr,
-        "dispatch tagwindow -pip address:" .. addr
+        -- "dispatch tagwindow -pip address:" .. addr
     }
     os.execute('hyprctl -q --batch "' .. table.concat(cmds, ";") .. ';"')
     print("Modalità PiP disattivata.")
@@ -64,9 +64,9 @@ else
     -- SECONDO STEP: Applica dimensioni e proprietà
     local cmds2 = {
         string.format("dispatch resizeactive exact %d %d address:%s", width, height, addr),
-        "dispatch setprop bordersize 2 address:" .. addr,
-        "dispatch setprop bordercolor rgb(f6c177) address:" .. addr,
-        "dispatch setprop rounding 10 address:" .. addr
+        -- "dispatch setprop bordersize 2 address:" .. addr,
+        -- "dispatch setprop bordercolor rgb(f6c177) address:" .. addr,
+        -- "dispatch setprop rounding 10 address:" .. addr
     }
     os.execute('hyprctl -q --batch "' .. table.concat(cmds2, ";") .. ';"')
     os.execute("sleep 0.1")
@@ -74,7 +74,7 @@ else
     local cmds3 = {
         "dispatch centerwindow address:" .. addr,
         "dispatch alterzorder top address:" .. addr,
-        "dispatch tagwindow +pip address:" .. addr
+        -- "dispatch tagwindow +pip address:" .. addr
     }
     os.execute('hyprctl -q --batch "' .. table.concat(cmds3, ";") .. ';"')
     print("Modalità PiP attivata!")
