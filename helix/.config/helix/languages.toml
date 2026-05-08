@@ -66,3 +66,10 @@ config = { preview = { background = { enabled = true, args = [
   "--invert-colors=never",
   "--open"
 ] } } }
+
+
+[language-server.scls]
+command = "simple-completion-language-server"
+
+[language-server.scls.config]
+feature_words = false
