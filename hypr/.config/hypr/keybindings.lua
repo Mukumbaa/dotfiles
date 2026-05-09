@@ -1,3 +1,4 @@
+local utils = require("utils")
 -- =========================
 -- Applicazioni base
 -- =========================
@@ -129,25 +130,15 @@ hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("gnome-calendar"))
 hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m region"))
 hl.bind("SHIFT + Print", hl.dsp.exec_cmd("hyprshot -m output"))
 
-hl.bind("SUPER + ALT + SPACE", hl.dsp.exec_cmd("~/.config/scripts/roll-wallpaper.lua"))
-hl.bind("SUPER + P", function()
-    local win = hl.get_active_window()
-    if not win then return end
-
-    if win.floating then
-        hl.dispatch(hl.dsp.window.float({ action = "set", value = false, window = win }))
-    else
-        hl.dispatch(hl.dsp.window.float({ action = "set", value = true, window = win }))
-        hl.dispatch(hl.dsp.window.resize({ x = 600, y = 338, window = win }))
-        hl.dispatch(hl.dsp.window.center({ window = win }))
-        hl.dispatch(hl.dsp.window.alter_zorder({ mode = "top", window = win }))
-    end
-end)
-
-hl.bind("SUPER + T", hl.dsp.exec_cmd("~/.config/scripts/toggle-waybar.lua"))
+hl.bind("SUPER + ALT + SPACE", utils.roll_wallpaper)
+hl.bind("SUPER + P", utils.pip_window)
+hl.bind("SUPER + T", utils.toggle_waybar)
 
 hl.bind("SUPER + F", hl.dsp.window.fullscreen())
-hl.bind("SUPER + R", hl.dsp.exec_cmd("hyprctl reload"))
+hl.bind("SUPER + R", function()
+    hl.dsp.exec_cmd("hyprctl reload")
+    hl.notification.create({text="Reloaded config", duration = "2500", color = "rgb(31748f)"})
+end)
 
 hl.bind("SUPER + Control_L", hl.dsp.exec_cmd("hyprctl switchxkblayout all next; pkill -RTMIN+8 waybar"))
 

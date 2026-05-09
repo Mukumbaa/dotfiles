@@ -1,37 +1,20 @@
-local pip_module = {}
+local module = {}
 
-function pip_module.pip_window()
+function module.pip_window()
     local win = hl.get_active_window()
     if not win then return end
 
-    local is_pip = false
-    if win.tags then
-        for _, t in ipairs(win.tags) do
-            if t == "pip" then
-                is_pip = true
-            end
-        end
-    end
-
-    if is_pip then
-        --  DISATTIVA PiP
-        hl.dispatch(hl.dsp.window.tag({ tag = "-pip", window = win }))
+    if win.floating then
         hl.dispatch(hl.dsp.window.float({ action = "set", value = false, window = win }))
-        hl.dispatch(hl.dsp.window.set_prop({ prop = "border_size", value = 1, window = win }))
-        hl.dispatch(hl.dsp.window.set_prop({ prop = "rounding", value = 0, window = win }))
-
+        hl.notification.create({text="PiP off: " .. win.title, duration = "2500", color = "rgb(31748f)"})
     else
-        --  ATTIVA PiP
         hl.dispatch(hl.dsp.window.float({ action = "set", value = true, window = win }))
         hl.dispatch(hl.dsp.window.resize({ x = 600, y = 338, window = win }))
         hl.dispatch(hl.dsp.window.center({ window = win }))
         hl.dispatch(hl.dsp.window.alter_zorder({ mode = "top", window = win }))
-
-        hl.dispatch(hl.dsp.window.set_prop({ prop = "border_size", value = 2, window = win }))
-        hl.dispatch(hl.dsp.window.set_prop({ prop = "rounding", value = 10, window = win }))
-
-        hl.dispatch(hl.dsp.window.tag({ tag = "+pip", window = win }))
+        hl.notification.create({text="PiP on: " .. win.title, duration = "2500", color = "rgb(31748f)"})
     end
 end
 
-return pip_module
+
+return module
