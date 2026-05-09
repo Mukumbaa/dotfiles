@@ -1,4 +1,6 @@
-local function pip_window()
+local pip_module = {}
+
+function pip_module.pip_window()
     local win = hl.get_active_window()
     if not win then return end
 
@@ -31,3 +33,5 @@ local function pip_window()
         hl.dispatch(hl.dsp.window.tag({ tag = "+pip", window = win }))
     end
 end
+
+return pip_module

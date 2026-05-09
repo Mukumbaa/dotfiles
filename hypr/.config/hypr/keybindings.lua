@@ -1,4 +1,3 @@
-require("utils.pip")
 -- =========================
 -- Applicazioni base
 -- =========================
@@ -134,39 +133,21 @@ hl.bind("SUPER + ALT + SPACE", hl.dsp.exec_cmd("~/.config/scripts/roll-wallpaper
 hl.bind("SUPER + P", function()
     local win = hl.get_active_window()
     if not win then return end
- 
-    local is_pip = false
-    if win.tags then
-        for _, t in ipairs(win.tags) do
-            if t == "pip" then
-                is_pip = true
-            end
-        end
-    end
- 
-    if is_pip then
-        --  DISATTIVA PiP
-        hl.dispatch(hl.dsp.window.tag({ tag = "-pip", window = win }))
+
+    if win.floating then
         hl.dispatch(hl.dsp.window.float({ action = "set", value = false, window = win }))
-        hl.dispatch(hl.dsp.window.set_prop({ prop = "border_size", value = 1, window = win }))
-        hl.dispatch(hl.dsp.window.set_prop({ prop = "rounding", value = 0, window = win }))
- 
     else
-        --  ATTIVA PiP
         hl.dispatch(hl.dsp.window.float({ action = "set", value = true, window = win }))
         hl.dispatch(hl.dsp.window.resize({ x = 600, y = 338, window = win }))
         hl.dispatch(hl.dsp.window.center({ window = win }))
         hl.dispatch(hl.dsp.window.alter_zorder({ mode = "top", window = win }))
- 
-        hl.dispatch(hl.dsp.window.set_prop({ prop = "border_size", value = 2, window = win }))
-        hl.dispatch(hl.dsp.window.set_prop({ prop = "rounding", value = 10, window = win }))
- 
-        hl.dispatch(hl.dsp.window.tag({ tag = "+pip", window = win }))
     end
 end)
+
 hl.bind("SUPER + T", hl.dsp.exec_cmd("~/.config/scripts/toggle-waybar.lua"))
 
 hl.bind("SUPER + F", hl.dsp.window.fullscreen())
 hl.bind("SUPER + R", hl.dsp.exec_cmd("hyprctl reload"))
 
 hl.bind("SUPER + Control_L", hl.dsp.exec_cmd("hyprctl switchxkblayout all next; pkill -RTMIN+8 waybar"))
+

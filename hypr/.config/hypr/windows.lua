@@ -23,23 +23,23 @@ hl.window_rule({
     pin = true
 })
 
-hl.window_rule({
-    name = "windowrule-4",
-    tag = "+pip",
-    match = { title = "(Picture.?in.?[Pp]icture)" }
-})
+-- hl.window_rule({
+--     name = "windowrule-4",
+--     tag = "+pip",
+--     match = { title = "(Picture.?in.?[Pp]icture)" }
+-- })
 
-hl.window_rule({
-    name = "windowrule-5",
-    match = { tag = "pip" },
-    float = true,
-    keep_aspect_ratio = false,
-    opacity = "1 1",
-    move = "40 ((monitor_h*1)-h-40)",
-    border_size = 2,
-    border_color = "rgb(f6c177)",
-    rounding = 10
-})
+-- hl.window_rule({
+--     name = "windowrule-5",
+--     match = { tag = "pip" },
+--     float = true,
+--     keep_aspect_ratio = false,
+--     opacity = "1 1",
+--     move = "40 ((monitor_h*1)-h-40)",
+--     border_size = 2,
+--     border_color = "rgb(f6c177)",
+--     rounding = 10
+-- })
 
 hl.window_rule({
     name = "windowrule-6",
@@ -51,11 +51,11 @@ hl.window_rule({
     rounding = 10
 })
 
-hl.window_rule({
-    name = "geometrydash",
-    match = { class = "^(steam_app_322170)$" },
-    center = true
-})
+-- hl.window_rule({
+--     name = "geometrydash",
+--     match = { class = "^(steam_app_322170)$" },
+--     center = true
+-- })
 
 hl.layer_rule({
     name = "layerrule-1",
