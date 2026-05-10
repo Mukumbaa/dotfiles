@@ -86,57 +86,14 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true 
 -- =========================
 -- hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd("hyprlock"), { locked = true })
 -- hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd("hyprctl dispatch dpms on"), { locked = true })
-hl.bind("switch:on:Lid Switch", function()
-    local monitors = hl.get_monitors()
-
-    if #monitors > 1 then
-        utils.toggle_waybar()
-        utils.toggle_waybar()
-        hl.monitor({ output = "eDP-1", disabled = true })
-    else
-        hl.exec_cmd("hyprlock")
-    end
-end)
-
-hl.bind("switch:off:Lid Switch", function()
-    hl.exec_cmd("hyprctl reload")
-    local monitors = hl.get_monitors()
-
-    if #monitors == 1 then
-        hl.dispatch(hl.dsp.dpms({action = "on", monitor = "eDP-1"}))
-    end
-
-    hl.dispatch(hl.dsp.focus({monitor = "eDP-1"}))
-end)
+hl.bind("switch:on:Lid Switch", utils.lid_down, { locked = true })
+hl.bind("switch:off:Lid Switch", utils.lid_up, { locked = true })
 
 hl.on("monitor.removed", function()
     hl.dispatch(hl.dsp.focus({monitor = "eDP-1"}))
-    hl.exec_cmd("hyprctl reload")
 end)
 
-local is_mirroring = false
-local ext_monitor_name = ""
-
-hl.bind("SUPER + O", function ()
-    if not is_mirroring then
-        local monitors = hl.get_monitors()
-        for _, m in ipairs(monitors) do
-            if m.name and m.name:sub(1,3) ~= "eDP" and not m.is_mirror then
-                ext_monitor_name = m.name
-                hl.notification.create({text = m.name .. " mirroring eDP-1", duration = 2500, color = "rgb(31748f)"})
-                hl.monitor({ output = m.name, mode = "preferred", position = "auto", scale = "1", mirror = "eDP-1" })
-                is_mirroring = true
-            end
-        end
-    else
-        if ext_monitor_name ~= "" then
-            hl.notification.create({text = "Disabling mirror for " .. ext_monitor_name, duration = 2500, color = "rgb(31748f)"})
-            hl.exec_cmd("hyprctl reload")
-            is_mirroring = false
-            ext_monitor_name = ""
-        end
-    end
-end)
+hl.bind("SUPER + O", utils.mirror_monitor)
 -- =========================
 -- Swap window
 -- =========================
@@ -177,9 +134,12 @@ hl.bind("SUPER + SHIFT + I", hl.dsp.exec_cmd(Terminal .. " -e nmtui"))
 hl.bind("SUPER + B", hl.dsp.exec_cmd("blueman-manager"))
 hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("gnome-calendar"))
 
-hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m region"))
-hl.bind("SHIFT + Print", hl.dsp.exec_cmd("hyprshot -m output"))
+hl.bind("Print", function() utils.hyprshot("region")() end)
+hl.bind("SHIFT + Print", function() utils.hyprshot("output")() end)
+-- hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m region -s"))
+-- hl.bind("SHIFT + Print", hl.dsp.exec_cmd("hyprshot -m output -s"))
 
+hl.bind("SUPER + SHIFT + S", function() utils.hyprshot("region")() end)
 hl.bind("SUPER + ALT + SPACE", utils.roll_wallpaper)
 hl.bind("SUPER + P", utils.pip_window)
 hl.bind("SUPER + T", utils.toggle_waybar)
