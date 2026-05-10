@@ -84,8 +84,34 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true 
 -- =========================
 -- Lid switch
 -- =========================
-hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd("hyprlock"), { locked = true })
-hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd("hyprctl dispatch dpms on"), { locked = true })
+-- hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd("hyprlock"), { locked = true })
+-- hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd("hyprctl dispatch dpms on"), { locked = true })
+hl.bind("switch:on:Lid Switch", function()
+    local monitors = hl.get_monitors()
+
+    if #monitors > 1 then
+        utils.toggle_waybar()
+        utils.toggle_waybar()
+        hl.monitor({ output = "eDP-1", disabled = true })
+    else
+        hl.exec_cmd("hyprlock")
+    end
+end)
+
+hl.bind("switch:off:Lid Switch", function()
+    hl.exec_cmd("hyprctl reload")
+    local monitors = hl.get_monitors()
+
+    if #monitors == 1 then
+        hl.dispatch(hl.dsp.dpms({action = "on", monitor = "eDP-1"}))
+    end
+
+    hl.dispatch(hl.dsp.focus({monitor = "eDP-1"}))
+end)
+
+hl.on("monitor.removed", function()
+    hl.dispatch(hl.dsp.focus({monitor = "eDP-1"}))
+end)
 
 -- =========================
 -- Swap window
@@ -136,7 +162,7 @@ hl.bind("SUPER + T", utils.toggle_waybar)
 
 hl.bind("SUPER + F", hl.dsp.window.fullscreen())
 hl.bind("SUPER + R", function()
-    hl.dsp.exec_cmd("hyprctl reload")
+    hl.exec_cmd("hyprctl reload")
     hl.notification.create({text="Reloaded config", duration = "2500", color = "rgb(31748f)"})
 end)
 
