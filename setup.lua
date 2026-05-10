@@ -10,8 +10,8 @@ local dnf_packages = {
     "hyprpaper",
     "hyprlock",
     "hyprland-guiutils",
-    "hyprshot",
-    "swaylock",
+    -- "hyprshot",
+    -- "swaylock",
     "wlogout",
     "waybar",
     "alacritty",
@@ -21,7 +21,7 @@ local dnf_packages = {
     "btop",
     "fastfetch",
     "wiremix",
-    "kanshi",
+    -- "kanshi",
     "google-chrome-stable",
     "lsd",
     "fd-find",
@@ -33,13 +33,16 @@ local dnf_packages = {
     "gh",
     "blueman",
     "nmtui",
-    "flameshot",
+    -- "flameshot",
     "pipx",
     "cascadia-mono-nf-fonts",
     "gcc",
     "clangd",
     "golang",
-    "rustup"
+    "rustup",
+    "grim",
+    "slurp",
+    "wl-clipboard"
 }
 
 -- Pacchetti Go da installare
