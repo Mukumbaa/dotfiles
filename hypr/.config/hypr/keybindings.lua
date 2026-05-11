@@ -135,7 +135,7 @@ hl.bind("SHIFT + Print", function() utils.hyprshot("output")() end)
 
 hl.bind("SUPER + SHIFT + S", function() utils.hyprshot("region")() end)
 hl.bind("SUPER + ALT + SPACE", utils.roll_wallpaper)
-hl.bind("SUPER + P", utils.pip_window)
+hl.bind("SUPER + P", utils.float_window)
 hl.bind("SUPER + T", function () utils.toggle_waybar(true) end)
 
 hl.bind("SUPER + F", hl.dsp.window.fullscreen())

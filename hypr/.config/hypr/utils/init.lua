@@ -6,7 +6,7 @@ local function merge(module)
   end
 end
 
-merge(require("utils.pip"))
+merge(require("utils.float"))
 merge(require("utils.toggle-waybar"))
 merge(require("utils.roll-wallpaper"))
 merge(require("utils.mirror-monitor"))
