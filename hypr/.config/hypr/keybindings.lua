@@ -122,12 +122,6 @@ hl.bind("ALT + TAB", hl.dsp.window.cycle_next())
 hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd(Browser))
 hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("wlogout"))
 
-hl.bind("SUPER + SHIFT + ESCAPE",
-    hl.dsp.exec_cmd(Terminal .. " --class algo -e algo ~/.config/algo/menus/power-profile-custom.txt"))
-
-hl.bind("SUPER + SHIFT + SPACE",
-    hl.dsp.exec_cmd(Terminal .. " --class algo -e algo ~/.config/algo/menus/setup-configs-custom.txt"))
-
 hl.bind("SUPER + I", hl.dsp.exec_cmd("nmgui"))
 hl.bind("SUPER + SHIFT + I", hl.dsp.exec_cmd(Terminal .. " -e nmtui"))
 
