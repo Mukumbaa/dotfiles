@@ -1,22 +1,18 @@
 local utils = require("utils")
 -- =========================
--- Applicazioni base
+-- Essencial
 -- =========================
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(Terminal))
 hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind("SUPER + M", hl.dsp.exit())
 hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(FileManager))
--- hl.bind("SUPER + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd(Terminal .. " --class algo -e algo"))
--- hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))
 
--- =========================
--- Focus
--- =========================
 hl.bind("SUPER + left", hl.dsp.focus({ direction = "l" }))
 hl.bind("SUPER + right", hl.dsp.focus({ direction = "r" }))
 hl.bind("SUPER + up", hl.dsp.focus({ direction = "u" }))
 hl.bind("SUPER + down", hl.dsp.focus({ direction = "d" }))
+
 -- =========================
 -- Workspace 1-9
 -- =========================
@@ -47,7 +43,7 @@ hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- =========================
--- Audio / Luminosità
+-- Audio / Light
 -- =========================
 hl.bind("XF86AudioRaiseVolume",
     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 && wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"),
@@ -114,7 +110,7 @@ hl.bind("SUPER + SHIFT + DOWN",
     { description = "Swap window down" })
 
 -- =========================
--- Extra binds personali
+-- Extra binds
 -- =========================
 hl.bind("SUPER + L", hl.dsp.exec_cmd("hyprlock"))
 hl.bind("ALT + TAB", hl.dsp.window.cycle_next())
@@ -140,8 +136,8 @@ hl.bind("SUPER + T", function () utils.toggle_waybar(true) end)
 
 hl.bind("SUPER + F", hl.dsp.window.fullscreen())
 hl.bind("SUPER + R", function()
-    hl.exec_cmd("hyprctl reload")
-    hl.notification.create({text="Reloaded config", duration = "2500", color = "rgb(31748f)"})
+  hl.exec_cmd("hyprctl reload")
+  hl.notification.create({ text = "Reloaded config", duration = "2500", color = "rgb(31748f)" })
 end)
 
 hl.bind("SUPER + Control_L", hl.dsp.exec_cmd("hyprctl switchxkblayout all next; pkill -RTMIN+8 waybar"))
