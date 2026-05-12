@@ -3,12 +3,12 @@ local utils = require("utils")
 -- Applicazioni base
 -- =========================
 hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(Terminal))
-hl.bind("SUPER + W", hl.dsp.window.kill())
+hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind("SUPER + M", hl.dsp.exit())
 hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(FileManager))
-hl.bind("SUPER + V", hl.dsp.window.float({ action = "toggle" }))
+-- hl.bind("SUPER + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd(Terminal .. " --class algo -e algo"))
-hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))
+-- hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))
 
 -- =========================
 -- Focus
