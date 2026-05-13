@@ -126,8 +126,6 @@ hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("gnome-calendar"))
 
 hl.bind("Print", function() utils.hyprshot("region")() end)
 hl.bind("SHIFT + Print", function() utils.hyprshot("output")() end)
--- hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m region -s"))
--- hl.bind("SHIFT + Print", hl.dsp.exec_cmd("hyprshot -m output -s"))
 
 hl.bind("SUPER + SHIFT + S", function() utils.hyprshot("region")() end)
 hl.bind("SUPER + ALT + SPACE", utils.roll_wallpaper)
@@ -141,4 +139,3 @@ hl.bind("SUPER + R", function()
 end)
 
 hl.bind("SUPER + Control_L", hl.dsp.exec_cmd("hyprctl switchxkblayout all next; pkill -RTMIN+8 waybar"))
-
