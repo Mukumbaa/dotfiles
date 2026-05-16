@@ -68,7 +68,8 @@ hl.config({
         disable_splash_rendering = true,
         focus_on_activate = true,
         anr_missed_pings = 3,
-        on_focus_under_fullscreen = 1
+        on_focus_under_fullscreen = 1,
+        initial_workspace_tracking = 0
     },
     cursor = {
         hide_on_key_press = true
