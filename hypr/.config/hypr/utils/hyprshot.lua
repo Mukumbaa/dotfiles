@@ -36,15 +36,30 @@ function module.hyprshot(mode)
         end
 
         local notification = 'hyprctl notify -1 3500 "rgb(31748f)" "Screenshot copied and saved in Pictures/Screenshots/' .. fn .. '"'
-        local cmd = string.format(
-            "sh -c 'mkdir -p \"%s\" && %s | grim -g - \"%s\" && wl-copy --type image/png < \"%s\"; %s'",
+        -- local cmd = string.format(
+        --     "sh -c 'mkdir -p \"%s\" && %s | grim -g - \"%s\" && wl-copy --type image/png < \"%s\"; %s'",
+        --     dir,
+        --     slurp,
+        --     path,
+        --     path,
+        --     notification
+        -- )
+
+        local cmd = string.format([[
+        sh -c '
+        set -e
+        mkdir -p "%s"
+        %s | grim -g - "%s"
+        wl-copy --type image/png < "%s"
+        %s
+        '
+        ]],
             dir,
             slurp,
             path,
             path,
             notification
         )
-
         hl.exec_cmd(cmd)
     end
 end
