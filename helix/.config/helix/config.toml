@@ -10,7 +10,7 @@ true-color = true
 completion-trigger-len = 1
 end-of-line-diagnostics = "hint"
 auto-completion = true
-
+idle-timeout = 150
 
 [editor.soft-wrap]
 enable = true
