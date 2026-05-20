@@ -65,22 +65,22 @@ end, { expr = true })
 -- ==========================================
 -- 7. SALVATAGGIO AUTOMATICO SU ESC CON MESSAGGIO
 -- ==========================================
-vim.keymap.set({ "i", "n", "v" }, "<Esc>", function()
-    -- Raccogliamo lo stato attuale del file
-    local is_modified = vim.bo.modified     -- Il file ha modifiche non salvate?
-    local is_normal = vim.bo.buftype == ""  -- È un file di testo (non un terminale o un popup fzf)?
-    local has_name = vim.fn.bufname() ~= "" -- Il file ha già un nome ed esiste sul disco?
-    local can_save = not vim.bo.readonly    -- Il file NON è bloccato in sola lettura?
-
-    if is_modified and is_normal and has_name and can_save then
-        -- Se tutto è ok: esce (<Esc>), salva silenziosamente (<cmd>silent! update<CR>)
-        -- e stampa a schermo il nostro messaggio (<cmd>lua vim.print('✅ Salvato!')<CR>)
-        return "<Esc><cmd>silent! update<CR><cmd>lua vim.print('File saved')<CR>"
-    end
-
-    -- In tutti gli altri casi (es. stiamo solo chiudendo un popup), restituisce solo Esc
-    return "<Esc>"
-end, { expr = true, desc = "Esc e salva se modificato con notifica" })
+-- vim.keymap.set({ "i", "n", "v" }, "<Esc>", function()
+--     -- Raccogliamo lo stato attuale del file
+--     local is_modified = vim.bo.modified     -- Il file ha modifiche non salvate?
+--     local is_normal = vim.bo.buftype == ""  -- È un file di testo (non un terminale o un popup fzf)?
+--     local has_name = vim.fn.bufname() ~= "" -- Il file ha già un nome ed esiste sul disco?
+--     local can_save = not vim.bo.readonly    -- Il file NON è bloccato in sola lettura?
+--
+--     if is_modified and is_normal and has_name and can_save then
+--         -- Se tutto è ok: esce (<Esc>), salva silenziosamente (<cmd>silent! update<CR>)
+--         -- e stampa a schermo il nostro messaggio (<cmd>lua vim.print('✅ Salvato!')<CR>)
+--         return "<Esc><cmd>silent! update<CR><cmd>lua vim.print('File saved')<CR>"
+--     end
+--
+--     -- In tutti gli altri casi (es. stiamo solo chiudendo un popup), restituisce solo Esc
+--     return "<Esc>"
+-- end, { expr = true, desc = "Esc e salva se modificato con notifica" })
 
 
 -- SPOSTARE RIGHE (ALT + j / ALT + k)
@@ -123,4 +123,4 @@ vim.keymap.set("n", "gl", "$")
 vim.keymap.set("n", "ge", "G")
 vim.keymap.set("n", "gh", "^")
 vim.keymap.set("n", "<leader>a", "ggVG")
-
+vim.keymap.set("n", "<leader>b", ":w<CR>", {desc = "Save file"})
