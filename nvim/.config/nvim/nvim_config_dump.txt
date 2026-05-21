@@ -59,7 +59,6 @@ require("config.lazy")
   "nvim-web-devicons": { "branch": "master", "commit": "7d8dad2c837fcdf2e65997e68657c1a21c568074" },
   "rose-pine": { "branch": "main", "commit": "ff483051a47e27d84bdef47703538df1ed9f4a47" },
   "toggleterm.nvim": { "branch": "main", "commit": "50ea089fc548917cc3cc16b46a8211833b9e3c7c" },
-  "typst-preview.nvim": { "branch": "master", "commit": "0354cc1a7a5174a2e69cdc21c4db9a3ee18bb20a" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" }
 }
 
@@ -302,12 +301,30 @@ return {
                     -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
                     --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
                 },
-                sources = {
-                    { name = "nvim_lsp" },
-                    { name = "luasnip" },
-                    { name = "path" },
-                    { name = "buffer", option = { keyword_length = 3, }, },
-                },
+                -- sources = {
+                --     { name = "nvim_lsp" },
+                --     { name = "luasnip" },
+                --     { name = "path" },
+                --     { name = "buffer", option = { keyword_length = 3, }, },
+                -- },
+                sources = (function()
+                    -- Se sei su un file Typst, escludi del tutto la sorgente 'buffer'
+                    if vim.bo.filetype == "typst" then
+                        return {
+                            { name = "nvim_lsp" },
+                            { name = "luasnip" },
+                            { name = "path" },
+                        }
+                    else
+                        -- Per tutti gli altri file, mantieni la tua configurazione originale
+                        return {
+                            { name = "nvim_lsp" },
+                            { name = "luasnip" },
+                            { name = "path" },
+                            { name = "buffer", option = { keyword_length = 3 } },
+                        }
+                    end
+                end)(),
                 -- Configurazione per la ricerca (/)
                 cmp.setup.cmdline('/', {
                     mapping = cmp.mapping.preset.cmdline(),
@@ -477,34 +494,26 @@ return {
                 })
                 vim.lsp.config("tinymist", {
                     capabilities = capabilities,
-                    -- Estendiamo la funzione dei tasti per aggiungere il comando personalizzato
                     on_attach = function(client, bufnr)
-                        -- Esegue prima i tuoi tasti di default (gd, K, gt, ecc.)
+                        -- Configura i tuoi tasti di default (gd, K, ecc.)
                         lsp_keymaps(client, bufnr) 
 
-                        -- Tasto specifico per attivare l'anteprima in background del TOML
+                        -- Tasto per attivare l'anteprima nativa (Senza avvisi di deprecazione)
                         vim.keymap.set("n", "<leader>tp", function()
-                            -- Invia la configurazione esatta che avevi nel file TOML all'LSP attivo
-                            client.notify("workspace/didChangeConfiguration", {
-                                settings = {
-                                    preview = {
-                                        background = {
-                                            enabled = true,
-                                            args = {
-                                                "--data-plane-host=127.0.0.1:23635",
-                                                "--invert-colors=never",
-                                                "--open"
-                                            }
-                                        }
-                                    }
-                                }
-                            })
-                            vim.notify("Anteprima nativa Tinymist avviata!", vim.log.levels.INFO)
-                        end, { buffer = bufnr, desc = "Avvia anteprima TOML nativa" })
+                            client:request("workspace/executeCommand", {
+                                command = "tinymist.startDefaultPreview",
+                                arguments = { vim.api.nvim_buf_get_name(bufnr) },
+                            }, function(err, result, ctx, config)
+                                if err then
+                                    vim.notify("Errore anteprima Tinymist: " .. err.message, vim.log.levels.ERROR)
+                                else
+                                    vim.notify("Anteprima Tinymist avviata nel browser!", vim.log.levels.INFO)
+                                end
+                            end, bufnr)
+                        end, { buffer = bufnr, desc = "Avvia anteprima Typst" })
                     end,
                     cmd = { "tinymist" },
                 })
-
                 vim.lsp.enable({
                     "lua_ls",
                     "clangd",

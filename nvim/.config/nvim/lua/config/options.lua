@@ -80,3 +80,17 @@ vim.diagnostic.config({
   -- Mostra le diagnostiche anche mentre stai digitando in Insert Mode (opzionale)
   update_in_insert = false,
 })
+-- Disattiva la sorgente 'buffer' di cmp SOLO nei file Typst
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "typst",
+    callback = function()
+        local cmp = require("cmp")
+        cmp.setup.buffer {
+            sources = {
+                { name = "nvim_lsp" },
+                { name = "luasnip" },
+                { name = "path" },
+            },
+        }
+    end,
+})

@@ -48,33 +48,39 @@ return {
                     -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
                     --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
                 },
-                sources = {
-                    { name = "nvim_lsp" },
-                    { name = "luasnip" },
-                    { name = "path" },
-                    { name = "buffer", option = { keyword_length = 3, }, },
-                },
-                -- Configurazione per la ricerca (/)
-                cmp.setup.cmdline('/', {
-                    mapping = cmp.mapping.preset.cmdline(),
-                    sources = {
-                        { name = 'buffer' }
-                    }
-                }),
-
-                -- Configurazione per i comandi (:)
-                cmp.setup.cmdline(':', {
-                    mapping = cmp.mapping.preset.cmdline(),
-                    sources = cmp.config.sources({
-                        { name = 'path' }
-                    }, {
-                        { name = 'cmdline' }
+                -- sources = {
+                    --     { name = "nvim_lsp" },
+                    --     { name = "luasnip" },
+                    --     { name = "path" },
+                    --     { name = "buffer", option = { keyword_length = 3, }, },
+                    -- },
+                    sources = {                    -- Per tutti gli altri file, mantieni la tua configurazione originale
+                        { name = "nvim_lsp" },
+                        { name = "luasnip" },
+                        { name = "path" },
+                        { name = "buffer", option = { keyword_length = 3 } },
+                    },
+                    -- Configurazione per la ricerca (/)
+                    cmp.setup.cmdline('/', {
+                        mapping = cmp.mapping.preset.cmdline(),
+                        sources = {
+                            { name = 'buffer' }
+                        }
                     }),
-                    matching = { disallow_symbol_nonprefix_matching = false }
-                })
-            }
 
-        end
+                    -- Configurazione per i comandi (:)
+                    cmp.setup.cmdline(':', {
+                        mapping = cmp.mapping.preset.cmdline(),
+                        sources = cmp.config.sources({
+                            { name = 'path' }
+                        }, {
+                            { name = 'cmdline' }
+                        }),
+                        matching = { disallow_symbol_nonprefix_matching = false }
+                    })
+                }
+
+            end
+        }
     }
-}
 
