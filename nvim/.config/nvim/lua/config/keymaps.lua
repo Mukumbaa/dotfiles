@@ -20,7 +20,7 @@ vim.keymap.set("n", "<leader>a", "ggVG")
 vim.keymap.set("n", "<C-c>", "gcc", { remap = true, silent = true })
 vim.keymap.set("v", "<C-c>", "gcc", { remap = true, silent = true })
 vim.keymap.set("n", "<leader>u", ':silent !xdg-open "<cWORD>" &<CR>')
-vim.keymap.set("n", "<leader>w", ":w<CR>")
+vim.keymap.set("n", "<leader>w", "<cmd>update<CR>")
 vim.keymap.set("n", "<leader>f", ":lua require('fzf-lua').files()<CR>")                          --search cwd
 vim.keymap.set("n", "<leader>D", ":lua require('fzf-lua').diagnostics_document()<CR>")           --diagnostics_document
 vim.keymap.set("n", "<leader>Fh", ":lua require('fzf-lua').files({ cwd = '~/' })<CR>")           --search home
