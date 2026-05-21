@@ -5,12 +5,13 @@ return {
     },
     {
         "hrsh7th/nvim-cmp",  -- Autocompletion plugin
-        dependendencies = {
+        dependencies = {
             "L3MON4D3/LuaSnip",
             "saadparwaiz1/cmp_luasnip",
             "hrsh7th/cmp-nvim-lsp",
             "hrsh7th/cmp-buffer",
             "hrsh7th/cmp-path",
+            "hrsh7th/cmp-cmdline"
         },
         config = function()
             -- See `:help cmp`
@@ -52,6 +53,24 @@ return {
                     { name = "path" },
                     { name = "buffer", option = { keyword_length = 3, }, },
                 },
+                -- Configurazione per la ricerca (/)
+                cmp.setup.cmdline('/', {
+                    mapping = cmp.mapping.preset.cmdline(),
+                    sources = {
+                        { name = 'buffer' }
+                    }
+                }),
+
+                -- Configurazione per i comandi (:)
+                cmp.setup.cmdline(':', {
+                    mapping = cmp.mapping.preset.cmdline(),
+                    sources = cmp.config.sources({
+                        { name = 'path' }
+                    }, {
+                        { name = 'cmdline' }
+                    }),
+                    matching = { disallow_symbol_nonprefix_matching = false }
+                })
             }
 
         end
