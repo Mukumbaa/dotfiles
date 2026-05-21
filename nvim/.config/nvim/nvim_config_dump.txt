@@ -50,6 +50,7 @@ require("config.lazy")
   "cmp_luasnip": { "branch": "master", "commit": "98d9cb5c2c38532bd9bdb481067b20fea8f32e90" },
   "fzf-lua": { "branch": "main", "commit": "71b45a044c4ef6ecb1910880ef642d5a0e1c02e9" },
   "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
+  "lualine.nvim": { "branch": "master", "commit": "131a558e13f9f28b15cd235557150ccb23f89286" },
   "nvim-autopairs": { "branch": "master", "commit": "7b9923abad60b903ece7c52940e1321d39eccc79" },
   "nvim-cmp": { "branch": "main", "commit": "a1d504892f2bc56c2e79b65c6faded2fd21f3eca" },
   "nvim-lspconfig": { "branch": "master", "commit": "deb0df61b2d6691e745b16a42755e10ad38218e9" },
@@ -58,6 +59,7 @@ require("config.lazy")
   "nvim-web-devicons": { "branch": "master", "commit": "7d8dad2c837fcdf2e65997e68657c1a21c568074" },
   "rose-pine": { "branch": "main", "commit": "ff483051a47e27d84bdef47703538df1ed9f4a47" },
   "toggleterm.nvim": { "branch": "main", "commit": "50ea089fc548917cc3cc16b46a8211833b9e3c7c" },
+  "typst-preview.nvim": { "branch": "master", "commit": "0354cc1a7a5174a2e69cdc21c4db9a3ee18bb20a" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" }
 }
 
@@ -125,6 +127,7 @@ vim.keymap.set("n", "<A-K>", "<cmd>t .-1<CR>", { desc = "Duplica riga su" })
 -- Visual mode (più righe). Copia in blocco sopra o sotto la selezione e MANTIENE SELEZIONATO il nuovo testo
 vim.keymap.set("v", "<A-J>", ":t '><CR>'[V']", { desc = "Duplica selezione giù e seleziona" })
 vim.keymap.set("v", "<A-K>", ":t '<-1<CR>'[V']", { desc = "Duplica selezione su e seleziona" })
+vim.keymap.set("n", "<leader>pv", ":")
 
 
 ===== ./lua/config/lazy.lua =====
@@ -216,8 +219,8 @@ local options = {
 	signcolumn = "yes",
 	clipboard = "unnamedplus",
 	-- Completamento automatico nativo
-	autocomplete = true ,
-	completeopt = { "menu", "menuone", "noselect" },
+	autocomplete = false,
+	-- completeopt = { "menu", "menuone", "noselect" },
     fillchars = { eob = " " },
 }
 vim.opt.undodir = vim.fn.stdpath("data") .. "/undodir"
@@ -232,7 +235,19 @@ for k, v in pairs(options) do
 end
 
 vim.diagnostic.config({
-	signs = false,
+  -- Disattiva i simboli nella barra laterale (mantenendo la tua preferenza attuale)
+  signs = false,
+  
+  -- Abilita il testo fantasma (Virtual Text)
+  virtual_text = {
+    spacing = 4,          -- Distanza in spazi tra la fine del codice e il testo fantasma
+    source = "if_many",   -- Mostra la sorgente (es. pyright, lua_ls) se ci sono più diagnostiche
+    prefix = "■",         -- Simbolo che precede il messaggio d'errore (puoi usare "●", " ", "󰅚 ")
+    severity = nil,       -- Mostra tutte le gravità (Error, Warn, Info, Hint)
+  },
+  
+  -- Mostra le diagnostiche anche mentre stai digitando in Insert Mode (opzionale)
+  update_in_insert = false,
 })
 
 
@@ -263,7 +278,8 @@ return {
                     end,
                 },
                 auto_brackets = {},
-                completion = { completeopt = "menu,menuone,noinsert" },
+                -- completion = { completeopt = "menu,menuone,noinsert" },
+                completion = { completeopt = "menu,menuone,noselect" },
 
                 mapping = cmp.mapping.preset.insert {
                     -- Select the [n]ext/[p]revious item
@@ -315,6 +331,7 @@ return {
         end
     }
 }
+
 
 
 ===== ./lua/plugins/autopairs.lua =====
@@ -404,80 +421,169 @@ return {
 
 ===== ./lua/plugins/lsp.lua =====
 return {
-  'neovim/nvim-lspconfig',
-  dependencies = {
-    "hrsh7th/cmp-nvim-lsp",
-  },
-  config = function()
-    vim.lsp.log.set_level("error")
-    
-    -- Configurazione hover border (modo moderno)
-    vim.lsp.handlers["textDocument/hover"] = function(err, result, context, config)
-      vim.lsp.handlers.hover(err, result, context, { border = "single" })
+    'neovim/nvim-lspconfig',
+    dependencies = {
+        "hrsh7th/cmp-nvim-lsp",
+    },
+    config = function()
+        vim.lsp.log.set_level("error")
+
+        -- Configurazione hover border (modo moderno)
+        vim.lsp.handlers["textDocument/hover"] = function(err, result, context, config)
+            vim.lsp.handlers.hover(err, result, context, { border = "single" })
+        end
+
+        local capabilities = require('cmp_nvim_lsp').default_capabilities()
+        local lsp_keymaps = function(_, bufnr)
+            local opts = { buffer = bufnr }
+            vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+            vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+            vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+            vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, opts)
+            vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+            vim.keymap.set("n", "<leader>df", vim.diagnostic.goto_next, opts)
+            vim.keymap.set("n", "<leader>dp", vim.diagnostic.goto_prev, opts)
+            -- vim.keymap.set("n", "<leader>dl", "<cmd>Telescope diagnostics<cr>", opts)
+            vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
+            vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+            -- vim.keymap.set("n", "<leader>Fr", require("telescope.builtin").lsp_references, opts)
+            -- vim.keymap.set("n", "<leader>e", function()
+                --   vim.diagnostic.open_float(nil, {focusable = false, scope = "line", max_width = 80, border = "single"})
+                -- end, opts)
+            end
+
+            vim.lsp.config("clangd", {
+                capabilities = capabilities,
+                on_attach = lsp_keymaps,
+                cmd = { "clangd", "--compile-commands-dir=build" },
+                -- root_dir = require("lspconfig.util").root_pattern("compile_commands.json", ".git"),
+            })
+
+            vim.lsp.config("gopls", {
+                capabilities = capabilities,
+                on_attach = lsp_keymaps,
+            })
+
+            -- vim.lsp.config("pyright", {
+                --     capabilities = capabilities,
+                --     on_attach = lsp_keymaps,
+                -- })
+
+                vim.lsp.config("lua_ls", {
+                    capabilities = capabilities,
+                    on_attach = lsp_keymaps,
+                    cmd = { "lua-language-server" },
+
+                })
+                vim.lsp.config("tinymist", {
+                    capabilities = capabilities,
+                    -- Estendiamo la funzione dei tasti per aggiungere il comando personalizzato
+                    on_attach = function(client, bufnr)
+                        -- Esegue prima i tuoi tasti di default (gd, K, gt, ecc.)
+                        lsp_keymaps(client, bufnr) 
+
+                        -- Tasto specifico per attivare l'anteprima in background del TOML
+                        vim.keymap.set("n", "<leader>tp", function()
+                            -- Invia la configurazione esatta che avevi nel file TOML all'LSP attivo
+                            client.notify("workspace/didChangeConfiguration", {
+                                settings = {
+                                    preview = {
+                                        background = {
+                                            enabled = true,
+                                            args = {
+                                                "--data-plane-host=127.0.0.1:23635",
+                                                "--invert-colors=never",
+                                                "--open"
+                                            }
+                                        }
+                                    }
+                                }
+                            })
+                            vim.notify("Anteprima nativa Tinymist avviata!", vim.log.levels.INFO)
+                        end, { buffer = bufnr, desc = "Avvia anteprima TOML nativa" })
+                    end,
+                    cmd = { "tinymist" },
+                })
+
+                vim.lsp.enable({
+                    "lua_ls",
+                    "clangd",
+                    "gopls",
+                    "pyright",
+                    "tinymist"
+                })
+
+            end,
+        }
+
+
+===== ./lua/plugins/lualine.lua =====
+return {
+  "nvim-lualine/lualine.nvim",
+  dependencies = { "nvim-tree/nvim-web-devicons" },
+  event = "VeryLazy",
+  opts = function()
+    -- Definiamo i componenti personalizzati all'interno della funzione opts
+    local diagnostics = {
+      "diagnostics",
+      sources = { "nvim_diagnostic" },
+      sections = { "error", "warn" },
+      symbols = { error = " ", warn = " " },
+      colored = true,
+      update_in_insert = false,
+      always_visible = true,
+      cond = function()
+        return vim.bo.filetype ~= "markdown"
+      end,
+    }
+
+    -- local diff = {
+    --   "diff",
+    --   colored = true,
+    --   symbols = { added = " ", modified = " ", removed = " " },
+    -- }
+
+    local mode = {
+      "mode",
+      fmt = function(str)
+        return "-- " .. str .. " --"
+      end,
+    }
+
+    local branch = {
+      "branch",
+      icon = "",
+    }
+
+    local progress = function()
+      local current_line = vim.fn.line(".")
+      local total_lines = vim.fn.line("$")
+      local chars = { "", "", "" }
+      local line_ratio = current_line / total_lines
+      local index = math.ceil(line_ratio * #chars)
+      return chars[index] .. " " .. math.floor(line_ratio * 100) .. "%%"
     end
 
-    local capabilities = require('cmp_nvim_lsp').default_capabilities()
-    local lsp_keymaps = function(_, bufnr)
-      local opts = { buffer = bufnr }
-      vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-      vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-      vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-      vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, opts)
-      vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-      vim.keymap.set("n", "<leader>df", vim.diagnostic.goto_next, opts)
-      vim.keymap.set("n", "<leader>dp", vim.diagnostic.goto_prev, opts)
-      -- vim.keymap.set("n", "<leader>dl", "<cmd>Telescope diagnostics<cr>", opts)
-      vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
-      vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-      -- vim.keymap.set("n", "<leader>Fr", require("telescope.builtin").lsp_references, opts)
-      -- vim.keymap.set("n", "<leader>e", function()
-      --   vim.diagnostic.open_float(nil, {focusable = false, scope = "line", max_width = 80, border = "single"})
-      -- end, opts)
-    end
-    
-    vim.lsp.config("clangd", {
-      capabilities = capabilities,
-      on_attach = lsp_keymaps,
-      cmd = { "clangd", "--compile-commands-dir=build" },
-      -- root_dir = require("lspconfig.util").root_pattern("compile_commands.json", ".git"),
-    })
-
-    vim.lsp.config("gopls", {
-      capabilities = capabilities,
-      on_attach = lsp_keymaps,
-    })
-
-    vim.lsp.config("pyright", {
-      capabilities = capabilities,
-      on_attach = lsp_keymaps,
-    })
-
-    vim.lsp.config("tsserver", {
-      capabilities = capabilities,
-      on_attach = lsp_keymaps,
-      cmd = { "typescript-language-server", "--stdio" },
-    })
-
-    vim.lsp.config("jdtls", {
-      capabilities = capabilities,
-      on_attach = lsp_keymaps,
-    })
-
-    vim.lsp.config("lua_ls", {
-      capabilities = capabilities,
-      on_attach = lsp_keymaps,
-      cmd = {"lua-language-server"}
-    })
-
-    vim.lsp.enable({
-      "lua_ls",
-      "clangd",
-      "gopls",
-      "pyright",
-      "tsserver",
-      "jdtls",
-    })
-
+    -- Ritorniamo la tabella di configurazione vera e propria
+    return {
+      options = {
+        icons_enabled = true,
+        theme = "auto",
+        component_separators = { left = "", right = "" },
+        section_separators = { left = "", right = "" },
+        disabled_filetypes = { "alpha", "dashboard" },
+        always_divide_middle = true,
+      },
+      sections = {
+        lualine_a = { branch },
+        lualine_b = { mode },
+        lualine_c = { diagnostics, "filename" },
+        -- lualine_x = { diff, "fileformat", "filetype" },
+        lualine_y = { "location" },
+        lualine_z = { progress },
+      },
+      extensions = { "nvim-tree" },
+    }
   end,
 }
 
@@ -526,7 +632,7 @@ return {
     local configs = require("nvim-treesitter.config")
 
     configs.setup({
-      ensure_installed = { "c", "lua", "vim", "vimdoc", "typescript", "javascript", "tsx", "html", "css", "go", "markdown", "cpp", "python", "java"},
+      ensure_installed = { "c", "lua", "vim", "vimdoc", "typescript", "javascript", "tsx", "html", "css", "go", "markdown", "cpp", "python", "java", "typst"},
       sync_install = false,
       highlight = {
         enable = true,

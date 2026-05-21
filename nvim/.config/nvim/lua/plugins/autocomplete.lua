@@ -24,7 +24,8 @@ return {
                     end,
                 },
                 auto_brackets = {},
-                completion = { completeopt = "menu,menuone,noinsert" },
+                -- completion = { completeopt = "menu,menuone,noinsert" },
+                completion = { completeopt = "menu,menuone,noselect" },
 
                 mapping = cmp.mapping.preset.insert {
                     -- Select the [n]ext/[p]revious item
@@ -76,3 +77,4 @@ return {
         end
     }
 }
+

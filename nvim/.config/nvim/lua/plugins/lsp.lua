@@ -42,37 +42,46 @@ return {
                 on_attach = lsp_keymaps,
             })
 
-            vim.lsp.config("pyright", {
-                capabilities = capabilities,
-                on_attach = lsp_keymaps,
-            })
+            -- vim.lsp.config("pyright", {
+                --     capabilities = capabilities,
+                --     on_attach = lsp_keymaps,
+                -- })
 
-            vim.lsp.config("tsserver", {
-                capabilities = capabilities,
-                on_attach = lsp_keymaps,
-                cmd = { "typescript-language-server", "--stdio" },
-            })
+                vim.lsp.config("lua_ls", {
+                    capabilities = capabilities,
+                    on_attach = lsp_keymaps,
+                    cmd = { "lua-language-server" },
 
-            vim.lsp.config("jdtls", {
-                capabilities = capabilities,
-                on_attach = lsp_keymaps,
-            })
+                })
+                vim.lsp.config("tinymist", {
+                    capabilities = capabilities,
+                    on_attach = function(client, bufnr)
+                        -- Configura i tuoi tasti di default (gd, K, ecc.)
+                        lsp_keymaps(client, bufnr) 
 
-            vim.lsp.config("lua_ls", {
-                capabilities = capabilities,
-                on_attach = lsp_keymaps,
-                cmd = { "lua-language-server" },
+                        -- Tasto per attivare l'anteprima nativa (Senza avvisi di deprecazione)
+                        vim.keymap.set("n", "<leader>tp", function()
+                            client:request("workspace/executeCommand", {
+                                command = "tinymist.startDefaultPreview",
+                                arguments = { vim.api.nvim_buf_get_name(bufnr) },
+                            }, function(err, result, ctx, config)
+                                if err then
+                                    vim.notify("Errore anteprima Tinymist: " .. err.message, vim.log.levels.ERROR)
+                                else
+                                    vim.notify("Anteprima Tinymist avviata nel browser!", vim.log.levels.INFO)
+                                end
+                            end, bufnr)
+                        end, { buffer = bufnr, desc = "Avvia anteprima Typst" })
+                    end,
+                    cmd = { "tinymist" },
+                })
+                vim.lsp.enable({
+                    "lua_ls",
+                    "clangd",
+                    "gopls",
+                    "pyright",
+                    "tinymist"
+                })
 
-            })
-
-            vim.lsp.enable({
-                "lua_ls",
-                "clangd",
-                "gopls",
-                "pyright",
-                "tsserver",
-                "jdtls",
-            })
-
-        end,
-    }
+            end,
+        }

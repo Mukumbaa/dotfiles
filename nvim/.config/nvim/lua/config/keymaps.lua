@@ -60,3 +60,4 @@ vim.keymap.set("n", "<A-K>", "<cmd>t .-1<CR>", { desc = "Duplica riga su" })
 -- Visual mode (più righe). Copia in blocco sopra o sotto la selezione e MANTIENE SELEZIONATO il nuovo testo
 vim.keymap.set("v", "<A-J>", ":t '><CR>'[V']", { desc = "Duplica selezione giù e seleziona" })
 vim.keymap.set("v", "<A-K>", ":t '<-1<CR>'[V']", { desc = "Duplica selezione su e seleziona" })
+vim.keymap.set("n", "<leader>pv", ":")
