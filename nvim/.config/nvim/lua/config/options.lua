@@ -50,8 +50,8 @@ local options = {
 	signcolumn = "yes",
 	clipboard = "unnamedplus",
 	-- Completamento automatico nativo
-	autocomplete = true ,
-	completeopt = { "menu", "menuone", "noselect" },
+	autocomplete = false,
+	-- completeopt = { "menu", "menuone", "noselect" },
     fillchars = { eob = " " },
 }
 vim.opt.undodir = vim.fn.stdpath("data") .. "/undodir"
@@ -66,5 +66,17 @@ for k, v in pairs(options) do
 end
 
 vim.diagnostic.config({
-	signs = false,
+  -- Disattiva i simboli nella barra laterale (mantenendo la tua preferenza attuale)
+  signs = false,
+  
+  -- Abilita il testo fantasma (Virtual Text)
+  virtual_text = {
+    spacing = 4,          -- Distanza in spazi tra la fine del codice e il testo fantasma
+    source = "if_many",   -- Mostra la sorgente (es. pyright, lua_ls) se ci sono più diagnostiche
+    prefix = "■",         -- Simbolo che precede il messaggio d'errore (puoi usare "●", " ", "󰅚 ")
+    severity = nil,       -- Mostra tutte le gravità (Error, Warn, Info, Hint)
+  },
+  
+  -- Mostra le diagnostiche anche mentre stai digitando in Insert Mode (opzionale)
+  update_in_insert = false,
 })

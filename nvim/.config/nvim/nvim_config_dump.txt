@@ -43,13 +43,17 @@ require("config.lazy")
 ===== ./lazy-lock.json =====
 {
   "LuaSnip": { "branch": "master", "commit": "0abc8f390b278c3b4aabc4c004ac8a088b65cf24" },
+  "cmp-buffer": { "branch": "main", "commit": "b74fab3656eea9de20a9b8116afa3cfc4ec09657" },
+  "cmp-cmdline": { "branch": "main", "commit": "d126061b624e0af6c3a556428712dd4d4194ec6d" },
   "cmp-nvim-lsp": { "branch": "main", "commit": "cbc7b02bb99fae35cb42f514762b89b5126651ef" },
+  "cmp-path": { "branch": "main", "commit": "c642487086dbd9a93160e1679a1327be111cbc25" },
   "cmp_luasnip": { "branch": "master", "commit": "98d9cb5c2c38532bd9bdb481067b20fea8f32e90" },
   "fzf-lua": { "branch": "main", "commit": "71b45a044c4ef6ecb1910880ef642d5a0e1c02e9" },
   "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
   "nvim-autopairs": { "branch": "master", "commit": "7b9923abad60b903ece7c52940e1321d39eccc79" },
   "nvim-cmp": { "branch": "main", "commit": "a1d504892f2bc56c2e79b65c6faded2fd21f3eca" },
   "nvim-lspconfig": { "branch": "master", "commit": "deb0df61b2d6691e745b16a42755e10ad38218e9" },
+  "nvim-tree.lua": { "branch": "master", "commit": "85d1145ac71c1b8e1423862c78165a1f609faf60" },
   "nvim-treesitter": { "branch": "main", "commit": "4916d6592ede8c07973490d9322f187e07dfefac" },
   "nvim-web-devicons": { "branch": "master", "commit": "7d8dad2c837fcdf2e65997e68657c1a21c568074" },
   "rose-pine": { "branch": "main", "commit": "ff483051a47e27d84bdef47703538df1ed9f4a47" },
@@ -69,7 +73,7 @@ vim.g.maplocalleader = "\\"
 vim.keymap.set('n', 'j', 'gj', { desc = 'Up', noremap = true})
 vim.keymap.set('n', 'k', 'gk', { desc = 'Down', noremap = true})
 
-vim.keymap.set("n", "<leader>e", ":Lexplore<CR>")                                --open file explorer
+vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>")                                --open file explorer
 vim.keymap.set('n', '<leader>z', ":ToggleTerm<CR>")
 vim.keymap.set('t', '<esc>', "<C-\\><C-n><CMD>ToggleTerm exit<CR>")
 vim.keymap.set("n", "<Tab>", ":bnext<CR>") -- go to next buffer
@@ -234,63 +238,82 @@ vim.diagnostic.config({
 
 ===== ./lua/plugins/autocomplete.lua =====
 return {
-  {
-    "saadparwaiz1/cmp_luasnip", -- Snippet source
-    "L3MON4D3/LuaSnip",         -- Snippet engine
-  },
-  {
-    "hrsh7th/nvim-cmp",  -- Autocompletion plugin
-    dependendencies = {
-      "L3MON4D3/LuaSnip",
-      "saadparwaiz1/cmp_luasnip",
-      "hrsh7th/cmp-nvim-lsp",
-      "hrsh7th/cmp-buffer",
-      "hrsh7th/cmp-path",
+    {
+        "saadparwaiz1/cmp_luasnip", -- Snippet source
+        "L3MON4D3/LuaSnip",         -- Snippet engine
     },
-    config = function()
-      -- See `:help cmp`
-      local cmp = require "cmp"
-
-      cmp.setup {
-        snippet = {
-          expand = function(args)
-            require('luasnip').lsp_expand(args.body)
-          end,
+    {
+        "hrsh7th/nvim-cmp",  -- Autocompletion plugin
+        dependencies = {
+            "L3MON4D3/LuaSnip",
+            "saadparwaiz1/cmp_luasnip",
+            "hrsh7th/cmp-nvim-lsp",
+            "hrsh7th/cmp-buffer",
+            "hrsh7th/cmp-path",
+            "hrsh7th/cmp-cmdline"
         },
-        auto_brackets = {},
-        completion = { completeopt = "menu,menuone,noinsert" },
+        config = function()
+            -- See `:help cmp`
+            local cmp = require "cmp"
 
-        mapping = cmp.mapping.preset.insert {
-          -- Select the [n]ext/[p]revious item
-          ["<Tab>"] = cmp.mapping.select_next_item(),
-          ["<S-Tab>"] = cmp.mapping.select_prev_item(),
+            cmp.setup {
+                snippet = {
+                    expand = function(args)
+                        require('luasnip').lsp_expand(args.body)
+                    end,
+                },
+                auto_brackets = {},
+                completion = { completeopt = "menu,menuone,noinsert" },
 
-          -- Scroll the documentation window [b]ack/[f]orward
-          ["<C-b>"] = cmp.mapping.scroll_docs(-4),
-          ["<C-f>"] = cmp.mapping.scroll_docs(4),
+                mapping = cmp.mapping.preset.insert {
+                    -- Select the [n]ext/[p]revious item
+                    ["<Tab>"] = cmp.mapping.select_next_item(),
+                    ["<S-Tab>"] = cmp.mapping.select_prev_item(),
 
-          -- Accept ([y]es) or [e]xit the completion.
-          --  This will auto-import if your LSP supports it.
-          --  This will expand snippets if the LSP sent a snippet.
-          ["<CR>"] = cmp.mapping.confirm { select = true },
-          ["<C-e>"] = cmp.mapping.abort(),
+                    -- Scroll the documentation window [b]ack/[f]orward
+                    ["<C-b>"] = cmp.mapping.scroll_docs(-4),
+                    ["<C-f>"] = cmp.mapping.scroll_docs(4),
 
-          -- Manually trigger a completion from nvim-cmp.
-          ["<C-Space>"] = cmp.mapping.complete {},
+                    -- Accept ([y]es) or [e]xit the completion.
+                    --  This will auto-import if your LSP supports it.
+                    --  This will expand snippets if the LSP sent a snippet.
+                    ["<CR>"] = cmp.mapping.confirm { select = true },
+                    ["<C-e>"] = cmp.mapping.abort(),
 
-          -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-          --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
-        },
-        sources = {
-          { name = "nvim_lsp" },
-          { name = "luasnip" },
-          { name = "path" },
-          { name = "buffer", option = { keyword_length = 3, }, },
-        },
-      }
+                    -- Manually trigger a completion from nvim-cmp.
+                    ["<C-Space>"] = cmp.mapping.complete {},
 
-    end
-  }
+                    -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
+                    --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
+                },
+                sources = {
+                    { name = "nvim_lsp" },
+                    { name = "luasnip" },
+                    { name = "path" },
+                    { name = "buffer", option = { keyword_length = 3, }, },
+                },
+                -- Configurazione per la ricerca (/)
+                cmp.setup.cmdline('/', {
+                    mapping = cmp.mapping.preset.cmdline(),
+                    sources = {
+                        { name = 'buffer' }
+                    }
+                }),
+
+                -- Configurazione per i comandi (:)
+                cmp.setup.cmdline(':', {
+                    mapping = cmp.mapping.preset.cmdline(),
+                    sources = cmp.config.sources({
+                        { name = 'path' }
+                    }, {
+                        { name = 'cmdline' }
+                    }),
+                    matching = { disallow_symbol_nonprefix_matching = false }
+                })
+            }
+
+        end
+    }
 }
 
 
@@ -457,6 +480,20 @@ return {
 
   end,
 }
+
+
+===== ./lua/plugins/nvimtree.lua =====
+return {
+  "nvim-tree/nvim-tree.lua",
+  version = "*",
+  lazy = false,
+  dependencies = {
+    "nvim-tree/nvim-web-devicons",
+  },
+  config = function()
+    require("nvim-tree").setup {}
+  end,
+} 
 
 
 ===== ./lua/plugins/theme.lua =====
