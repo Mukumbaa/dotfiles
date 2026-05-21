@@ -1,0 +1,1592 @@
+===== ./init.lua =====
+-- General Settings
+vim.opt.number = true
+vim.opt.scrolloff = 8
+vim.opt.sidescrolloff = 8
+vim.opt.wrap = true
+
+-- Tabs and Indentation
+vim.opt.tabstop = 2
+vim.opt.shiftwidth = 2
+vim.opt.expandtab = true
+vim.opt.smartindent = true
+
+-- Search Settings
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+vim.opt.hlsearch = true
+vim.opt.incsearch = true
+
+-- Clipboard
+vim.opt.clipboard = "unnamedplus"
+
+-- Mouse Support
+vim.opt.mouse = "a"
+-- vim.opt.guicursor = "n-v-c-sm:ver25,i-ci-ve:ver25,r-cr:hor20,o:hor50"
+
+-- Split Management
+vim.opt.splitright = true
+vim.opt.splitbelow = true
+
+-- Appearance
+vim.opt.termguicolors = true
+vim.opt.background = "dark"
+vim.opt.guifont = "MesloLGS NF:h17"  -- You can adjust the size (h14) as needed
+
+-- Keymaps
+require("config.keymaps")
+require("config.options")
+require("config.lazy")
+
+
+
+===== ./.git/config =====
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = https://github.com/afazio1/nvim
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+
+
+===== ./.git/description =====
+Unnamed repository; edit this file 'description' to name the repository.
+
+
+===== ./.git/HEAD =====
+ref: refs/heads/main
+
+
+===== ./.git/hooks/applypatch-msg.sample =====
+#!/usr/bin/sh
+#
+# An example hook script to check the commit log message taken by
+# applypatch from an e-mail message.
+#
+# The hook should exit with non-zero status after issuing an
+# appropriate message if it wants to stop the commit.  The hook is
+# allowed to edit the commit message file.
+#
+# To enable this hook, rename this file to "applypatch-msg".
+
+. git-sh-setup
+commitmsg="$(git rev-parse --git-path hooks/commit-msg)"
+test -x "$commitmsg" && exec "$commitmsg" ${1+"$@"}
+:
+
+
+===== ./.git/hooks/commit-msg.sample =====
+#!/usr/bin/sh
+#
+# An example hook script to check the commit log message.
+# Called by "git commit" with one argument, the name of the file
+# that has the commit message.  The hook should exit with non-zero
+# status after issuing an appropriate message if it wants to stop the
+# commit.  The hook is allowed to edit the commit message file.
+#
+# To enable this hook, rename this file to "commit-msg".
+
+# Uncomment the below to add a Signed-off-by line to the message.
+# Doing this in a hook is a bad idea in general, but the prepare-commit-msg
+# hook is more suited to it.
+#
+# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+
+# This example catches duplicate Signed-off-by lines and messages that
+# would confuse 'git am'.
+
+ret=0
+
+test "" = "$(grep '^Signed-off-by: ' "$1" |
+	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
+	echo >&2 Duplicate Signed-off-by lines.
+	ret=1
+}
+
+comment_re="$(
+	{
+		git config --get-regexp "^core\.comment(char|string)\$" ||
+			echo '#'
+	} | sed -n -e '
+		${
+			s/^[^ ]* //
+			s|[][*./\]|\\&|g
+			s/^auto$/[#;@!$%^&|:]/
+			p
+		}'
+)"
+scissors_line="^${comment_re} -\{8,\} >8 -\{8,\}\$"
+comment_line="^${comment_re}.*"
+blank_line='^[ 	]*$'
+# Disallow lines starting with "diff -" or "Index: " in the body of the
+# message. Stop looking if we see a scissors line.
+line="$(sed -n -e "
+	# Skip comments and blank lines at the start of the file.
+	/${scissors_line}/q
+	/${comment_line}/d
+	/${blank_line}/d
+	# The first paragraph will become the subject header so
+	# does not need to be checked.
+	: subject
+	n
+	/${scissors_line}/q
+	/${blank_line}/!b subject
+	# Check the body of the message for problematic
+	# prefixes.
+	: body
+	n
+	/${scissors_line}/q
+	/${comment_line}/b body
+	/^diff -/{p;q;}
+	/^Index: /{p;q;}
+	b body
+	" "$1")"
+if test -n "$line"
+then
+	echo >&2 "Message contains a diff that will confuse 'git am'."
+	echo >&2 "To fix this indent the diff."
+	ret=1
+fi
+
+exit $ret
+
+
+===== ./.git/hooks/fsmonitor-watchman.sample =====
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use IPC::Open2;
+
+# An example hook script to integrate Watchman
+# (https://facebook.github.io/watchman/) with git to speed up detecting
+# new and modified files.
+#
+# The hook is passed a version (currently 2) and last update token
+# formatted as a string and outputs to stdout a new update token and
+# all files that have been modified since the update token. Paths must
+# be relative to the root of the working tree and separated by a single NUL.
+#
+# To enable this hook, rename this file to "query-watchman" and set
+# 'git config core.fsmonitor .git/hooks/query-watchman'
+#
+my ($version, $last_update_token) = @ARGV;
+
+# Uncomment for debugging
+# print STDERR "$0 $version $last_update_token\n";
+
+# Check the hook interface version
+if ($version ne 2) {
+	die "Unsupported query-fsmonitor hook version '$version'.\n" .
+	    "Falling back to scanning...\n";
+}
+
+my $git_work_tree = get_working_dir();
+
+my $json_pkg;
+eval {
+	require JSON::XS;
+	$json_pkg = "JSON::XS";
+	1;
+} or do {
+	require JSON::PP;
+	$json_pkg = "JSON::PP";
+};
+
+launch_watchman();
+
+sub launch_watchman {
+	my $o = watchman_query();
+	if (is_work_tree_watched($o)) {
+		output_result($o->{clock}, @{$o->{files}});
+	}
+}
+
+sub output_result {
+	my ($clockid, @files) = @_;
+
+	# Uncomment for debugging watchman output
+	# open (my $fh, ">", ".git/watchman-output.out");
+	# binmode $fh, ":utf8";
+	# print $fh "$clockid\n@files\n";
+	# close $fh;
+
+	binmode STDOUT, ":utf8";
+	print $clockid;
+	print "\0";
+	local $, = "\0";
+	print @files;
+}
+
+sub watchman_clock {
+	my $response = qx/watchman clock "$git_work_tree"/;
+	die "Failed to get clock id on '$git_work_tree'.\n" .
+		"Falling back to scanning...\n" if $? != 0;
+
+	return $json_pkg->new->utf8->decode($response);
+}
+
+sub watchman_query {
+	my $pid = open2(\*CHLD_OUT, \*CHLD_IN, 'watchman -j --no-pretty')
+	or die "open2() failed: $!\n" .
+	"Falling back to scanning...\n";
+
+	# In the query expression below we're asking for names of files that
+	# changed since $last_update_token but not from the .git folder.
+	#
+	# To accomplish this, we're using the "since" generator to use the
+	# recency index to select candidate nodes and "fields" to limit the
+	# output to file names only. Then we're using the "expression" term to
+	# further constrain the results.
+	my $last_update_line = "";
+	if (substr($last_update_token, 0, 1) eq "c") {
+		$last_update_token = "\"$last_update_token\"";
+		$last_update_line = qq[\n"since": $last_update_token,];
+	}
+	my $query = <<"	END";
+		["query", "$git_work_tree", {$last_update_line
+			"fields": ["name"],
+			"expression": ["not", ["dirname", ".git"]]
+		}]
+	END
+
+	# Uncomment for debugging the watchman query
+	# open (my $fh, ">", ".git/watchman-query.json");
+	# print $fh $query;
+	# close $fh;
+
+	print CHLD_IN $query;
+	close CHLD_IN;
+	my $response = do {local $/; <CHLD_OUT>};
+
+	# Uncomment for debugging the watch response
+	# open ($fh, ">", ".git/watchman-response.json");
+	# print $fh $response;
+	# close $fh;
+
+	die "Watchman: command returned no output.\n" .
+	"Falling back to scanning...\n" if $response eq "";
+	die "Watchman: command returned invalid output: $response\n" .
+	"Falling back to scanning...\n" unless $response =~ /^\{/;
+
+	return $json_pkg->new->utf8->decode($response);
+}
+
+sub is_work_tree_watched {
+	my ($output) = @_;
+	my $error = $output->{error};
+	if ($error and $error =~ m/unable to resolve root .* directory (.*) is not watched/) {
+		my $response = qx/watchman watch "$git_work_tree"/;
+		die "Failed to make watchman watch '$git_work_tree'.\n" .
+		    "Falling back to scanning...\n" if $? != 0;
+		$output = $json_pkg->new->utf8->decode($response);
+		$error = $output->{error};
+		die "Watchman: $error.\n" .
+		"Falling back to scanning...\n" if $error;
+
+		# Uncomment for debugging watchman output
+		# open (my $fh, ">", ".git/watchman-output.out");
+		# close $fh;
+
+		# Watchman will always return all files on the first query so
+		# return the fast "everything is dirty" flag to git and do the
+		# Watchman query just to get it over with now so we won't pay
+		# the cost in git to look up each individual file.
+		my $o = watchman_clock();
+		$error = $o->{error};
+
+		die "Watchman: $error.\n" .
+		"Falling back to scanning...\n" if $error;
+
+		output_result($o->{clock}, ("/"));
+		return 0;
+	}
+
+	die "Watchman: $error.\n" .
+	"Falling back to scanning...\n" if $error;
+
+	return 1;
+}
+
+sub get_working_dir {
+	my $working_dir;
+	if ($^O =~ 'msys' || $^O =~ 'cygwin') {
+		$working_dir = Win32::GetCwd();
+		$working_dir =~ tr/\\/\//;
+	} else {
+		require Cwd;
+		$working_dir = Cwd::cwd();
+	}
+
+	return $working_dir;
+}
+
+
+===== ./.git/hooks/post-update.sample =====
+#!/usr/bin/sh
+#
+# An example hook script to prepare a packed repository for use over
+# dumb transports.
+#
+# To enable this hook, rename this file to "post-update".
+
+exec git update-server-info
+
+
+===== ./.git/hooks/pre-applypatch.sample =====
+#!/usr/bin/sh
+#
+# An example hook script to verify what is about to be committed
+# by applypatch from an e-mail message.
+#
+# The hook should exit with non-zero status after issuing an
+# appropriate message if it wants to stop the commit.
+#
+# To enable this hook, rename this file to "pre-applypatch".
+
+. git-sh-setup
+precommit="$(git rev-parse --git-path hooks/pre-commit)"
+test -x "$precommit" && exec "$precommit" ${1+"$@"}
+:
+
+
+===== ./.git/hooks/pre-commit.sample =====
+#!/usr/bin/sh
+#
+# An example hook script to verify what is about to be committed.
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+#
+# To enable this hook, rename this file to "pre-commit".
+
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+	against=HEAD
+else
+	# Initial commit: diff against an empty tree object
+	against=$(git hash-object -t tree /dev/null)
+fi
+
+# If you want to allow non-ASCII filenames set this variable to true.
+allownonascii=$(git config --type=bool hooks.allownonascii)
+
+# Redirect output to stderr.
+exec 1>&2
+
+# Cross platform projects tend to avoid non-ASCII filenames; prevent
+# them from being added to the repository. We exploit the fact that the
+# printable range starts at the space character and ends with tilde.
+if [ "$allownonascii" != "true" ] &&
+	# Note that the use of brackets around a tr range is ok here, (it's
+	# even required, for portability to Solaris 10's /usr/bin/tr), since
+	# the square bracket bytes happen to fall in the designated range.
+	test $(git diff-index --cached --name-only --diff-filter=A -z $against |
+	  LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
+then
+	cat <<\EOF
+Error: Attempt to add a non-ASCII file name.
+
+This can cause problems if you want to work with people on other platforms.
+
+To be portable it is advisable to rename the file.
+
+If you know what you are doing you can disable this check using:
+
+  git config hooks.allownonascii true
+EOF
+	exit 1
+fi
+
+# If there are whitespace errors, print the offending file names and fail.
+exec git diff-index --check --cached $against --
+
+
+===== ./.git/hooks/pre-merge-commit.sample =====
+#!/usr/bin/sh
+#
+# An example hook script to verify what is about to be committed.
+# Called by "git merge" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message to
+# stderr if it wants to stop the merge commit.
+#
+# To enable this hook, rename this file to "pre-merge-commit".
+
+. git-sh-setup
+test -x "$GIT_DIR/hooks/pre-commit" &&
+        exec "$GIT_DIR/hooks/pre-commit"
+:
+
+
+===== ./.git/hooks/prepare-commit-msg.sample =====
+#!/usr/bin/sh
+#
+# An example hook script to prepare the commit log message.
+# Called by "git commit" with the name of the file that has the
+# commit message, followed by the description of the commit
+# message's source.  The hook's purpose is to edit the commit
+# message file.  If the hook fails with a non-zero status,
+# the commit is aborted.
+#
+# To enable this hook, rename this file to "prepare-commit-msg".
+
+# This hook includes three examples. The first one removes the
+# "# Please enter the commit message..." help message.
+#
+# The second includes the output of "git diff --name-status -r"
+# into the message, just before the "git status" output.  It is
+# commented because it doesn't cope with --amend or with squashed
+# commits.
+#
+# The third example adds a Signed-off-by line to the message, that can
+# still be edited.  This is rarely a good idea.
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+/usr/bin/perl -i.bak -ne 'print unless(m/^. Please enter the commit message/..m/^#$/)' "$COMMIT_MSG_FILE"
+
+# case "$COMMIT_SOURCE,$SHA1" in
+#  ,|template,)
+#    /usr/bin/perl -i.bak -pe '
+#       print "\n" . `git diff --cached --name-status -r`
+# 	 if /^#/ && $first++ == 0' "$COMMIT_MSG_FILE" ;;
+#  *) ;;
+# esac
+
+# SOB=$(git var GIT_COMMITTER_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+# git interpret-trailers --in-place --trailer "$SOB" "$COMMIT_MSG_FILE"
+# if test -z "$COMMIT_SOURCE"
+# then
+#   /usr/bin/perl -i.bak -pe 'print "\n" if !$first_line++' "$COMMIT_MSG_FILE"
+# fi
+
+
+===== ./.git/hooks/pre-push.sample =====
+#!/usr/bin/sh
+
+# An example hook script to verify what is about to be pushed.  Called by "git
+# push" after it has checked the remote status, but before anything has been
+# pushed.  If this script exits with a non-zero status nothing will be pushed.
+#
+# This hook is called with the following parameters:
+#
+# $1 -- Name of the remote to which the push is being done
+# $2 -- URL to which the push is being done
+#
+# If pushing without using a named remote those arguments will be equal.
+#
+# Information about the commits which are being pushed is supplied as lines to
+# the standard input in the form:
+#
+#   <local ref> <local oid> <remote ref> <remote oid>
+#
+# This sample shows how to prevent push of commits where the log message starts
+# with "WIP" (work in progress).
+
+remote="$1"
+url="$2"
+
+zero=$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')
+
+while read local_ref local_oid remote_ref remote_oid
+do
+	if test "$local_oid" = "$zero"
+	then
+		# Handle delete
+		:
+	else
+		if test "$remote_oid" = "$zero"
+		then
+			# New branch, examine all commits
+			range="$local_oid"
+		else
+			# Update to existing branch, examine new commits
+			range="$remote_oid..$local_oid"
+		fi
+
+		# Check for WIP commit
+		commit=$(git rev-list -n 1 --grep '^WIP' "$range")
+		if test -n "$commit"
+		then
+			echo >&2 "Found WIP commit in $local_ref, not pushing"
+			exit 1
+		fi
+	fi
+done
+
+exit 0
+
+
+===== ./.git/hooks/pre-rebase.sample =====
+#!/usr/bin/sh
+#
+# Copyright (c) 2006, 2008 Junio C Hamano
+#
+# The "pre-rebase" hook is run just before "git rebase" starts doing
+# its job, and can prevent the command from running by exiting with
+# non-zero status.
+#
+# The hook is called with the following parameters:
+#
+# $1 -- the upstream the series was forked from.
+# $2 -- the branch being rebased (or empty when rebasing the current branch).
+#
+# This sample shows how to prevent topic branches that are already
+# merged to 'next' branch from getting rebased, because allowing it
+# would result in rebasing already published history.
+
+publish=next
+basebranch="$1"
+if test "$#" = 2
+then
+	topic="refs/heads/$2"
+else
+	topic=`git symbolic-ref HEAD` ||
+	exit 0 ;# we do not interrupt rebasing detached HEAD
+fi
+
+case "$topic" in
+refs/heads/??/*)
+	;;
+*)
+	exit 0 ;# we do not interrupt others.
+	;;
+esac
+
+# Now we are dealing with a topic branch being rebased
+# on top of master.  Is it OK to rebase it?
+
+# Does the topic really exist?
+git show-ref -q "$topic" || {
+	echo >&2 "No such branch $topic"
+	exit 1
+}
+
+# Is topic fully merged to master?
+not_in_master=`git rev-list --pretty=oneline ^master "$topic"`
+if test -z "$not_in_master"
+then
+	echo >&2 "$topic is fully merged to master; better remove it."
+	exit 1 ;# we could allow it, but there is no point.
+fi
+
+# Is topic ever merged to next?  If so you should not be rebasing it.
+only_next_1=`git rev-list ^master "^$topic" ${publish} | sort`
+only_next_2=`git rev-list ^master           ${publish} | sort`
+if test "$only_next_1" = "$only_next_2"
+then
+	not_in_topic=`git rev-list "^$topic" master`
+	if test -z "$not_in_topic"
+	then
+		echo >&2 "$topic is already up to date with master"
+		exit 1 ;# we could allow it, but there is no point.
+	else
+		exit 0
+	fi
+else
+	not_in_next=`git rev-list --pretty=oneline ^${publish} "$topic"`
+	/usr/bin/perl -e '
+		my $topic = $ARGV[0];
+		my $msg = "* $topic has commits already merged to public branch:\n";
+		my (%not_in_next) = map {
+			/^([0-9a-f]+) /;
+			($1 => 1);
+		} split(/\n/, $ARGV[1]);
+		for my $elem (map {
+				/^([0-9a-f]+) (.*)$/;
+				[$1 => $2];
+			} split(/\n/, $ARGV[2])) {
+			if (!exists $not_in_next{$elem->[0]}) {
+				if ($msg) {
+					print STDERR $msg;
+					undef $msg;
+				}
+				print STDERR " $elem->[1]\n";
+			}
+		}
+	' "$topic" "$not_in_next" "$not_in_master"
+	exit 1
+fi
+
+<<\DOC_END
+
+This sample hook safeguards topic branches that have been
+published from being rewound.
+
+The workflow assumed here is:
+
+ * Once a topic branch forks from "master", "master" is never
+   merged into it again (either directly or indirectly).
+
+ * Once a topic branch is fully cooked and merged into "master",
+   it is deleted.  If you need to build on top of it to correct
+   earlier mistakes, a new topic branch is created by forking at
+   the tip of the "master".  This is not strictly necessary, but
+   it makes it easier to keep your history simple.
+
+ * Whenever you need to test or publish your changes to topic
+   branches, merge them into "next" branch.
+
+The script, being an example, hardcodes the publish branch name
+to be "next", but it is trivial to make it configurable via
+$GIT_DIR/config mechanism.
+
+With this workflow, you would want to know:
+
+(1) ... if a topic branch has ever been merged to "next".  Young
+    topic branches can have stupid mistakes you would rather
+    clean up before publishing, and things that have not been
+    merged into other branches can be easily rebased without
+    affecting other people.  But once it is published, you would
+    not want to rewind it.
+
+(2) ... if a topic branch has been fully merged to "master".
+    Then you can delete it.  More importantly, you should not
+    build on top of it -- other people may already want to
+    change things related to the topic as patches against your
+    "master", so if you need further changes, it is better to
+    fork the topic (perhaps with the same name) afresh from the
+    tip of "master".
+
+Let's look at this example:
+
+		   o---o---o---o---o---o---o---o---o---o "next"
+		  /       /           /           /
+		 /   a---a---b A     /           /
+		/   /               /           /
+	       /   /   c---c---c---c B         /
+	      /   /   /             \         /
+	     /   /   /   b---b C     \       /
+	    /   /   /   /             \     /
+    ---o---o---o---o---o---o---o---o---o---o---o "master"
+
+
+A, B and C are topic branches.
+
+ * A has one fix since it was merged up to "next".
+
+ * B has finished.  It has been fully merged up to "master" and "next",
+   and is ready to be deleted.
+
+ * C has not merged to "next" at all.
+
+We would want to allow C to be rebased, refuse A, and encourage
+B to be deleted.
+
+To compute (1):
+
+	git rev-list ^master ^topic next
+	git rev-list ^master        next
+
+	if these match, topic has not merged in next at all.
+
+To compute (2):
+
+	git rev-list master..topic
+
+	if this is empty, it is fully merged to "master".
+
+DOC_END
+
+
+===== ./.git/hooks/pre-receive.sample =====
+#!/usr/bin/sh
+#
+# An example hook script to make use of push options.
+# The example simply echoes all push options that start with 'echoback='
+# and rejects all pushes when the "reject" push option is used.
+#
+# To enable this hook, rename this file to "pre-receive".
+
+if test -n "$GIT_PUSH_OPTION_COUNT"
+then
+	i=0
+	while test "$i" -lt "$GIT_PUSH_OPTION_COUNT"
+	do
+		eval "value=\$GIT_PUSH_OPTION_$i"
+		case "$value" in
+		echoback=*)
+			echo "echo from the pre-receive-hook: ${value#*=}" >&2
+			;;
+		reject)
+			exit 1
+		esac
+		i=$((i + 1))
+	done
+fi
+
+
+===== ./.git/hooks/push-to-checkout.sample =====
+#!/usr/bin/sh
+
+# An example hook script to update a checked-out tree on a git push.
+#
+# This hook is invoked by git-receive-pack(1) when it reacts to git
+# push and updates reference(s) in its repository, and when the push
+# tries to update the branch that is currently checked out and the
+# receive.denyCurrentBranch configuration variable is set to
+# updateInstead.
+#
+# By default, such a push is refused if the working tree and the index
+# of the remote repository has any difference from the currently
+# checked out commit; when both the working tree and the index match
+# the current commit, they are updated to match the newly pushed tip
+# of the branch. This hook is to be used to override the default
+# behaviour; however the code below reimplements the default behaviour
+# as a starting point for convenient modification.
+#
+# The hook receives the commit with which the tip of the current
+# branch is going to be updated:
+commit=$1
+
+# It can exit with a non-zero status to refuse the push (when it does
+# so, it must not modify the index or the working tree).
+die () {
+	echo >&2 "$*"
+	exit 1
+}
+
+# Or it can make any necessary changes to the working tree and to the
+# index to bring them to the desired state when the tip of the current
+# branch is updated to the new commit, and exit with a zero status.
+#
+# For example, the hook can simply run git read-tree -u -m HEAD "$1"
+# in order to emulate git fetch that is run in the reverse direction
+# with git push, as the two-tree form of git read-tree -u -m is
+# essentially the same as git switch or git checkout that switches
+# branches while keeping the local changes in the working tree that do
+# not interfere with the difference between the branches.
+
+# The below is a more-or-less exact translation to shell of the C code
+# for the default behaviour for git's push-to-checkout hook defined in
+# the push_to_deploy() function in builtin/receive-pack.c.
+#
+# Note that the hook will be executed from the repository directory,
+# not from the working tree, so if you want to perform operations on
+# the working tree, you will have to adapt your code accordingly, e.g.
+# by adding "cd .." or using relative paths.
+
+if ! git update-index -q --ignore-submodules --refresh
+then
+	die "Up-to-date check failed"
+fi
+
+if ! git diff-files --quiet --ignore-submodules --
+then
+	die "Working directory has unstaged changes"
+fi
+
+# This is a rough translation of:
+#
+#   head_has_history() ? "HEAD" : EMPTY_TREE_SHA1_HEX
+if git cat-file -e HEAD 2>/dev/null
+then
+	head=HEAD
+else
+	head=$(git hash-object -t tree --stdin </dev/null)
+fi
+
+if ! git diff-index --quiet --cached --ignore-submodules $head --
+then
+	die "Working directory has staged changes"
+fi
+
+if ! git read-tree -u -m "$commit"
+then
+	die "Could not update working tree to new HEAD"
+fi
+
+
+===== ./.git/hooks/sendemail-validate.sample =====
+#!/usr/bin/sh
+
+# An example hook script to validate a patch (and/or patch series) before
+# sending it via email.
+#
+# The hook should exit with non-zero status after issuing an appropriate
+# message if it wants to prevent the email(s) from being sent.
+#
+# To enable this hook, rename this file to "sendemail-validate".
+#
+# By default, it will only check that the patch(es) can be applied on top of
+# the default upstream branch without conflicts in a secondary worktree. After
+# validation (successful or not) of the last patch of a series, the worktree
+# will be deleted.
+#
+# The following config variables can be set to change the default remote and
+# remote ref that are used to apply the patches against:
+#
+#   sendemail.validateRemote (default: origin)
+#   sendemail.validateRemoteRef (default: HEAD)
+#
+# Replace the TODO placeholders with appropriate checks according to your
+# needs.
+
+validate_cover_letter () {
+	file="$1"
+	# TODO: Replace with appropriate checks (e.g. spell checking).
+	true
+}
+
+validate_patch () {
+	file="$1"
+	# Ensure that the patch applies without conflicts.
+	git am -3 "$file" || return
+	# TODO: Replace with appropriate checks for this patch
+	# (e.g. checkpatch.pl).
+	true
+}
+
+validate_series () {
+	# TODO: Replace with appropriate checks for the whole series
+	# (e.g. quick build, coding style checks, etc.).
+	true
+}
+
+# main -------------------------------------------------------------------------
+
+if test "$GIT_SENDEMAIL_FILE_COUNTER" = 1
+then
+	remote=$(git config --default origin --get sendemail.validateRemote) &&
+	ref=$(git config --default HEAD --get sendemail.validateRemoteRef) &&
+	worktree=$(mktemp --tmpdir -d sendemail-validate.XXXXXXX) &&
+	git worktree add -fd --checkout "$worktree" "refs/remotes/$remote/$ref" &&
+	git config --replace-all sendemail.validateWorktree "$worktree"
+else
+	worktree=$(git config --get sendemail.validateWorktree)
+fi || {
+	echo "sendemail-validate: error: failed to prepare worktree" >&2
+	exit 1
+}
+
+unset GIT_DIR GIT_WORK_TREE
+cd "$worktree" &&
+
+if grep -q "^diff --git " "$1"
+then
+	validate_patch "$1"
+else
+	validate_cover_letter "$1"
+fi &&
+
+if test "$GIT_SENDEMAIL_FILE_COUNTER" = "$GIT_SENDEMAIL_FILE_TOTAL"
+then
+	git config --unset-all sendemail.validateWorktree &&
+	trap 'git worktree remove -ff "$worktree"' EXIT &&
+	validate_series
+fi
+
+
+===== ./.git/hooks/update.sample =====
+#!/usr/bin/sh
+#
+# An example hook script to block unannotated tags from entering.
+# Called by "git receive-pack" with arguments: refname sha1-old sha1-new
+#
+# To enable this hook, rename this file to "update".
+#
+# Config
+# ------
+# hooks.allowunannotated
+#   This boolean sets whether unannotated tags will be allowed into the
+#   repository.  By default they won't be.
+# hooks.allowdeletetag
+#   This boolean sets whether deleting tags will be allowed in the
+#   repository.  By default they won't be.
+# hooks.allowmodifytag
+#   This boolean sets whether a tag may be modified after creation. By default
+#   it won't be.
+# hooks.allowdeletebranch
+#   This boolean sets whether deleting branches will be allowed in the
+#   repository.  By default they won't be.
+# hooks.denycreatebranch
+#   This boolean sets whether remotely creating branches will be denied
+#   in the repository.  By default this is allowed.
+#
+
+# --- Command line
+refname="$1"
+oldrev="$2"
+newrev="$3"
+
+# --- Safety check
+if [ -z "$GIT_DIR" ]; then
+	echo "Don't run this script from the command line." >&2
+	echo " (if you want, you could supply GIT_DIR then run" >&2
+	echo "  $0 <ref> <oldrev> <newrev>)" >&2
+	exit 1
+fi
+
+if [ -z "$refname" -o -z "$oldrev" -o -z "$newrev" ]; then
+	echo "usage: $0 <ref> <oldrev> <newrev>" >&2
+	exit 1
+fi
+
+# --- Config
+allowunannotated=$(git config --type=bool hooks.allowunannotated)
+allowdeletebranch=$(git config --type=bool hooks.allowdeletebranch)
+denycreatebranch=$(git config --type=bool hooks.denycreatebranch)
+allowdeletetag=$(git config --type=bool hooks.allowdeletetag)
+allowmodifytag=$(git config --type=bool hooks.allowmodifytag)
+
+# check for no description
+projectdesc=$(sed -e '1q' "$GIT_DIR/description")
+case "$projectdesc" in
+"Unnamed repository"* | "")
+	echo "*** Project description file hasn't been set" >&2
+	exit 1
+	;;
+esac
+
+# --- Check types
+# if $newrev is 0000...0000, it's a commit to delete a ref.
+zero=$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')
+if [ "$newrev" = "$zero" ]; then
+	newrev_type=delete
+else
+	newrev_type=$(git cat-file -t $newrev)
+fi
+
+case "$refname","$newrev_type" in
+	refs/tags/*,commit)
+		# un-annotated tag
+		short_refname=${refname##refs/tags/}
+		if [ "$allowunannotated" != "true" ]; then
+			echo "*** The un-annotated tag, $short_refname, is not allowed in this repository" >&2
+			echo "*** Use 'git tag [ -a | -s ]' for tags you want to propagate." >&2
+			exit 1
+		fi
+		;;
+	refs/tags/*,delete)
+		# delete tag
+		if [ "$allowdeletetag" != "true" ]; then
+			echo "*** Deleting a tag is not allowed in this repository" >&2
+			exit 1
+		fi
+		;;
+	refs/tags/*,tag)
+		# annotated tag
+		if [ "$allowmodifytag" != "true" ] && git rev-parse $refname > /dev/null 2>&1
+		then
+			echo "*** Tag '$refname' already exists." >&2
+			echo "*** Modifying a tag is not allowed in this repository." >&2
+			exit 1
+		fi
+		;;
+	refs/heads/*,commit)
+		# branch
+		if [ "$oldrev" = "$zero" -a "$denycreatebranch" = "true" ]; then
+			echo "*** Creating a branch is not allowed in this repository" >&2
+			exit 1
+		fi
+		;;
+	refs/heads/*,delete)
+		# delete branch
+		if [ "$allowdeletebranch" != "true" ]; then
+			echo "*** Deleting a branch is not allowed in this repository" >&2
+			exit 1
+		fi
+		;;
+	refs/remotes/*,commit)
+		# tracking branch
+		;;
+	refs/remotes/*,delete)
+		# delete tracking branch
+		if [ "$allowdeletebranch" != "true" ]; then
+			echo "*** Deleting a tracking branch is not allowed in this repository" >&2
+			exit 1
+		fi
+		;;
+	*)
+		# Anything else (is there anything else?)
+		echo "*** Update hook: unknown type of update to ref $refname of type $newrev_type" >&2
+		exit 1
+		;;
+esac
+
+# --- Finished
+exit 0
+
+
+===== ./.git/index =====
+DIRC      j½s1,v!j½s1,v!   2 `k„  ¤  è  è  ÄMkŒ`Î>ÂaÙU4IA®ŠôQ  init.lua  j½s1,v!j½s1,v!   2 `k…  ¤  è  è  Û‹$Ç‰Ø"ä;Qt ’’À:· lazy-lock.json    j½s1C*òj½s1C*ò   2 `kˆ  ¤  è  è   Õ?htÙ£r§—‡z2¨A£Å/oóø lua/config/keymaps.lua    j½s1Dß¢j½s1Dß¢   2 `k‰  ¤  è  è  m©©>öş©v›¹áÎghËÚ¡è¦ lua/config/lazy.lua       j½s1Dß¢j½s1Dß¢   2 `k‹  ¤  è  è  (}BÒÂF°4ÀDÈÜ‘^rÜu lua/plugins/autocomplete.lua      j½s1G¤”j½s1G¤”   2 `kŒ  ¤  è  è   ¼Ph]lÏØöæ=ÖâS:ÁóÔ—¨P lua/plugins/autopairs.lua j½s1G¤”j½s1G¤”   2 `k  ¤  è  è  ÈÆ"ÕÁ™Zï_0¦ÔŸ„2“>‹ lua/plugins/lsp.lua       j½s1G¤”j½s1G¤”   2 `k  ¤  è  è  óde,ğEYYx6=¨æÀ' lua/plugins/oil.lua       j½s1G¤”j½s1G¤”   2 `k  ¤  è  è  ø¬éÊ»L[a§@dÊW±>ú‰Ò!Í lua/plugins/telescope.lua j½s1G¤”j½s1G¤”   2 `k  ¤  è  è  b§ŸÍLÇİ`Ãî_«ÕH©E¡[× lua/plugins/theme.lua     j½s1G¤”j½s1G¤”   2 `k‘  ¤  è  è  ×rÎ_˜]·Ë½¯¨›‹-ÆïlG lua/plugins/treesitter.lua        TREE   u 11 1
+'µ»ÅàŞ‡<0È¶T÷‹UÅllua 9 2
+nMRØxÉY<ˆ
+|ƒB•U·°config 2 0
+¤d©íêûY¢ı;”]6¡plugins 7 0
+Ù’ŸÄsác/³é*^eŠü­¤!Ô¿†ó8?ÑXh»Ò¹ µ
+
+===== ./.git/info/exclude =====
+# git ls-files --others --exclude-from=.git/info/exclude
+# Lines that start with '#' are comments.
+# For a project mostly in C, the following would be a good set of
+# exclude patterns (uncomment them if you want to use them):
+# *.[oa]
+# *~
+
+
+===== ./.git/logs/HEAD =====
+0000000000000000000000000000000000000000 234b367c533c35a18457e36d88549a62f6df4be0 Mukumbaa <gabrylippolis@gmail.com> 1779350899 +0200	clone: from https://github.com/afazio1/nvim
+
+
+===== ./.git/logs/refs/heads/main =====
+0000000000000000000000000000000000000000 234b367c533c35a18457e36d88549a62f6df4be0 Mukumbaa <gabrylippolis@gmail.com> 1779350899 +0200	clone: from https://github.com/afazio1/nvim
+
+
+===== ./.git/logs/refs/remotes/origin/HEAD =====
+0000000000000000000000000000000000000000 234b367c533c35a18457e36d88549a62f6df4be0 Mukumbaa <gabrylippolis@gmail.com> 1779350899 +0200	clone: from https://github.com/afazio1/nvim
+
+
+===== ./.git/objects/pack/pack-baed183b3923923e13f947c8c3ecfa9948578567.idx =====
+ÿtOc                                      
+   
+   
+   
+   
+   
+   
+   
+                                                                                                                   !   #   #   #   $   %   %   %   &   &   '   '   )   )   )   )   )   *   *   *   *   *   *   ,   ,   -   -   -   -   -   -   .   .   .   .   .   /   /   0   1   2   2   2   2   3   4   5   6   7   7   8   8   9   9   9   :   <   <   =   >   >   >   ?   @   @   @   A   A   A   A   B   C   E   E   E   F   F   F   G   H   H   H   I   I   J   J   J   J   K   M   M   M   N   O   P   R   S   T   T   U   U   U   U   V   V   V   V   V   V   V   V   V   W   W   Y   [   \   ]   ]   ^   ^   ^   ^   ^   ^   ^   _   _   `   a   a   b   d   d   e   e   e   e   e   e   e   f   f   g   h   h   h   h   i   j   j   k   k   k   m   m   m   m   m   m   m   n   o   o   o   o   p   s   s   s   s   s   s   s   t   u   v   w   w   w   w   x   x   x   y   y   y   y   y   |            €      ƒ   ƒ   ƒ   ƒ   ƒ   ƒ3ğe‹şú¬¤ôÅqÿå>»s5jÕ}Nçíe„vÎ-ËÈà¨-NÛg=QŠŠî1Ã N™şeµ÷ò\JğU²Ô	G,×•|qÒÖëM	«´ÊMQ’œ¯õ(å6ä©^tàxö?ÿ§zİCva	¶Vì[ï*OÍf`óã“ };
+:W”Å|)}Ç,&«Ú½¦–
+’¢4¨YŸ%ƒßÏÌLúâ
+³–ó	ú2á[¼
+©RlŞñÁi™ùøíLÕ/
+bQè†»‚T Ûš¦Aï;+¹bõ§`IütĞ#K6|S<5¡„WãmˆTšbößKà&ávñÅÜèÑ
+”Û÷hœry'Zr† ‡—©¡óz±DtuaHÇU' Q[}mú«õ–ĞèV"D
+q–(v`¥¥.Ê’ãd˜çtq„)¨\ÁG¿¥(ÜP¯H»æ%¡„ó*£}~‡E”¿ÅìRƒƒ¶—¹{ÑH,¢Ø}—Kp"êt+ßUÆ$ÄÕ,é	Šo×'pıÛ¥_‘Zf5¶¦-jß&ßCâ=\èiPb÷‹Â‹²-Ïœe¾‡Q7«½ÀeÔ•öÌ¯}¤v0ì*£"so§övª@Ä2µ x/18	„^!¡ QÒùq2íÇ81•‡¦pH™j×÷D Ï9Wp1÷¾@½»MµÁ¾~	xÛ¿”Ş®l¡2_ß©–=Û[3W¤»“®vq3( ßï™#çÃ¸øéCiÛŸ-›m4I˜ƒ#y“V´tXš›†x4û××Ğ:À4@ÖÒ:±©Í3Ãå6²Ë¬‚×ö0ò,n<v(!5P;87}õ5™»Öjçß»1×f§=8
+Écÿ»à–=@d¡œ‹&7–Ó8äd“­<cŸ.@Q`gj‹åÎN;‡¡çgıP‹nôp\{÷q¯ƒ<]CÔæ=çl»*ÕÄ¶ãÃ„s?htÙ£r§—‡z2¨A£Å/oóøAĞ£ü¶+ŞŸHÒw¥¯…d!Cr^ÏÄªsa© ”ë”Ôæo>CÅx×-äÕÂ)ty˜ tg…H=Oç9q¶ŸÔ*Nµğ $,N³TËšFX¯ØÙ'Î#òQ•N~*sf“¦”÷ˆÏtqåÍª3ÅİPh]lÏØöæ=ÖâS:ÁóÔ—¨PV_­ù\™®u?BŠ» ¶^[7üì¿í„úËe¹9$˜»]M­bä8òša¤*ñú‘SQõ^x¯›uGš'Éõ?¾tïf
+§ÂÙ_„¾kd6†’'aP-Å0*§cÚæ[!‰ª©'}hœ-áçÍ(æde,ğEYYx6=¨æÀ'e¡`(ëÏc]W&Ó3˜ÁÑn>fñ0Ÿ  &|*òQyäœ–SÊ6gÒÓƒk®S¢Åm†ìOÓŒ<fAi’°D)¿#ß£Ü 6à½´k]Œ< ‚º¥=xE¶‡YgÅQnMRØxÉY<ˆ
+|ƒB•U·°o,ğ
+«ø3%ğnçñô éµêon«9/Më4Ñì'-ŒµTÓ!>qM’ÍÛ¯N”å
+íDõÌ¥ºõÿórÎ_˜]·Ë½¯¨›‹-ÆïlGu’ÍL¢#2á±a*JÜ,pi²n_vôI5n["Yº[åİÀ¼á'qy…ŞI>}U;›
+P¾²w§IT}BÒÂF°4ÀDÈÜ‘^rÜu~‘°·K!íé;TíRvâr›Ësû×ã l‘aw9#ğPµ0½X‡>‘·€ù’ŞO%–%øhDŞS‚\.âĞ‚j8­ìxÆÅ¥«ï… êlëÇI,ÁH±aÀçŒy‘†@E$­ µÒ—WyÍMfQö TË‰6øàZê~ú:–DcÛx[:,‹$Ç‰Ø"ä;Qt ’’À:·¤d©íêûY¢ı;”]6¡'µ»ÅàŞ‡<0È¶T÷‹UÅlrÍWªc>%§y#b8¯y“e¼ÃƒÉ~™aÚ‘h
+]ç@”GM'çr†7*Dñ„ b'm‹• 1ÿm=;gA!"¸İªÖ\×–Ëág|g„—rrwØˆW®Ù	à–8ÈHOáf¨q®j“
+^#Ô›Œ½—bµP…Q EÒ•4+Ğu¼¤Æ&˜úA¥Ğ¨v``Ïâ­fƒsú»@7ıšZ<w@xÇå	¾ïôöôò*é@°>ó{»«JÉ·¯’ÍºF‰È"§ŸÍLÇİ`Ãî_«ÕH©E¡[×©XA=ª¬
+õ›=_‘wÁ6Ÿ+©©>öş©v›¹áÎghËÚ¡è¦ªµ×Y}±q •h¼À?„-Û~šÓªÃ)…Æü.|T;(HÓöJ«Ñê‡u€½òÿÒøÌVæ³Û)óq¬éÊ»L[a§@dÊW±>ú‰Ò!Í®Üšo¢)d`_¢´k¯†‚³&µ5’Qgjûg[{âMR
+É¡ 5n·u­ŠR#†Nkš:ïÏàOÈ¸¶\ §’Œ=H”ÌCØ$,İ–'ºYğ¾LÂé4>Œ?›‘IÖ§Ä¯»&`ÁÕ¸…Ô!G1RSo¤€Jÿ»w¦ıOØÀ¨p¨ÓJËÿ²šö ½a¢DrZÀ,?‘JPmCºÿ…%ÄMkŒ`Î>ÂaÙU4IA®ŠôQ Æ"ÕÁ™Zï_0¦ÔŸ„2“>‹ÇöµQû¶=‘ìù¨²[ÃE¸´?ûËK–÷ßA…8÷
+Ÿ©s	ÁÙ—&Ì¯Ş&Z
+ê´i£è-RšÎ¦Dİ.’×ÔCQìàp«âÑJš2ƒÍõ©{ÀW»ŠˆŸÄÚÑÑ1`¤æ¾-zO"|Œ§êE&Øk³ócv»`¿rlr•ó¦ù(ÙŸÙ’ŸÄsác/³é*^eŠüİSH/¦Ù*
+†›şfi{òŞ+'€!èûã¾Ù´ğC<
+»8ŞxÈÒ
+;§5¾¨|ÛeÑÛËqî{ŞºŠÕº£kØw‘Íôß½$Ê5T!å^›iLÇ‚“¢`Çı/oØ-³æXÕMü«¢K• ®pƒGƒà0çNúšäÌRÃt¶µ†¨Õ\EGèã™Cœ>ˆÊæ÷õ4tml|½ÙQì9ÄèÍµhû&eJ§’{2Ã‡£ø>ï3öPŞåä}Ú
+exrÈØ«ş\gôJ}¹|*ÿáa7øğ²ß03Q™‰,ôã
+®é0&³0­ÂMÌæôòÇµ¢$ÛêähŞ×ä\áõ’â¼ş0+Hú9ˆ­İ<5EÿwõÌ}túÁñáº8k7ßùN«2Ø¸õîtÉQ•Ç›r‚j¿"cX±.f—ø§)dW¼Áªh˜Z'İ÷xˆêù•Ñ°L{p„òJ¤qÃÎòDr×húoklìw[¨B.N©æíZãWúä·çá”¤  ÌxàÈ¼±¶D ¼‡Ô,|ı0›Z=ğ¨ã¡…%;µ¹/b¨Ò­©IlÕàLª¶æÈÜƒ ºF’cå:ó¿<t¼˜˜EÍ3ò‚L’%°é÷8ŞBğ¥û²& ÔE´n†kÄ‹¯ÆcóÊh -ÃUi½G™et `¤”A¤ÒaÇ0SE¤²àà¸šÊıIC‹ELÈoÎ¸s}“}7ƒÈLy´†ÍÇ²½Fë’£4¢l#Ğb0¨KbFá.S‡ÆØT{‰Ñüœ·1–ò¸ôP‚nÔ<ö]"Å . &gî=ÓŒnq¾p@ç‰Qø{&ão~¥§H~¿\Ê¼î0£t@u9`IlÃÒ„/ÿe›2Í³`'èøy±‰¶¾{÷v×Ò;T~ñMıìárK`ÇQ¼nÃG•óbÇÖüÌ»r³½Sè™Şª†_À§“öSkØ†fàWì¥íQg´‘E
+.ÈÑyÇBXJË3Hÿû\NügE¾Èf.­Ëˆ¢-z4Iy)H®¤Ã@Ô]G@Ú70RÓ¢ÛL@é4fLª© #®Â±ÓIËxƒš ‘Fé!¿Ræ¤u*†R0İ‹y-E½Q"V\ ÜqW)ª¼¦‚,/ÔÂ11œY-ÅÑÄ·HcºÕø-Üû¹Ššn\ç8`ûïPPÙ	7“Jv#z  2ã  9å  …  *½  +  ¼  Ş  +-    8ø  "¨  ©     û  #  U  2±  ¿    9B  0Ø  /[  >  20    ?Ì      #    9s  7]  ³  +è  2  M  4  z  o  „  <G  3û  6ì  *˜  4  /€  <¢  4·  *'  2E  1¹  $¤  Å  $æ  -&  d  ;Ö  ß   ¤  ô  8  )K  7‚  ;™  6  G  8Ü  4ß  Ğ  <‘  0  =  >«  ¶  )  Ç  ..  )Ü  )k  6s  4F  1”  6  1#  3U  .ê  &  0g  n  8  6½  "P  %Û  å  5Q  9Y  
+z  ¸  Y    !„  ”  ##  ñ  &â  =V  æ  @  >t  3z    1æ  	6  ;O  5g    ?‚  1Ï  0²  8’  +w  Å  â  ?  .y  =¡  ü  	Õ   ğ  :n  >Šºí;9#’>ùGÈÃìú™HW…g‘}·S‰¯¼¢v³šƒêVX¤
+
+===== ./.git/objects/pack/pack-baed183b3923923e13f947c8c3ecfa9948578567.pack =====
+PACK      ƒ‘xœË[
+Â0@Ñÿ¬b6`™<&IAÄ­LÒ´VÚÅÕ+.ÁÏ{àöMFt	c¡R*	N’SR_=Ö\"M¹UŠÕ<y“G‡¨®*"sÑl“÷ãäH1Š$µ±ÈXHØğ«ß×XùİVgåàáW®·…Û<Ôu¹€M‘²µÎ8!!š¯.­wùk6Úè;ÌûÓ| ÓCašxœËQ
+Â0€á÷¢p¤iÒ´ âU²¥ÓâædTO¯xÿş¾×ê‘#C©"–S”Q‰æ	!!J²<º‡îõŞ}‘„#3dæ Ø°p$0„ÇIiJ˜œ>ûuÛ½Îún[ğG]êK‡_/«¶e˜¶õäƒp‘R¢? ¸¯®­÷ú×ìšİÜÀ=ù–xœËQ
+Â0€á÷"p´kÚ¤ âUb“êÄ9™UÄÓ+ÁÇÿƒ¿¯f€F6
+ÅœK”ìCÁFÌµR°TU$ÆšTİMV»v v n¡zbßJÕ°SÉcjœQ-pŠNı´¬ MŞÓ`+{Éğ+ûã,Óe¨Ë¼ƒ@‰‘cB†GïİWç©wûkv¢
+gy
+ÈU¡ßİ£|D xœ‹[
+Ã  ÿ=…hpº
+¥ô*«î¦B%h{ú†¡3Ówfí#’”Ñ;Ld±$ñ£dFÇ‚!ÂbkROÚyíÚA54J‰9›+'q¤ZSÉ“DœEGl»&¡OÛ@_iæ?3î>-Ôæ¡lËMúèFôÅ8cÔY—Ö;ÿ5+^)Ï¬ûƒu¥÷±œÔÖI}qGÌ’xœ‹[
+Â@ ÿ{Š\À’¬Ùˆx•ì#ºĞÚRW(Şâü˜˜¾Õ
+ÈÅP,®&.%%ÎÂÅQ41‹ª5LµÃ*[}vHÉ{qZXKÈ(Á–3KNªÉD!§qw,ˆÊ§-™ê.ãÏo÷YÚ4æe¾y˜œ±NÈÇyÔ¹õ^ÿšm;L¯dmÃRŞCı’xœË[
+Â0@Ñÿ¬b6`™¤“GAÄ­L’‰ZSj*âê-.ÁÏ{áôM¤Œcq³LY¬Ï™‘õÁ›ràXÄ&çÕÊ›<:Ìqbv¤MDŠ“3Å²w¨EšJò”QñŞïm.ü©MÃ™gyóğ+¤ëmá:©-ĞŞZ6P€¢:îR{—¿°Údi/¼¯sMÜÒ÷æúõî¯JmxœŒ[NÄ0Eÿ³
+o€Êy§±äÖöLPšV !VOa	|Ş£sî8E@ãìÄ-«ŠG·„¢„ÖÏ¥3ûÕG›BTÍÙtJà2a´qÉœX‰–«OŒ–¤Ää\HÙf“¡ÏñØO ¥ïº[x¥&_4ı-o÷j›Ö}»Í!»|)ğ‚Ñ\t«cÈ¿bóvÀÚ¨ß´v†Ë;j“÷ß[êüœ>{7?’RMÅœxœË[
+Â0@Ñÿ¬b6`I'Ï‚ˆ[™d&6Ğ6ÒFW¯¸?ïÛw@öÄ=k»,QG?9í±„˜2ÆSBu§]¶¾x¡d&,–%;i'–Œ9æäœeƒ£E>·¨Ğ»¶Î´È‹†_i{½­T—!·õc°>¸èC„“¶Z«¯®µwùkVÇÜ0WfÙ ÔEhuQÚGÀ•xœË[
+Â0@Ñÿ¬"°LM3 âV&“™h”âê—àç=pÇ!bQ
+Ñ°”R¨Db,)Š«è¹Š)#gïÍƒ¹”=$ò!Rv0#*D?cÍ¡*+sd%ñ†ãÖKJïÖ=Ó&/š~ñºîÔ¶‰û~±n‰iq9%oOÌW÷6†ü5ªÕö¶Yîwm«ù İExœA
+Â0 ïyÅ~À’4›İDüÊ6Ùh 5R"ˆ¯·ø30ÌØUA£ú”Ğ§ì5Æ,J•kğh‰‘
+eÎK))8ó”]fÂs$±‘]I,I\õ,‹Cdä@cæŒ¼Æ½ï U>­;8Ëªo™~dñzÛ¤­SîÛÜ1"ô3Z8Y´Övkcè_±‘R ·Õ|5İ@³”xœËQ
+Â0€á÷¢p¤kš´ âU²5uƒÍÚ‰xzÅ#øøğ·ªjù8FŒXÔId'J’<HĞŞgLC‡lv©zo‚'×+J
+Ê¨À±/¥ ³€Ë=9#G›¶j¥È{Şœ=Ë¢/é~x½­2/İ¸­ë‰B{0_]çÖô¯Ù{–¦vÚZæÖìC¨›xœŒK
+1÷9E_À¡“t:D¼Jç7fŒ„âé<‚ËWT½9Js¨BZ\F	S-F2s°ŞV‰‘ĞúšÕSFyLˆÑVÒÙÅ\&£É[íŒ³:ğq…> I­J^óŞH•Oë.²•·,¿…t[wiÛ’ú~í‰Ùxk-œÕA÷6gù+V’3¬}vÈ%m2d¶şP_Ù¿F+xœ[
+Â0Eÿ³ŠÙ€e¦yL"nešLl¡µ#¨«·t	~ÜsàÀmU¢x±‰Ù!‰qTqT-Å•°¯§Ğ‹F‡æ!Uïú ÄÙBÉçDV‡L(¢Ëcá0ÄÄ=G#¯6m¤ÈwŞÎ²è[ºƒĞ]o«ÌK—¶õÄÎ{oÙ3œĞ!šİ®skúWl$ghUîÏãpú@Û Mºªù{ØHv‘xœ‹Qn1ÿs
+ÿWEN“l‚„ª^ÅNaé®¶A‚èªùš‘fl ñGÆS*j0‘*‘‹Åš²7C
+PÍKin•ßƒ‚·¬ˆ¬M56MÕ+2xŸË3Ø>6¦*ŞÉuœ–Ääw^<ä‚›ìşŒã×±Ë|ÙÕ¥’Ï1½˜2½sdvÏÚç1ğ¯Ù]×&4Nè 7’ÖèŒ{—õÇ= NyJ‘’xœA
+ƒ0 ïyE>PÙÍF“@)ıÊ®nZ¡6#H__ézœaZUµ!£WbÆ„¨†@ÉQ†¤'©1&4+W}7;©" 9L 1‹’è”Äg ôD#°EÃ{{–j9óg.h¯üÒƒ»¿?_İX–›Å@!y{9·`N»Ì­é_±iÛa·}]KmæBŞxœQ
+1ÿ{Š\À¥ImAÄ«dÓT\WÖ
+âé]<‚Ÿo`˜×WwHe$Õ„*·’b#²âÉ¸¦œc¬iLºú½Ce:”}æÑU‹`<HVâZ³ ‹¸}õë²‚6ıLÂQoşÖá·âş|™uº¶Ì'@N™¥2ìâ–§Şı/9h­Ğ¦{…Õ›o—ÍŸ`s_¦TG‘xœA
+Â0E÷9ÅìÅ2IfšD¼Ê4™j±µ¥ Şâ\şÇ{ğëª
+¤6u)wI©å(=ÆKr!«ó½c‹šØ,²ê£BCßµœ%$³/£&Ê™|‰\.%µ.yÖÛ¼‚ôòf'õ%Ío!]®“c“çé6xrÉ3[8"#šNC­úWlÆm»¾'Y68ÀşbŞÅeÔªænH”xœ]
+Â0„ßsŠ\À²Éæ§¯²İİh¡5%FOoñ2OóÁ|Ó›ªÅPfÉG ‰C Iâ‘fGŒ,ˆŒÍNMİjŒ:Íi
+Ìyô‚’OÀ¹ˆ/©ÈèeÆ\zõ{m–
+}–êì™V}Óğk®·–uàº]¬Ëœ;\Á ˜ƒnKïú×Øˆ=¾ëNK{š/ÃùDîœxœË[
+ƒ0@Ñÿ¬"¨Ì'£PJ·2yÙ€I#W_éúyÜVcÔÖQ=8ãÆ¼!xÈÙ‘i²ì‰AíRãÖ´a‰MôÎ‹ÉJ¼È9ƒ­6AÉÑ^¥jIræ‚ú.KüH÷+ó*yé|YÙ˜¨gÖ7  uéš[‹ÍªÔY¶|FíË–ò¬ß±»ú-\Fş•xœ[
+Â0Eÿ³ŠlÀ2Ó<&·2“L´ĞZ©ÄÕ[º?ïsàöMÕqÔ
+T-Ò´bL¾q‘$»<úœpIj¼é£['‰pdTŠÔj€$Q›'%I#BnÉ~÷ûºYnüV´gõÃÃ±À_oOóPÖåb‘œócòì	€Ùé2õ®É†kµ}ö:æâÅDö•xœ‹[
+Â0 ÿsŠ½€e“Í« âU¶uc%EñôàçÌ0c<S,½ ºÀÂI,&£÷‘KÊa!v«ácl}.ü©İÂ•UŞ<ıııÙ¸ê´öv›ˆlÄ”2\0 šÓ¶:†ü5›—èYl¢j¾pD6J¬xœ340031QÈÌË,ÑË)Md8â›İ“pNÒîPâÍPOÇu]_BÔä$VUêæä'gëeçç1t3«Ÿ×yCé‰u cÉ‚I“XÉm71 9y¾A7*NFò÷ÙtpÕ7;Mİ¾ y(ñ»5xœmRMkã0½ûW_ÜBdJ PJwaÙCÙCOÙ[)‹,mI£¤d³¥ÿ}%;vÚ&'¡÷Ş¼ùäœ=‚šm e{_ì”©Ñ…ÚFÓ ±o,P„õ’PkìºDÜPÕÂefOÂÍçì·h<¶e¿l6ˆ Ğ.âÈ€Y¿>Yª{Õ†á]rIgA©‘lş1ïÉá¼KÕ[$ÂÃE£KÄ ıdöWV~&rŞŸZ¹µ‹LÎH’•ÑZa u:úrÔ?aL7Ñ9¤°Ä˜MzQfÑ÷QÉHó–JËw\roîw@ëÛ•âRñÄ%İHë›æ÷öfJ·qZö$¬èÁ¤‘ºÏ©~gsÉL÷ûüá\ê]X	ÁkTW¥DÛ©¾Öâß¡¼>-ÈäÂQ#ù¯æÛ0Úq:­ m9rÒ´ÏÏSˆR¥,àö€6×÷ò2èt‚è Ğ(Ó=7Qé´êd3×S…YRÉjªj#\í!\U¶Z±êAƒh¾w]úµu—êO§’ÅŠ½±|ïÉ»ZÒ²Ì³‘¯ØûuñëJ'¥é‚.xœ»ÍvmC(Óä&Ûúü‚½ôÒÌ´ü¼[%ßÔâœ|÷`?7«Cs%]]…ÈüR…äÄ<…Ä”¬Òâ…’ŒT…âÌªTCM…Äb…¼ÔÔ”Ô.. ZïÔÊÜÄ‚b®¢ÔÂÒÌ¢T¥äü¼´Ìt½lˆ¸’&X•ObU¥B@Niºmf^±†â 4P%\Â×+N-)-ĞP* êj*  â„AÎï€.xœ;Ç6›m³xQjaifQª†Rr~^Zfº^NbU¥’& ©À
+D»Mx“Mn1…÷9…áuRˆ”¨Ÿ¡»  )*Ô°')Ò w/ÀAãi€ì¤ğ=¾Ç7Ï7«ÕúÛßM‡õ×Õój-GŞéO?¯·|ší¸¾]­u¿İNóù›D©A!“‘üŒÌ}6¨	ëàB¥·õêåöŒÖíán÷8mï6§ÿğ§İ½—» RO™’P0ckƒÊÀ$‚8zü‡şcóÀ§Oßjo*¤¨±RDéMº¤
+!Á0Œëˆh-\ğşóôå<ı2™ëÉ³FéœX9Cä¦9Pè ¥õ(Îí…/è×LøaŞx:–üeò#+Ô(²V4"×ğE˜;Ú/İ³OoÙ¼*xüKöõìB€%šCjÊB•4(×ƒ¦Éç7»ïS÷»1İ/ùËÙ!ÅDU»–4YGEoˆ_ƒö -¸•şNa>š¦ù\ÁO3áP¬ÂjLÑ»Ù‰2A*œ1STZªøNâ·É]·ÇÉ|jÙ”¡Ê1Æ`!Ç‚!¥¦ÃU±(Q¸ˆì§ÍıYfÊ¨{ö˜ñ¨©1µÒ]OksÅÖk“\ó…}ØØõsÉ—æ‘ fÅQ²6‚¡Õ:5Œ½’¥îfÈ(¼my¶t°O;pëŞFHQ‹(*ĞB4ü­yi»|s0ï=íwÓıÏù‰ë¢BrcxP)`	9L¦¨ÿ»"´f¥t;×èæåæ/dÏåƒxœÌ±MA@QÁEwU ¢í±Çv#ˆtÆcÇ4p- NÛ 5ĞÎ5ADBÂ¦ÿKï~¾Ÿ?aÓfØØ˜A9²ŠfÀjE¥N
+Á3}éíígo¡sYÚÔ1HV„„w7ërüÜß~·ìf“­W:9
+¼¦LœåÆº<~mÓˆ0™¢”LƒW¬4,jTbK§³!¬ıõÄ›£'ŠÔªféÈkJ®1FI‚¥Ğrìß§¿^(Ş±LTõÎë`ËtÑG«®¡ÏO×Ëõò|ŠO\é€Xxœ½M^AEDP…EÂ,kvço‡Bìxgf'¦¯dü ú ¦',ÉMîÕÑÑı¼ı¼ı¨Ø•ePŸ½tÁR™ê@C—‰uĞ>X»¾üÑ#<vÓİÍj.äpêÅTºsn]„Ûª—÷ÇàĞ*ÔÖ\œ !QIº 2Í5úùtõø¶ˆ…Œ‚h!Lƒª/jÎ}¬óã
+4ÍÁÚ4ßâKV4†^‚æ0 6"ÎŸ×G¡©‰`XŒH›Ùy ‘[”óÌQ%-Úù|ızŒÇía=I f ¬
+2=	Ó(eÌ:ßĞ÷e¦%Õ7‚UİW-ZÅÜ`dŸo7ÿqÎ}ƒ,¡œEÁI
+d#d«¸äÔ¬¼ÿq¹»Ü}Ucrê£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅ7'Í?Ò'Yü0YsãK­¸T>‘®? _v«xœ340031QÈN­ÌM,(ÖË)Md°Ï(¹¹¸hùôv*£‹êçşaQ–“XU	V³r¥İ·+%Êfï”|x.=ãô­…/– L®!µxœÓÕUğN­ÌM,(æâÒÕUğIMLI-â*ËÌÕK×Šæ€ù
+¶
+J
+JH¢ùÉ‰9©˜%°æĞ—üò<°Âl°©zÅ©%êyê:
+êY "DV+¤¤'uª‡ ¹yùE©@¥@~IQij­&víÙ`íÙ(ÚA–a3  ç@Q¿Ixœ]TÁnÛ0½ç+ Q¶k€\6l·6`— ­lÓ¶YÔ$¹mtß>RNân@X¤ùŞ#í>å”£	àÌï³öÏv\9jŒ+ç`ò à î¼N¹•@¥Z“ZƒÖ vrmwÇª•íÀS†J0Ó3P,hGÖºK)›\İJ¯!èW KÇˆ¸£ri¿Ûõ6S­w¹.­4§ÔKS~Gôœ2Õ”ÜÙ€jy”‡í¶³.c<Ôê½¿Gëh|3˜]í$t£²Ylx[s3V'=uĞ¹GŒ‘ş9À‡›(yláøˆÍ@Õ¥Ä˜ÏWc¶	
+¥ÅôıÑ“/Rğ!õ
+Ş6wkãÔO½õıÿIuôß"¦ÆŸá„g©¯6k­ï÷Ş6ã„¸pó©ÇÜ&Vs’`õQèÛ•|å&…¬cûÀplßjµİÂƒ9!¤)¢tN˜§ O£	M‹ñ‰iµóYÆtÖØQDA;2-«ZŒ€Dì¥ÉÀ˜ÀÆ¥Š›¬òc°	øc_5ĞµœiŞ F”ç\*TWë"§×wz²i ŞE’’:U‘ø½]^ˆ¿&±RRk]š–1§€#ç‰3Òb†3M‘9N½õi5Ïíšá.×øuZå‡‘ŸÉw¶[e°ÿ	âj¦…²vĞR3èùÍ²ä…‘İ…3o[Òs½†ÅÔ8âìï‹uSâ…|áí&‘Y¾ŒãÊI°×¨¨ú§ˆœÕ`j3šWæ~'n¦L#S'ÏÀw›Sá4—„)ğ¿Š%UŒ¾ğºÉ‹×ò³,ªÔâMıs†“lƒrxœ›Ïù–cÃ'¦Í*ÌÕŒ "¦˜¤xœ340031QH,-É/HÌ,*ÖË)MdÈˆÍ9ãÛ3aÛk‚­~¾2}E€!DaNqXIÙOÓ¼h¥È]ÑOïØ3÷!¿z!?TIIjNjqr~A*XávñRÖµ]ìAÊm~Ù³¬ŞŸàß{¦0#5¢È&ÖùÊ3nÛç9»µ®Ùöø°tw1LQQjjqfIIjXeİÄÛ½ß¾´yTö¨höéâß×IÒQÛë€1xœK ´ÿÄğ,100644 autocomplete.lua }BÒÂF°4ÀDÈÜ‘^rÜu8,¢Ø}—Kp"êt+ßUÆ$ÄÕ‘LxJŸçZxœG ¸ÿğğd=8äd“­<cŸ.@Q`gj‹åÎN100644 telescope.lua 0ì*£"so§övª@Ä2µ x/‘¡O,³ëUxœûÀøqÂ‘ÓŞÓ¾ßgvlµøÎ5eq#çÁ›ÓÕ Áƒî'xœ áÿğğ²]M­bä8òša¤*ñú‘SQõ‘Æ*Ùùƒî,xœ áÿğğ²§ŸÍLÇİ`Ãî_«ÕH©E¡[×‘Æ*õ/Ûî,xœûÀøqBŠˆFYÓ¼¹Ke—êêŸô8eÆó’Â–‰ Ï=Vî*xœûÀøqBŠHªÀÂ×ç“cyÃÕ.ÏqğbİÄŠ
+ É¥‡î*xœûÀøqB¯HÚGƒù
+j5ZŸ+ŸÌé\ÊlâB ĞØæ*xœ& Ùÿğ“oil.lua 3( ßï™#çÃ¸øéCiÛŸ-›m‘xxJ°&î4xœ›Ì4™iB»HJªÎ×ÈÈ
+Ai3IYÛBÏ8¨Oœ] Ÿ
+²æ*xœ6 Éÿ““dù•Ñ°L{p„òJ¤qÃÎòDr×h‘x8¬éÊ»L[a§@dÊW±>ú‰Ò!Í‘ÄOàÒ®ãDxœ3 Ìÿ““d½a¢DrZÀ,?‘JPmCºÿ…%‘x‡rÎ_˜]·Ë½¯¨›‹-ÆïlGÀîAxœ áÿ““d«Ñê‡u€½òÿÒøÌVæ³Û)óq‘x›óÅdî,xœ›Ì4™iBŠˆP¦ØÌŸı?Şú\ÕçbO
+|Ñ¶»)dbÅl Àªî*xœ áÿ““dÆ"ÕÁ™Zï_0¦ÔŸ„2“>‹‘x›Ğì¸rxœ}UmoÚ0şÎ¯8±)/šZiRµnª6íİ¦±o¥Æ¹«‰íÙ”Uü÷ó!ÀP¡ï»ç³/]e$¼ şŒ-c©ffËÄß÷1/uRTÌJ¡Ç„!Ìi¥ÑU•áØ f·O?¾ß}½g›7İ§‡@¹Ò#öÁ1YnlşÁå±Üˆ2¤dJ˜ÇÊ)®J] J‚.*ÂÖˆ5Ê´şã-<´‘.Òè,×Kê<:dk.…½b]UY†æ²M3—·–}ó+™‰5±Ì*É}-“éè¨"<ßçXh ôsk(g…ß ”Á?•0c/Í¨u ud©múP:€mE~èíà«f2íggfm§=èRLnZMn¦Õ4ĞÚ?Z©t×‘úÁáq\2êZ²2Œ¿ «;Ó³õºI†î•öœÇ%Ê*ğ?Jb •ûØ‡ %ÓZH/¥¯¿}Š´A’"j 'µ×úÈ¸a!—øêâ…^ÜUYËûbüñK(?—ƒ¶‘HB'2™C”¾Š"v›jÀU5·TñŠjw¬Vg+dª¶°X-IÇx‘-[““®.$­C&ÎNÂ»sÙÿ!wg9GêÏd±[¢‚2°Àå«h=64:EÁï\X*ƒªó"¥VÔ‘ÁfÌæ?ÁVÚïù&\·‡·=ÙÖğyk<©¬3EƒB×Y_CSÒÁk:Cfg*ìŞV$<³q=ïà“+ŠEë5"Ô;ä™Q%tSmÈ0œkÆ/dênE}sN³}#õKE£€¥&9¦0kî+¼àğ&­£¶>Qx®G*E4jZb6%¼¨;§í}¯…Ë«•gçégÇVYZb¨6a&
+|×&¿4š7„Œ¤7¬Dç½8‰³§]8:tCúš½¶×Œİ˜š0İĞ!²[eÒ¤ W‘Ëië6 x?Âa¹oä§Iç_X£ıèƒw;¼xœ5A‚@E÷œâ‡šH<Kc‚›hgl;° swˆIÿæ¿×|%Ï*Xìº…å¹¤«ÌüéCö˜«u—ÒLâ¸¡}ˆ‘ú]œ´=Ğeä©2×L{Ó÷ÈFˆÉ­ÖkÁ)˜±L°º›6ÆQì¯û‹õè›yïmËã¡ÖrÆ˜eØª_šÒü ÂÀ<°mx½TMÚ0½ó+,_„½µÊio½öVU–±'‰µÎØµvâ¿wœÁ®TPÕ°gŞ¼™ø½ ©È3Æ
+·7íiYÙè•ÃÊÔÅ’4x@¨Dö­fŒ7!6_R³V­_MI<‡Ÿò2¤StÕ¡JÆá|A»Œ­VLu1¹–5n¡ß£Š%U,‰ÚBˆ?y‚·ôìT×¦uÈÖøjR3ïSÙyoJ.ûğL!?G¶sAC dÖ8;õg‹Yÿ²NIË”ôrg¬IC‡~w&À¼ ŞDîM½bQj¨dg“¸ûp(L¼À¡•>êªõëp\FHs|ÉøwZ¦Æv]5ògGú]õÄŸNÃè>É¯õ ±4H­8\Şò|ƒ¢¬ò^˜t“ÄcŒÌ”i½…|#î%µ± élu5"j#kt1UÖ.9tİî˜ÕÏ‚çìÁ³„Ç7ªÕÛ`!*ç½s¶ñ×7câFšYcù†@ÙÂ@J^!)§AÈ^ßÀU™Ø¤5ÒüØ2q46ä‹ì
+" É€Ìâ%€*ÜÈpÒû`Kš3ŠÊ:™æh,•©È{¢ÜYÈ*–6Ò°†¯A6bfÔV¾‰W£SC!_Ÿ–·>sV-yçGÌi»w q õ:znIÊÃZgè|öæü\z•¼ü;™C!S’*Sºp¢áxp½ŠÕÎÛøŸjùC0u“ş}µ<ãÙiöN¼+Kï	ƒ+xœ»Àû„oÃkÖz…äÜ[…j¥äœÄ¼ô%%]İäüÜ‚ÌœT›˜—R¬›’Yd›Tš™“¢¤P«Ã¥ Eùù%ñ@	 ö¢ÔÂÒÌ¢T¥œâ‚äü¼´Ìt½Ò’Ì%M=°¢‚Ä’’Ô¢<%¨¹ñ0sùõ²Šóó@vê¥g–(iNd“ŸÌÂv ì=5Ñê€xœ{Â·šoC:£~¼BRiZ^‘&—ää''æ(ä”+Ø*TƒäÒR‹€L°"…ÚÉL2“[ÅY@*&d–|„QÁáb’Cp™”œ9LŠ0êäwLò3§YÆ±Eˆê³È!8u,FÎC–NâüÔ¼0&Ê2sõrŠô’óóÒ2Ó5”’sóÒS”t&²{L~Í:U^“«Âôü‚œbˆ:OEj
+*‹2Ó3J ªxÀª€¶ëpÕr 7†l|ã€Lxœ[Í×Ä¿ÁŸMZÊ2sõrŠôRó“rR5”’sóÒS”&û²eIa“OÏ/È)I‹O>ÃªMIAeQfzF‰’&—‚Bj^ŠW- .Æ#˜ê
+Xxœkâ&°ÁŸmò6ÑÉlÁ@:Äf-)Ï)œËêÍX;ù›8kVJ	„_Q«ÉÅ¥ e™¹z9Åz©y‰I9©Õ`A¥äœÄ¼ô%?=¿ §Á-¨,ÊLÏ(A€mBpÁA¹«RóRt¸j¹ »//]ë{xœ{&pBpB‘lYf®^Nq^qjI|N~z|NjYj†RjQQ~‘ÒÆœ3llÅ©Ee©E“sYÃ4J*R‹“‹2JtsóÒKÓSu!ÒJ:
+JººÅ%)™ùJ
+µ“ØÀô9s( ­¨'¿·xœePInÃ0¼û_œ vò‚ }@úE¦"²äjqàş{I'‡=QœÎˆŒ”KôX+ I™f2Ñ»“ŸylZ»®ûC_¡¢yCy™*ü‡ékÊIˆ ¬ÛksğÆ¡§‰|OŞ2©îo«zÔ×åHtŞ_ºv=ÍlƒO5¶VÍJ"ğ€%L‘Šø'}¥~šçLÏşNğ!#’ã¨¡=®dÍn–•).È‘í]JÀhî;óñ¢f·€=ŒsHœ‹ÑÒI²œ]0—H7–/|S¤x«ªÃQPHøOáH‡ZîUOI/vXwJ‡\ı~†7ÔºMİ¾ûm¯›zÉmµUÕ/•Ã‹­ïxœÛÎü™yÃRFc.0(ËL-Ï/(ÉÌÏ+V°U¨†
++(gä—Çgd¦¤¤æÅKŠJS'Ïa” fól³x½nÃ0„w?7¹€#·[‡¶OÑ=P¬“AT‘Yv~÷RşI3tè"ˆúÈ£î"Òİ
+"&><†¦ëQßo:UQ2-½“zÖ/úUU2aÑ#X„†1¹‘¼í:~4uïL¼nó0E`à”ëué½^twÜ¶6|ãt°˜¸éÂ°´Ìy¿TóŸÜšÄ](Ÿ–%¾kŒ§ÓÈ>qq9¢T¿–6¨Öñ§¿p=›^H¥
+âV½y‹øáœT[¿vìÑ±dT‰_+QåH>÷Ğ(s9„+šÿ#Ş>ˆ{pl#ú¿µ3¦Œ7iÉ¾*æâk’^ã€uxœ;ÌüƒyÂmÍ’ÔœÔâäü‚T[…¢ÔÂÒÌ¢T%¸ ’¦^qjIiFuíÄó_ éÀ²xœ}AnÃ E÷9Åˆ•#¥®s€œ$Ê‚âq‚‚gÜa\Éµ|÷v“¬‚‚ÇŸùu‚ye˜Ã?•ï“¿Ş´¦ß›C¹öw‚t6D\É Åk¦Ç¦iVÈƒÆæe=:¦Î_sİHN=Sµ/@ğ{ô‚•yÚ™}S¦¡š7€Š¥8XAÒÔDeÜ¼óˆ:,f” oñËJÆæ¥Ø^4]`«oË¶[ş³¦_¨]ßÏKt7ì¹?Êz¹5R›;¥÷/»?CNeÈ¿LxeTM›0½ï¯qYRº­zZ©=ôVõĞÃ¶gâà¦16µ‡İ¤«ü÷Î@B’-R0Ïg¿7‰Ècôğzùgê×1c|ÿfŸ´ÉYøÙãÏ§_ƒ5Œ“¹¾¡VìÍèk¦à!_„¸P³?I@Ä?#EÌßv+O!ÙênÊ;mË$ ‡\ñéƒ>+ò‰s¨H^!«³27]ä§Å†ÉÎ‡Si`µÿ6Ïæ²ã´WcÇ½ÓµNI—6è»7qgÃ‹ŸÃ Ëpà.øì¨¡O:øúŒEÏn\Â³¯£¶sòc…xŠWüfëPLÇ%`½†Æ„`.7Ø„}ˆÃ=mÉ
+À²-XJS©äÂ‹T;“—¾šïLl¥ 9L†sæ…¬ÜßÂm³Z¢ÎÌõf_MùôWqxx€wòşøIAëîû×ÿrÂ® !ˆ•ïAèw¹°Rº†²I•z
+P‹¨T‘UÒ¹j‘+ozÌÆ5j ìÀx{ª¹|•I1}ˆÜ¡¿"¸IázáWvôvÙÉw1‹NI•c=!3ù¸£¤w­¹ğBÎA=l;eÍ~3¡ÒË_Ï#†%	!É9€©Çri2—]Jn´æäl‡0‚ÅA@€ŒÍı\ù¶¨f½XÈí„Ga”¼Eé­3¶º©ş+-Ã0`o0ÉCe¬}" %±˜pkã)pÀvÕ2Ò¥›ßdìĞÎf¾b¨‘}¼¢]G‰Õ«zM{%:c¥³`6®RÂ#¶¸¯­*ò7ó³Ù|`q¿ŞN˜ÿbª%ôx÷~n~äƒixœ;Ïysƒ	#»‚RVbYâfcÆ9Ì E¦;¬xœ340031QÈÌË,ÑË)Md8â›İ“pNÒîPâÍPOÇu]_BÔä$VUêæä'gëeçç1pn{ı^ËŸ‰ålZÂçÇ“jy¬M€@dÎdÁÔ=L‡›OÖÍL¼5‘)ƒ+ö9“ qË(£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅÇ¿mü½Ív"Ç›Ÿ+6Evİ±Åş7 u¦‘¬x340031QÈÌË,ÑË)Md8â›İ“pNÒîPâÍPOÇu]_BÔä$VUêæä'gëeçç1h®ˆ9è¾©Æ ùõ»Ÿq¨.lùlb 
+ sX¶Êÿãõ¡?tÓNwëÂSk
+©‰*âéqxœËÉ™!2Y0uÓáæ“u3oMdÊàŠ}Îä  ‹¾
+ˆ£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅ_¼jwÖhı˜hşãÃ¦ûÆ3;u jqé€`xœËÉ™!ÂeU>åh¦X-ïqµÕ·öò-› yò
+2£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅÎEqõç¬*N\©0ENúõ”+Ïòí Uİ¬xœ340031QÈÌË,ÑË)Md8â›İ“pNÒîPâÍPOÇu]_BÔä$VUêæä'gëeçç1¤_ºÜ<—/{]ğ¢£¹moü/÷Ø¤9š Èœ	EgÃW%KÙ©.¯TN³^_Y ¶†)Fê·)xœ1nVA„E’&É	~¥zHÙk{×+Ä5­½¶+„]Š\=:îÁAhs
+$ÀvãÑHßx^î_îÀ±PC–àìˆQ‹½‹¶}zëĞ¬túó§~˜Nl®º’U‹qŒZj$êÀ±÷şüûßÁ18‡L$¥¦½›H’ä;DÕ³ıüóêçak“=É;¤d#k«jÂ6¢ùRB“q~¿y@ï]@hŒ¤
+6k8³ãÊÉk÷ópğ1Ï¿7ÂMK¦2¥·,PfèNĞÀ`R‹óã-®²Â¹Êó bèsìEJ»ğÊ4‡b{¸>½½\¯_?çûöxÚí›Ce,±Õ©B¸!˜%Ï­&´•d^ä|}÷ëÈÈ’Øó.œ„µ¿¯€ikwˆÈ`´A—§Ë¯Çxyà>xœÏ1JDAÆqvµYKO°lõ‹$“Ì$ˆ—°ÛÌ$S‰ˆ…Wáyakë)¼¯üà_ü¾ßÃïá–H„PF¦"\‡÷™İ+´A\€³á”ñõp·[¨‚lbR|(¥ˆŠĞsˆÄ6bzã²şì>±bF*À³ªNõŠ^ XqV‡ÖŒpâXß÷7Ó¤İµpÉ>C¤
+rs&§*
+ÒŒ•Ö¿ıí2HÌ\17¬{nP¶9­³Ä(ä}½?ãÖ»‡y«*¶‘H„ÁVÑ’“{ëeû0Çéøv}q<óÉ_^W?»Zºm¢:h¶:L¶L3Ä¨„Jr$TI[/Ï¿ÿe7^£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅ…¼zg5Ÿıº²ú@øî®ùGnM  _‹Ÿ¬xœ340031QÈÌË,ÑË)Md8·Œİå®ğ¤ëWœEØŞ<+XıÈ¢&'±ªR7'?9[/«8?Á‚ëdòÿİä§Ù:¤,œÓ­f^?í²‰(€Ì™Pt6|U²”êòJå$1áõ•õ ‰I(j¬x340031QÈÌË,ÑË)Md8·Œİå®ğ¤ëWœEØŞ<+XıÈ¢&'±ªR7'?9[/«8?!¬Ÿ=}­ÜÏ˜™ëJíºv3l‹11 9+#zmW­áú:»Ş6~bùA³ùrÚ Y(`éqxœËÉ™!Òº şUÎëã’:=6&xŞS9‘ Ÿ¦kë†xœÈ±1PqT×0Ç•ß‰ã8B¬hÇŞ„!1	bœ›‚à•o_÷õ‰‹AÉÜk:k'êÄb
+šPš÷í´l<Œ•†Y*…iãécÂÌÚ:ûë±œ·¤“õß’x¤ÒĞŠ‰\²[#Š©#üú.—-Yì=ÌÅæ„’‚,Ñ;ÕÜÄ#HC¹~®Çûáæ4F£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅFñ÷¥VN³½Ím¾d÷äue…Ì} JCá£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅ_æ>æZ÷RLXŞ@m³ÁZaC¾g PÛ&é‚HxœËÉ™!¢ó’S¾+ÿº¬zÁßÛKã'F¥™n[ ˆT£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅ»$#?ìó9ôRŞÄ®Ç~öDÏkË¬ Y‘¬x340031QÈÌË,ÑË)MdH¾õ,Z±s•àJõÚŒ9ºŸÏ=«ñÌ¢&'±ªR7'?9[/«8?á¹ß¯YOÎ.Ù¶µmÅUñAWw P ™ßÂ¿/;…‡É¬m’z¢d€îQ­å úi)…éqxœËÉ™!r7ØCŸwÙMQ-®¶¾ÙÿÒ2«%?ñ ƒ
+`kÄSxœ;ÇöuCÓä{L ¿ûlƒOxœ»Í9‹cÃO¦Í»˜$Ä£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅ†|œ-q2Š6
+_úYhôö¸ 2zj™Jxœ;Ì<ŸyÂÄ[ùÿ£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅ™“6p¸ÔkîoT¾¿øNÿ³{û¶  RÍ£å¦Kxœ»À»ŸkBÑf&FNÆÍALL›kXCP
+kç!xœÛÏÕÆ½¡šQÌEIG¡,3W/§¸@/©4M/%59'±hò}FƒÍUŒG™µ¬x340031QÈÌË,ÑË)MdH¾õ,Z±s•àJõÚŒ9ºŸÏ=«ñÌ¢&'±ªR7'?9[/«8?áFöæÏÉe»öåMı<oÙO›óM€@dÎ4¾ÓÓkÒ[¦•ßèg]w“ó XÚ.ÅérxœËÉ™!âÁmÛèÿÜ²°wÛü+Z~"[?(¨è  ¨
+í†zxœÆ½1Pq4Ğ°'*;?v>±­8ã $:¶8İ8,¯zßóçô¢µÃa)J‡
+ôîpsÊÚrËIëö¸,kN.&¥ÀÌ¹Ï9İ+dÉL6VŞÏå~•Vşïà-TZ5hL%Ê<ÖyDªûv¼~'°£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅ«¶Š]¬İXÈ05cÏûİÛu³. X§r£xœ31 …äü¼´Ìt†~é%)+ß¾ú¹è¯5ã”X³…lâ&`9¥é™yÅZ‹këÚ]§ì?ú†1¨¹yÛôÕ= X[Šî›}xœ{Ä´qBİd-FyáØX. HÍKÑ2ju¸j¹ ‰@¿à'xœÛÀ¸qÂ\Iİ¼ÌôŒ’ØX. HÍKÑ2ju¸j¹ «—	!¬xœ340031QÈÌË,ÑË)MdØj:)0=ëwztõ#ß ®“˜
+çBÔä$VUêæä'gëeçç1ÜÛÕuu×âìåÏ~¹¿WVå”iˆ¢‰(€Ì™ºÀğ_®­uº£´¢Rß»«®Å\ ÓH,kËkxœ;ÇvƒuCÓdf/ ·Öî‚mxœ»MAÅáœˆá°B=ı†(¡{fÚ%R@ÀzGB&dÀšOU*ã]Î—óÇûæIk4Bƒ•¾:+kéª(øüùºŸ½ğØ“E›r‹š-¡IjiÍŒF“÷×«ç&`aíåœÅ$3¹¥jKékpqĞ´ı÷
+·†î@!†İ4rª¸P/G-VâA°?œ¶äƒåXnæÂÔ#u57NRÃÑ,¸«,ûûéy“&Š“¹†b‡£•éA³Û²¤‘„Ff#dÿ;õlÌl‹©d¬0ŠJ²¥ì¼l¿X¨î/×ßƒ"…Æa2/àÂ ™L,­¦çšUÒ’ïnßnŞnşÿÊed£xœ31 …äü¼´Ìt†U‡5[yıÑcª	±Öğ¾,üÍ‹ß¬  §4=3¯˜aİYlù‹4ëSâmÉ^ßÖ´Y\ ?ë¤xœ340031QÈI¬ªÔË)Mdøú®äd ÀÔã³‹š²ö+%GlÔK› ôÎ¬x340031QÈÌË,ÑË)MdØj:)0=ëwztõ#ß ®“˜
+çBÔä$VUêæä'gëeçç1”N:ë³HÙèáÆDv-¯;:™›òâM€@d×æ¹Ó>sş2z½‡kecÎ½|^¼)½éqxœËÉ™!òÆòÈ‹³[3~«¥z-ŸTmt¸}ñ; ª›iîƒxœ=N]AFÅKƒXJÃ-òŒÿQ6AG;c{j6ğ¶İvÅJ’0)>ÉúäcÉçãöãöˆ$µgï0ËĞ(ƒ™²@B!Òúô|ı{hI˜àeÁZ3SY6È¦5Ã¹‰D-<ßnIBÂV>Í`ÑÆ|ı?™é¸&@ÃÅìç×M? «—£·JİÇÚ‹&­+´)¤aÕå|¼<£lìn90Yq‚N×J×^I}ùùûòë!RˆÓpZ+†:›	S±ãcíç¿‹=}ËhªÃ•™Pû~‡CqCM÷œs­ò<_~|>oe± Út$•Ä¹#}»j}b"mñóşzw½ûn–f£xœ31 …äü¼´Ìt†U‡5[yıÑcª	±Öğ¾,üÍ‹ß¬  §4=3¯˜Á¤ßsF³råä0Ñ-%L³xf·UÌ ûà¢zxœ;ÏysÂ?–Œ’ÜœÍŒû™<jp£xœ31 …äü¼´Ìt†U‡5[yıÑcª	±Öğ¾,üÍ‹ß¬  §4=3¯˜¡²õ°g½]m¨õl® ö}›Ê—{†  ÿ,¦lŒ2xœÛÏu‡sCóæ×Ì!Œ #~ào)xœ›Ï|„iƒ-#{j^ŠW- &æR¬xœ340031QÈÌË,ÑË)MdØj:)0=ëwztõ#ß ®“˜
+çBÔä$VUêæä'gëeçç1üÊÏÎySŞ½‚×IÏoÂÊgo£‡› Èœ{'.qY/7İ·¢ævêE¦Û§ßU «,Ğã	ƒcxœÌ»Â0 P%4(Ğ!ªTûú,¦9ûì%PV I—ùX€šèŸŞ~|†Çvn3‘™£2¤ÊV@BP5²pWtN½åÌyÙã}öêáàjÒ%Z¥ÃÒ@f¥Ò‰QšwgÙŞãçú»Œj¸$ŒÄÙ
+S)áH¥&ù{ £v9¯Ó:}Ò‘)eã€	xœUÏANC1P!ÄæŸâ«bÑ 8NìDH=ÛØ±Ñ— ­(°ë¨¸wà:Ü‚é’ıÌÓÌÏå×ÕGØ°‘BQÎ„æÒ;gn¡›hÍ@¤æ¸š7Ó<¯¶ïËóm{{İíÛòrø„‹ë$J”‹U)%xXõ3«½÷Š.! zÎõñtØënëËã™X»[NhÀÀ5Z2ÖŒQS“¬äÆ …àôp¿Fìqä°0¥Z[ğ€¬R­»×ĞsAjvúş½“H1Öñ+qÉ¹ARÅk}âh1„1m:NN¶£xœ31 …äü¼´Ìt†U‡5[yıÑcª	±Öğ¾,üÍ‹ß¬  §4=3¯˜y…®ßítÛÀ®®w†‡ğùÍü—Ú ¦ââƒWxœ»Ã¹•q‚špr~^Zfº‚­BZi^rIf~†æänfÕÉß8™E»–KA!5/E‡«– ¸î¬xœ340031QÈÌË,ÑË)MdØj:)0=ëwztõ#ß ®“˜
+çBÔä$VUêæä'gëeçç10™f]­õ{ş6µ¥LòœœîéBøL€@dóÑ
+şy×uŸ\=Ô¨É\R9cAIz+ g	)Ï£xœ31 …äü¼´Ìt†U‡5[yıÑcª	±Öğ¾,üÍ‹ß¬  §4=3¯˜¡)FïÑ…¦,‹Æúµo*$]Ú¸ú= [ÔfÉxœ;ÂX1Ñ§ 	F“¬xœ340031QÈÌË,ÑË)MdhspUY»`ë¥é¬á•g}Ó¿1„œ6„¨ÉI¬ªÔÍÉOÎÖË*ÎÏc`2ÍºZë÷ümjK™ä99İÓ'„ğ™ Èœ3ëï1ªEq½Ù’É¿˜÷…î„ Y" f-(ˆìŞ[xœ»ÍÖÏ¾á4“ObU¥B@Nizf^±WQjaifQª†RPXIS¯8µ¤´@C© "¯¤9ùÓTF. œ˜2£xœ31 …äü¼´Ìt†U‡5[yıÑcª	±Öğ¾,üÍ‹ß¬  §4=3¯˜áë™Ú’_?>œ»Ë"ÛüşO¿ÕF7v  9|€¨xœ340031Q(IÍI-NÎ/HÕË)MdĞ=?'u_{ ùê½R¯Lıvf}í’2C¨ÂŒÔ\ˆ¢‹½–<›»O·Ê_©†»gù+W5˜¢¢ÔÔâÌ’’Ô"°Ê_O¶Ï}şpÊ’B
+g*$œØ³q› £#4dºxœ+J-)-ÊS¨æRPPÏ+ËÌÕ-IÍI-NÎ/HÕ‡³ô@ê:
+%‰é
+¶
+êz†zê:@)©©y)©yÉ™©Å@™j¨9¥‰ú9©y‰E•­
+µ\µ\ e‚"Îk¯axœ{Ä”>!‰µV‡«– }ä®(xœ;Ï¹sÂ?–Œ’ÜœÉŒR›Mg3 Uô$¬xœ340031QÈÌË,ÑË)Md(ôtööz¿)O¹Şº|•;³t××ÿŸ!jr«*usò“³õ²Šóó¾|:¾µq»ÊíWõÂO2î]|óĞÄ @æ<“¸êûGfõ"ï©
+ë
+šİ›ğ  0á‰9xœÈ«€0 @c
+
+ÅKók:N›”-l ó°[`àä=Ã1œ°ˆöÅ:Hk”+wG+U8Œ4€È7€¯û]3JoÿšºyQdLÜ‚TRaU€”çi÷ñoôà£xœ31 …äü¼´Ìt†U‡5[yıÑcª	±Öğ¾,üÍ‹ß¬  §4=3¯˜Ápjû²™²‚Y2×¿»(œ·g)   ?zdƒ+xœ«ğ›à <¥ºí;9#’>ùGÈÃìú™HW…g
+
+===== ./.git/objects/pack/pack-baed183b3923923e13f947c8c3ecfa9948578567.rev =====
+RIDX            :   R   D   &   c         ;            b         p      `   s       #   K   <   j   e         I   9   J   %   ~   X      @      ]      Y   7      a   z      k   '   y   g   n   A   ,   4   €   d   [   
+   f      3   5   \   V   h   =   N   M   0   +            x   !   6   L   |   U      -   F   W   v      S   Q   2   u   o      1   "          T   m   )   P   $   /   C   ^   r   O   Z   *      >   w   B   	      _            q   ?   8   (   E   .   G   i   }      l   ‚   H   {   t   ºí;9#’>ùGÈÃìú™HW…g›u×	pe} ³¾`´~+¨
+
+===== ./.git/packed-refs =====
+# pack-refs with: peeled fully-peeled sorted 
+234b367c533c35a18457e36d88549a62f6df4be0 refs/remotes/origin/main
+
+
+===== ./.git/refs/heads/main =====
+234b367c533c35a18457e36d88549a62f6df4be0
+
+
+===== ./.git/refs/remotes/origin/HEAD =====
+ref: refs/remotes/origin/main
+
+
+===== ./lazy-lock.json =====
+{
+  "LuaSnip": { "branch": "master", "commit": "0abc8f390b278c3b4aabc4c004ac8a088b65cf24" },
+  "cmp-nvim-lsp": { "branch": "main", "commit": "cbc7b02bb99fae35cb42f514762b89b5126651ef" },
+  "cmp_luasnip": { "branch": "master", "commit": "98d9cb5c2c38532bd9bdb481067b20fea8f32e90" },
+  "lazy.nvim": { "branch": "main", "commit": "85c7ff3711b730b4030d03144f6db6375044ae82" },
+  "nvim-autopairs": { "branch": "master", "commit": "7b9923abad60b903ece7c52940e1321d39eccc79" },
+  "nvim-cmp": { "branch": "main", "commit": "a1d504892f2bc56c2e79b65c6faded2fd21f3eca" },
+  "nvim-lspconfig": { "branch": "master", "commit": "deb0df61b2d6691e745b16a42755e10ad38218e9" },
+  "nvim-treesitter": { "branch": "main", "commit": "4916d6592ede8c07973490d9322f187e07dfefac" },
+  "nvim-web-devicons": { "branch": "master", "commit": "7d8dad2c837fcdf2e65997e68657c1a21c568074" },
+  "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
+  "telescope.nvim": { "branch": "master", "commit": "a0bbec21143c7bc5f8bb02e0005fa0b982edc026" },
+  "toggleterm.nvim": { "branch": "main", "commit": "50ea089fc548917cc3cc16b46a8211833b9e3c7c" },
+  "tokyonight.nvim": { "branch": "main", "commit": "cdc07ac78467a233fd62c493de29a17e0cf2b2b6" }
+}
+
+
+===== ./lua/config/keymaps.lua =====
+-- Keymaps
+
+-- Leader
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
+
+-- Up, Down
+vim.keymap.set('n', 'j', 'gj', { desc = 'Up', noremap = true})
+vim.keymap.set('n', 'k', 'gk', { desc = 'Down', noremap = true})
+
+vim.keymap.set("n", "<leader>e", ":Lexplore<CR>")                                --open file explorer
+vim.keymap.set('n', '<leader>z', ":ToggleTerm<CR>")
+vim.keymap.set('t', '<esc>', "<C-\\><C-n><CMD>ToggleTerm exit<CR>")
+vim.keymap.set("n", "<Tab>", ":bnext<CR>") -- go to next buffer
+vim.keymap.set("n", "<S-Tab>", ":bprevious<CR>") -- go to prev buffer
+vim.keymap.set("n", "gl", "$")
+vim.keymap.set("n", "ge", "G")
+vim.keymap.set("n", "gh", "^")
+vim.keymap.set("n", "<leader>a", "ggVG")
+vim.keymap.set("n", "<C-c>", "gcc", { remap = true, silent = true })
+vim.keymap.set("v", "<C-c>", "gcc", { remap = true, silent = true })
+vim.keymap.set("n", "<leader>u", ':silent !xdg-open "<cWORD>" &<CR>')
+vim.keymap.set("n", "<leader>b", ":w<CR>")
+
+
+===== ./lua/config/lazy.lua =====
+-- Bootstrap lazy.nvim
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+      { out, "WarningMsg" },
+      { "\nPress any key to exit..." },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
+end
+vim.opt.rtp:prepend(lazypath)
+
+-- Make sure to setup `mapleader` and `maplocalleader` before
+-- loading lazy.nvim so that mappings are correct.
+-- This is also a good place to setup other settings (vim.opt)
+
+-- Setup lazy.nvim
+require("lazy").setup({
+  spec = {
+    -- import your plugins
+    { import = "plugins" },
+  },
+  -- Configure any other settings here. See the documentation for more details.
+  -- colorscheme that will be used when installing plugins.
+  install = { colorscheme = { "habamax" } },
+  -- automatically check for plugin updates
+  checker = { enabled = false },
+})
+
+
+===== ./lua/config/options.lua =====
+vim.api.nvim_create_autocmd("TextYankPost", {
+    desc = "Highlight when yanking (copying) text",
+    callback = function()
+        vim.hl.on_yank()
+    end,
+})
+
+
+local options = {
+	laststatus = 3,
+	ruler = false, --disable extra numbering
+	showmode = false, --not needed due to lualine
+	showcmd = false,
+	wrap = true, --toggle bound to leader W
+	mouse = "a", --enable mouse
+	history = 100, --command line history
+	swapfile = false, --swap just gets in the way, usually
+	backup = false,
+	undofile = true, --undos are saved to file
+	cursorline = true, --highlight line
+	ttyfast = true, --faster scrolling
+	smoothscroll = true,
+	title = true, --automatic window titlebar
+	numberwidth = 4,
+
+	smarttab = true, --indentation stuff
+	cindent = true,
+	autoindent = false,
+
+	foldmethod = "expr",
+	foldlevel = 99, --disable folding, lower #s enable
+	foldexpr = "nvim_treesitter#foldexpr()",
+
+	ignorecase = true, --ignore case while searching
+	smartcase = true, --but do not ignore if caps are used
+
+	conceallevel = 2, --markdown conceal
+	concealcursor = "nc",
+
+	splitkeep = 'screen', --stablizie window open/close
+
+    -- mine
+	number = true,
+	relativenumber = true,
+	expandtab = true,
+	shiftwidth = 4,
+	tabstop = 4,
+	termguicolors = true,
+	updatetime = 250,
+	signcolumn = "yes",
+	clipboard = "unnamedplus",
+	-- Completamento automatico nativo
+	autocomplete = true ,
+	completeopt = { "menu", "menuone", "noselect" },
+    fillchars = { eob = " " },
+}
+vim.opt.undodir = vim.fn.stdpath("data") .. "/undodir"
+vim.opt.undofile = true
+vim.g.netrw_banner = 0
+vim.g.netrw_winsize = -30
+vim.g.netrw_liststyle = 3
+vim.g.netrw_browse_split = 4
+
+for k, v in pairs(options) do
+	vim.opt[k] = v
+end
+
+vim.diagnostic.config({
+	signs = false,
+})
+
+
+===== ./lua/plugins/autocomplete.lua =====
+return {
+  {
+    "saadparwaiz1/cmp_luasnip", -- Snippet source
+    "L3MON4D3/LuaSnip",         -- Snippet engine
+  },
+  {
+    "hrsh7th/nvim-cmp",  -- Autocompletion plugin
+    dependendencies = {
+      "L3MON4D3/LuaSnip",
+      "saadparwaiz1/cmp_luasnip",
+      "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/cmp-buffer",
+      "hrsh7th/cmp-path",
+    },
+    config = function()
+      -- See `:help cmp`
+      local cmp = require "cmp"
+
+      cmp.setup {
+        snippet = {
+          expand = function(args)
+            require('luasnip').lsp_expand(args.body)
+          end,
+        },
+        auto_brackets = {},
+        completion = { completeopt = "menu,menuone,noinsert" },
+
+        mapping = cmp.mapping.preset.insert {
+          -- Select the [n]ext/[p]revious item
+          ["<Tab>"] = cmp.mapping.select_next_item(),
+          ["<S-Tab>"] = cmp.mapping.select_prev_item(),
+
+          -- Scroll the documentation window [b]ack/[f]orward
+          ["<C-b>"] = cmp.mapping.scroll_docs(-4),
+          ["<C-f>"] = cmp.mapping.scroll_docs(4),
+
+          -- Accept ([y]es) or [e]xit the completion.
+          --  This will auto-import if your LSP supports it.
+          --  This will expand snippets if the LSP sent a snippet.
+          ["<CR>"] = cmp.mapping.confirm { select = true },
+          ["<C-e>"] = cmp.mapping.abort(),
+
+          -- Manually trigger a completion from nvim-cmp.
+          ["<C-Space>"] = cmp.mapping.complete {},
+
+          -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
+          --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
+        },
+        sources = {
+          { name = "nvim_lsp" },
+          { name = "luasnip" },
+          { name = "path" },
+          { name = "buffer", option = { keyword_length = 3, }, },
+        },
+      }
+
+    end
+  }
+}
+
+
+===== ./lua/plugins/autopairs.lua =====
+return {
+  {
+    'windwp/nvim-autopairs',
+    event = "InsertEnter",
+    config = true
+    -- use opts = {} for passing setup options
+    -- this is equivalent to setup({}) function
+  }
+}
+
+
+===== ./lua/plugins/lsp.lua =====
+return {
+  'neovim/nvim-lspconfig',
+  dependencies = {
+    "hrsh7th/cmp-nvim-lsp",
+  },
+  config = function()
+    vim.lsp.log.set_level("error")
+    
+    -- Configurazione hover border (modo moderno)
+    vim.lsp.handlers["textDocument/hover"] = function(err, result, context, config)
+      vim.lsp.handlers.hover(err, result, context, { border = "single" })
+    end
+
+    local capabilities = require('cmp_nvim_lsp').default_capabilities()
+    local lsp_keymaps = function(_, bufnr)
+      local opts = { buffer = bufnr }
+      vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+      vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+      vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+      vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, opts)
+      vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+      vim.keymap.set("n", "<leader>df", vim.diagnostic.goto_next, opts)
+      vim.keymap.set("n", "<leader>dp", vim.diagnostic.goto_prev, opts)
+      vim.keymap.set("n", "<leader>dl", "<cmd>Telescope diagnostics<cr>", opts)
+      vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
+      vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+      vim.keymap.set("n", "<leader>fr", require("telescope.builtin").lsp_references, opts)
+      -- vim.keymap.set("n", "<leader>e", function()
+      --   vim.diagnostic.open_float(nil, {focusable = false, scope = "line", max_width = 80, border = "single"})
+      -- end, opts)
+    end
+    
+    vim.lsp.config("clangd", {
+      capabilities = capabilities,
+      on_attach = lsp_keymaps,
+      cmd = { "clangd", "--compile-commands-dir=build" },
+      root_dir = require("lspconfig.util").root_pattern("compile_commands.json", ".git"),
+    })
+
+    vim.lsp.config("gopls", {
+      capabilities = capabilities,
+      on_attach = lsp_keymaps,
+    })
+
+    vim.lsp.config("pyright", {
+      capabilities = capabilities,
+      on_attach = lsp_keymaps,
+    })
+
+    vim.lsp.config("tsserver", {
+      capabilities = capabilities,
+      on_attach = lsp_keymaps,
+      cmd = { "typescript-language-server", "--stdio" },
+    })
+
+    vim.lsp.config("jdtls", {
+      capabilities = capabilities,
+      on_attach = lsp_keymaps,
+    })
+
+    vim.lsp.config("lua_ls", {
+      capabilities = capabilities,
+      on_attach = lsp_keymaps,
+      cmd = {"lua-language-server"}
+    })
+
+    vim.lsp.enable({
+      "lua_ls",
+      "clangd",
+      "gopls",
+      "pyright",
+      "tsserver",
+      "jdtls",
+    })
+
+  end,
+}
+
+
+===== ./lua/plugins/telescope.lua =====
+return {
+  'nvim-telescope/telescope.nvim', tag = '0.1.8',
+  dependencies = { 
+    'nvim-lua/plenary.nvim',
+    'nvim-treesitter/nvim-treesitter',
+    'nvim-tree/nvim-web-devicons',
+  },
+  config = function()
+    local telescope = require("telescope").setup({})
+    local builtin = require('telescope.builtin')
+    vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Telescope find files' })
+    vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
+  end,
+}
+
+
+===== ./lua/plugins/theme.lua =====
+return {
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {},
+    config = function()
+      require("tokyonight").setup({
+        transparent = true,
+        styles = {
+          sidebars = "transparent",
+          floats = "transparent",
+        }
+      })
+      vim.cmd[[colorscheme tokyonight-night]]
+    end,
+  },
+}
+
+
+===== ./lua/plugins/toogleterm.lua =====
+return {
+  -- amongst your other plugins
+  -- {'akinsho/toggleterm.nvim', version = "*", config = true}
+  -- or
+  {'akinsho/toggleterm.nvim', version = "*", opts = {
+    direction = "float"
+        --[[ things you want to change go here]]}}
+}
+
+
+===== ./lua/plugins/treesitter.lua =====
+return {
+  "nvim-treesitter/nvim-treesitter",
+  build = ":TSUpdate",
+  lazy = false,
+  config = function () 
+    local configs = require("nvim-treesitter.configs")
+
+    configs.setup({
+      ensure_installed = { "c", "lua", "vim", "vimdoc", "typescript", "javascript", "tsx", "html", "css", "go", "markdown", "cpp", "python", "java"},
+      sync_install = false,
+      highlight = {
+        enable = true,
+        -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
+        disable = function(lang, buf)
+          local max_filesize = 100 * 1024 -- 100 KB
+          local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+          if ok and stats and stats.size > max_filesize then
+            return true
+          end
+        end,
+
+        -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+        -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+        -- Using this option may slow down your editor, and you may see some duplicate highlights.
+        -- Instead of true it can also be a list of languages
+        additional_vim_regex_highlighting = false,
+      },
+      indent = { enable = true },  
+    })
+  end
+}
+
+
+===== ./nvim_config_dump.txt =====
+
+
