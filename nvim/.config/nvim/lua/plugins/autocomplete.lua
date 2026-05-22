@@ -23,6 +23,11 @@ return {
             require('luasnip').lsp_expand(args.body)
           end,
         },
+        window = {
+          completion = {
+            max_height = 10,
+          }
+        },
         auto_brackets = {},
         -- completion = { completeopt = "menu,menuone,noinsert" },
         completion = { completeopt = "menu,menuone,noselect" },
@@ -82,9 +87,9 @@ return {
                   mapping = cmp.mapping.preset.cmdline(),
                   sources = cmp.config.sources({
                     -- Impostiamo max_item_count a 5 per non coprire lo schermo sui comandi
-                    { name = 'path', max_item_count = 15 }
+                    { name = 'path' }
                   }, {
-                    { name = 'cmdline', max_item_count = 15 }
+                    { name = 'cmdline'}
                   }),
                   matching = { disallow_symbol_nonprefix_matching = false }
                 })
