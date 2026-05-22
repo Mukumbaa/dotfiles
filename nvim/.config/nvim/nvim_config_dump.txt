@@ -1,39 +1,4 @@
 ===== ./init.lua =====
--- General Settings
-vim.opt.number = true
-vim.opt.scrolloff = 8
-vim.opt.sidescrolloff = 8
-vim.opt.wrap = true
-
--- Tabs and Indentation
-vim.opt.tabstop = 2
-vim.opt.shiftwidth = 2
-vim.opt.expandtab = true
-vim.opt.smartindent = true
-
--- Search Settings
-vim.opt.ignorecase = true
-vim.opt.smartcase = true
-vim.opt.hlsearch = true
-vim.opt.incsearch = true
-
--- Clipboard
-vim.opt.clipboard = "unnamedplus"
-
--- Mouse Support
-vim.opt.mouse = "a"
--- vim.opt.guicursor = "n-v-c-sm:ver25,i-ci-ve:ver25,r-cr:hor20,o:hor50"
-
--- Split Management
-vim.opt.splitright = true
-vim.opt.splitbelow = true
-
--- Appearance
-vim.opt.termguicolors = true
-vim.opt.background = "dark"
-vim.opt.guifont = "MesloLGS NF:h17"  -- You can adjust the size (h14) as needed
-
--- Keymaps
 require("config.keymaps")
 require("config.options")
 require("config.lazy")
@@ -42,7 +7,9 @@ require("config.lazy")
 
 ===== ./lazy-lock.json =====
 {
+  "FTerm.nvim": { "branch": "master", "commit": "d1320892cc2ebab472935242d9d992a2c9570180" },
   "LuaSnip": { "branch": "master", "commit": "0abc8f390b278c3b4aabc4c004ac8a088b65cf24" },
+  "alpha-nvim": { "branch": "main", "commit": "6c6a89d5b068b5251c8bdf0dd57bb921bcfeeb09" },
   "cmp-buffer": { "branch": "main", "commit": "b74fab3656eea9de20a9b8116afa3cfc4ec09657" },
   "cmp-cmdline": { "branch": "main", "commit": "d126061b624e0af6c3a556428712dd4d4194ec6d" },
   "cmp-nvim-lsp": { "branch": "main", "commit": "cbc7b02bb99fae35cb42f514762b89b5126651ef" },
@@ -58,7 +25,6 @@ require("config.lazy")
   "nvim-treesitter": { "branch": "main", "commit": "4916d6592ede8c07973490d9322f187e07dfefac" },
   "nvim-web-devicons": { "branch": "master", "commit": "7d8dad2c837fcdf2e65997e68657c1a21c568074" },
   "rose-pine": { "branch": "main", "commit": "ff483051a47e27d84bdef47703538df1ed9f4a47" },
-  "toggleterm.nvim": { "branch": "main", "commit": "50ea089fc548917cc3cc16b46a8211833b9e3c7c" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" }
 }
 
@@ -74,59 +40,58 @@ vim.g.maplocalleader = "\\"
 vim.keymap.set('n', 'j', 'gj', { desc = 'Up', noremap = true})
 vim.keymap.set('n', 'k', 'gk', { desc = 'Down', noremap = true})
 
-vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>")                                --open file explorer
-vim.keymap.set('n', '<leader>z', ":ToggleTerm<CR>")
-vim.keymap.set('t', '<esc>', "<C-\\><C-n><CMD>ToggleTerm exit<CR>")
+vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>") --open file explorer
 vim.keymap.set("n", "<Tab>", ":bnext<CR>") -- go to next buffer
 vim.keymap.set("n", "<S-Tab>", ":bprevious<CR>") -- go to prev buffer
-vim.keymap.set("n", "gl", "$")
-vim.keymap.set("n", "ge", "G")
-vim.keymap.set("n", "gh", "^")
-vim.keymap.set("n", "<leader>a", "ggVG")
-vim.keymap.set("n", "<C-c>", "gcc", { remap = true, silent = true })
-vim.keymap.set("v", "<C-c>", "gcc", { remap = true, silent = true })
-vim.keymap.set("n", "<leader>u", ':silent !xdg-open "<cWORD>" &<CR>')
-vim.keymap.set("n", "<leader>w", ":w<CR>")
-vim.keymap.set("n", "<leader>f", ":lua require('fzf-lua').files()<CR>")                          --search cwd
-vim.keymap.set("n", "<leader>D", ":lua require('fzf-lua').diagnostics_document()<CR>")           --diagnostics_document
-vim.keymap.set("n", "<leader>Fh", ":lua require('fzf-lua').files({ cwd = '~/' })<CR>")           --search home
-vim.keymap.set("n", "<leader>Fc", ":lua require('fzf-lua').files({ cwd = '~/.config' })<CR>")    --search .config
+vim.keymap.set({ "n", "v" }, "gl", "$") -- go to end of line
+vim.keymap.set({ "n", "v" }, "gh", "^") -- go to start of line
+vim.keymap.set("n", "ge", "G") -- go to end of file
+vim.keymap.set("n", "<leader>a", "ggVG") -- select all file
+vim.keymap.set("n", "<C-c>", "gcc", { remap = true, silent = true }) -- comment line under cursor
+vim.keymap.set("v", "<C-c>", "gcc", { remap = true, silent = true }) -- comment block of line in V mode
+vim.keymap.set("n", "<leader>u", function()
+    local url = vim.fn.expand("<cWORD>")
+    -- remove symbols from the end of the string
+    url = url:gsub('["\',;%)]*$', ""):gsub('^["\'%s%[]*', "")
+    if url:match("^https?://") then
+        vim.fn.jobstart({"xdg-open", url}, {detach = true})
+    else
+        print("Invalid URL under cursor")
+    end
+end, { desc = "Open URL under cursor" }) -- Open URL under cursor
+vim.keymap.set("n", "<leader>w", "<cmd>update<CR>") -- save file
+vim.keymap.set("n", "<leader>f", ":lua require('fzf-lua').files()<CR>") --search cwd
+vim.keymap.set("n", "<leader>D", ":lua require('fzf-lua').diagnostics_document()<CR>") --diagnostics_document
+vim.keymap.set("n", "<leader>Fh", ":lua require('fzf-lua').files({ cwd = '~/' })<CR>") --search home
+vim.keymap.set("n", "<leader>Fc", ":lua require('fzf-lua').files({ cwd = '~/.config' })<CR>") --search .config
 vim.keymap.set("n", "<leader>Fl", ":lua require('fzf-lua').files({ cwd = '~/.local/src' })<CR>") --search .local/src
-vim.keymap.set("n", "<leader>Ff", ":lua require('fzf-lua').files({ cwd = '..' })<CR>")           --search above
-vim.keymap.set("n", "<leader>Fr", ":lua require('fzf-lua').resume()<CR>")                        --last search
-vim.keymap.set("n", "<leader>g", ":lua require('fzf-lua').grep()<CR>")                           --grep
-vim.keymap.set("n", "<leader>G", ":lua require('fzf-lua').grep_cword()<CR>")                     --grep word under cursor
-vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" })
-vim.keymap.set("n", "<leader>c", ":nohl<CR>", { desc = "Clear search highlighting", silent = true })
-vim.keymap.set("v", "<", "<gv", { desc = "Unindent and keep selection" })
-vim.keymap.set("v", ">", ">gv", { desc = "Indent and keep selection" })
+vim.keymap.set("n", "<leader>Ff", ":lua require('fzf-lua').files({ cwd = '..' })<CR>") --search above
+vim.keymap.set("n", "<leader>Fr", ":lua require('fzf-lua').resume()<CR>") --last search
+vim.keymap.set("n", "<leader>g", ":lua require('fzf-lua').grep()<CR>") --grep
+vim.keymap.set("n", "<leader>G", ":lua require('fzf-lua').grep_cword()<CR>") --grep word under cursor
+vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" }) -- delete without yanking
+vim.keymap.set("n", "<leader>c", ":nohl<CR>", { desc = "Clear search highlighting", silent = true }) -- clear search highlighting
+vim.keymap.set("v", "<", "<gv", { desc = "Unindent and keep selection" }) -- indent
+vim.keymap.set("v", ">", ">gv", { desc = "Indent and keep selection" }) -- indent
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
-    { desc = "Replace word cursor is on globally" })
-vim.keymap.set("n", "<leader>X", "<cmd>!chmod +x %<CR>", { silent = true, desc = "makes file executable" })
+{ desc = "Replace word cursor is on globally" })
+vim.keymap.set("n", "<leader>X", "<cmd>!chmod +x %<CR>", { silent = true, desc = "makes file executable" }) -- make file executable
 
--- SPOSTARE RIGHE (ALT + j / ALT + k)
--- Normal mode (singola riga)
-vim.keymap.set("n", "<A-j>", "<cmd>m .+1<CR>==", { desc = "Sposta riga giù" })
-vim.keymap.set("n", "<A-k>", "<cmd>m .-2<CR>==", { desc = "Sposta riga su" })
+vim.keymap.set("n", "<A-j>", "<cmd>m .+1<CR>==", { desc = "move line under cursor down" }) -- move line under cursor down 
+vim.keymap.set("n", "<A-k>", "<cmd>m .-2<CR>==", { desc = "move line under cursor up" }) -- move line under cursor up
 
--- Visual mode (più righe). 'gv=gv' ri-seleziona e ri-indenta automaticamente
-vim.keymap.set("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Sposta selezione giù" })
-vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Sposta selezione su" })
+vim.keymap.set("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "move block of line down" }) -- move block of line down
+vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "move block of line up" }) -- move block of line up
 
--- Insert mode (ti permette di spostare la riga mentre stai scrivendo)
-vim.keymap.set("i", "<A-j>", "<Esc><cmd>m .+1<CR>==gi", { desc = "Sposta riga giù (Insert)" })
-vim.keymap.set("i", "<A-k>", "<Esc><cmd>m .-2<CR>==gi", { desc = "Sposta riga su (Insert)" })
+vim.keymap.set("i", "<A-j>", "<Esc><cmd>m .+1<CR>==gi", { desc = "move line under cursor down (Insert)" })
+vim.keymap.set("i", "<A-k>", "<Esc><cmd>m .-2<CR>==gi", { desc = "move line under cursor up (Insert)" })
 
 
--- DUPLICARE RIGHE (ALT + SHIFT + j / k) -> Neovim li legge come J e K maiuscole
--- Normal mode (singola riga)
-vim.keymap.set("n", "<A-J>", "<cmd>t .<CR>", { desc = "Duplica riga giù" })
-vim.keymap.set("n", "<A-K>", "<cmd>t .-1<CR>", { desc = "Duplica riga su" })
+vim.keymap.set("n", "<A-J>", "<cmd>t .<CR>", { desc = "copy line under cursor down" }) -- copy line under cursor down
+vim.keymap.set("n", "<A-K>", "<cmd>t .-1<CR>", { desc = "copy line under cursor up" })-- copy line under cursor up
 
--- Visual mode (più righe). Copia in blocco sopra o sotto la selezione e MANTIENE SELEZIONATO il nuovo testo
-vim.keymap.set("v", "<A-J>", ":t '><CR>'[V']", { desc = "Duplica selezione giù e seleziona" })
-vim.keymap.set("v", "<A-K>", ":t '<-1<CR>'[V']", { desc = "Duplica selezione su e seleziona" })
-vim.keymap.set("n", "<leader>pv", ":")
+vim.keymap.set("v", "<A-J>", ":t '><CR>'[V']", { desc = "copy block of line down" }) -- copy block of line down
+vim.keymap.set("v", "<A-K>", ":t '<-1<CR>'[V']", { desc = "copy block of line up" })-- copy block of line up
 
 
 ===== ./lua/config/lazy.lua =====
@@ -167,60 +132,72 @@ require("lazy").setup({
 
 ===== ./lua/config/options.lua =====
 vim.api.nvim_create_autocmd("TextYankPost", {
-    desc = "Highlight when yanking (copying) text",
-    callback = function()
-        vim.hl.on_yank()
-    end,
+  desc = "Highlight when yanking (copying) text",
+  callback = function()
+    vim.hl.on_yank()
+  end,
 })
 
 
 local options = {
-	laststatus = 3,
-	ruler = false, --disable extra numbering
-	showmode = false, --not needed due to lualine
-	showcmd = false,
-	wrap = true, --toggle bound to leader W
-	mouse = "a", --enable mouse
-	history = 100, --command line history
-	swapfile = false, --swap just gets in the way, usually
-	backup = false,
-	undofile = true, --undos are saved to file
-	cursorline = true, --highlight line
-	ttyfast = true, --faster scrolling
-	smoothscroll = true,
-	title = true, --automatic window titlebar
-	numberwidth = 4,
+  laststatus = 3,
+  ruler = false, --disable extra numbering
+  showmode = false, --not needed due to lualine
+  showcmd = false,
+  wrap = true, --toggle bound to leader W
+  mouse = "a", --enable mouse
+  history = 100, --command line history
+  swapfile = false, --swap just gets in the way, usually
+  backup = false,
+  undofile = true, --undos are saved to file
+  cursorline = true, --highlight line
+  ttyfast = true, --faster scrolling
+  smoothscroll = true,
+  scrolloff = 8,
+  sidescrolloff = 8,
+  title = true, --automatic window titlebar
+  numberwidth = 4,
 
-	smarttab = true, --indentation stuff
-	cindent = true,
-	autoindent = false,
+  cindent = true,
+  autoindent = false,
 
-	foldmethod = "expr",
-	foldlevel = 99, --disable folding, lower #s enable
-	foldexpr = "nvim_treesitter#foldexpr()",
+  foldmethod = "expr",
+  foldlevel = 99, --disable folding, lower #s enable
+  foldexpr = "nvim_treesitter#foldexpr()",
 
-	ignorecase = true, --ignore case while searching
-	smartcase = true, --but do not ignore if caps are used
+  ignorecase = true, --ignore case while searching
+  smartcase = true, --but do not ignore if caps are used
 
-	conceallevel = 2, --markdown conceal
-	concealcursor = "nc",
+  conceallevel = 2, --markdown conceal
+  concealcursor = "nc",
 
-	splitkeep = 'screen', --stablizie window open/close
+  splitkeep = 'screen', --stablizie window open/close
 
-    -- mine
-	number = true,
-	relativenumber = true,
-	expandtab = true,
-	shiftwidth = 4,
-	tabstop = 4,
-	termguicolors = true,
-	updatetime = 250,
-	signcolumn = "yes",
-	clipboard = "unnamedplus",
-	-- Completamento automatico nativo
-	autocomplete = false,
-	-- completeopt = { "menu", "menuone", "noselect" },
-    fillchars = { eob = " " },
+  -- mine
+  -- Split Management
+  splitright = true,
+  splitbelow = true,
+  number = true,
+  relativenumber = true,
+  hlsearch = true,
+  incsearch = true,
+  smartindent = true,
+  smarttab = true, --indentation stuff
+  expandtab = true,
+  shiftwidth = 2,
+  tabstop = 2,
+  softtabstop = 2,
+  termguicolors = true,
+  updatetime = 250,
+  signcolumn = "yes",
+  clipboard = "unnamedplus",
+  -- Completamento automatico nativo
+  autocomplete = false,
+  -- completeopt = { "menu", "menuone", "noselect" },
+  fillchars = { eob = " " },
+  background = "dark",
+  guifont = "MesloLGS NF:h17",  -- You can adjust the size (h14) as needed
+
 }
 vim.opt.undodir = vim.fn.stdpath("data") .. "/undodir"
 vim.opt.undofile = true
@@ -230,13 +207,13 @@ vim.g.netrw_liststyle = 3
 vim.g.netrw_browse_split = 4
 
 for k, v in pairs(options) do
-	vim.opt[k] = v
+  vim.opt[k] = v
 end
 
 vim.diagnostic.config({
   -- Disattiva i simboli nella barra laterale (mantenendo la tua preferenza attuale)
   signs = false,
-  
+
   -- Abilita il testo fantasma (Virtual Text)
   virtual_text = {
     spacing = 4,          -- Distanza in spazi tra la fine del codice e il testo fantasma
@@ -244,10 +221,71 @@ vim.diagnostic.config({
     prefix = "■",         -- Simbolo che precede il messaggio d'errore (puoi usare "●", " ", "󰅚 ")
     severity = nil,       -- Mostra tutte le gravità (Error, Warn, Info, Hint)
   },
-  
+
   -- Mostra le diagnostiche anche mentre stai digitando in Insert Mode (opzionale)
   update_in_insert = false,
 })
+-- Disattiva la sorgente 'buffer' di cmp SOLO nei file Typst
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "typst",
+  callback = function()
+    local cmp = require("cmp")
+    cmp.setup.buffer {
+      sources = {
+        { name = "nvim_lsp" },
+        { name = "luasnip" },
+        { name = "path" },
+      },
+    }
+  end,
+})
+
+
+===== ./lua/plugins/alpha.lua =====
+return {
+  "goolord/alpha-nvim",
+  event = "VimEnter",
+  dependencies = { "nvim-tree/nvim-web-devicons" },
+  config = function()
+    local dashboard = require("alpha.themes.dashboard")
+
+    dashboard.section.header.val = {
+      [[]],
+      [[]],
+      [[]],
+      [[]],
+      [[]],
+      [[]],
+      [[]],
+      [[]],
+      [[███    ██ ███████  ██████  ██    ██ ██ ███    ███]],
+      [[████   ██ ██      ██    ██ ██    ██ ██ ████  ████]],
+      [[██ ██  ██ █████   ██    ██ ██    ██ ██ ██ ████ ██]],
+      [[██  ██ ██ ██      ██    ██  ██  ██  ██ ██  ██  ██]],
+      [[██   ████ ███████  ██████    ████   ██ ██      ██]]
+    }
+
+    dashboard.section.buttons.val = {
+      dashboard.button("f", "󰍉  Find file", ":lua require('fzf-lua').files() <CR>"),
+      dashboard.button("o", "󰍉  Find old file", ":lua require('fzf-lua').oldfiles() <CR>"),
+      dashboard.button("c", "  NeoVim Config", ":lua require('fzf-lua').files({ cwd = '~/.config/nvim/' })<CR>"),
+      dashboard.button("m", "  Mappings", ":e ~/.config/nvim/lua/config/keymaps.lua<CR>"),
+      dashboard.button("q", "󰅙  Quit", ":q!<CR>"),
+    }
+
+    dashboard.section.footer.val = function()
+      local stats = require("lazy").stats()
+      local ms = (math.floor(stats.startuptime * 100 + 0.5) / 100)
+      return "󱐌 Neovim caricato in " .. ms .. "ms"
+    end
+
+    dashboard.section.header.opts.hl = "AlphaHeader"
+    dashboard.section.buttons.opts.hl = "Keyword"
+    dashboard.opts.opts.noautocmd = true
+
+    require("alpha").setup(dashboard.opts)
+  end,
+}
 
 
 ===== ./lua/plugins/autocomplete.lua =====
@@ -302,52 +340,40 @@ return {
                     --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
                 },
                 -- sources = {
-                --     { name = "nvim_lsp" },
-                --     { name = "luasnip" },
-                --     { name = "path" },
-                --     { name = "buffer", option = { keyword_length = 3, }, },
-                -- },
-                sources = (function()
-                    -- Se sei su un file Typst, escludi del tutto la sorgente 'buffer'
-                    if vim.bo.filetype == "typst" then
-                        return {
-                            { name = "nvim_lsp" },
-                            { name = "luasnip" },
-                            { name = "path" },
+                    --     { name = "nvim_lsp" },
+                    --     { name = "luasnip" },
+                    --     { name = "path" },
+                    --     { name = "buffer", option = { keyword_length = 3, }, },
+                    -- },
+                    sources = {                    -- Per tutti gli altri file, mantieni la tua configurazione originale
+                        { name = "nvim_lsp" },
+                        { name = "luasnip" },
+                        { name = "path" },
+                        { name = "buffer", option = { keyword_length = 3 } },
+                    },
+                    -- Configurazione per la ricerca (/)
+                    cmp.setup.cmdline('/', {
+                        mapping = cmp.mapping.preset.cmdline(),
+                        sources = {
+                            { name = 'buffer' }
                         }
-                    else
-                        -- Per tutti gli altri file, mantieni la tua configurazione originale
-                        return {
-                            { name = "nvim_lsp" },
-                            { name = "luasnip" },
-                            { name = "path" },
-                            { name = "buffer", option = { keyword_length = 3 } },
-                        }
-                    end
-                end)(),
-                -- Configurazione per la ricerca (/)
-                cmp.setup.cmdline('/', {
-                    mapping = cmp.mapping.preset.cmdline(),
-                    sources = {
-                        { name = 'buffer' }
-                    }
-                }),
-
-                -- Configurazione per i comandi (:)
-                cmp.setup.cmdline(':', {
-                    mapping = cmp.mapping.preset.cmdline(),
-                    sources = cmp.config.sources({
-                        { name = 'path' }
-                    }, {
-                        { name = 'cmdline' }
                     }),
-                    matching = { disallow_symbol_nonprefix_matching = false }
-                })
-            }
 
-        end
+                    -- Configurazione per i comandi (:)
+                    cmp.setup.cmdline(':', {
+                        mapping = cmp.mapping.preset.cmdline(),
+                        sources = cmp.config.sources({
+                            { name = 'path' }
+                        }, {
+                            { name = 'cmdline' }
+                        }),
+                        matching = { disallow_symbol_nonprefix_matching = false }
+                    })
+                }
+
+            end
+        }
     }
-}
 
 
 
@@ -360,6 +386,18 @@ return {
     -- use opts = {} for passing setup options
     -- this is equivalent to setup({}) function
   }
+}
+
+
+===== ./lua/plugins/fterm.lua =====
+return {
+    {
+        'numToStr/FTerm.nvim',
+        config = function()
+            vim.keymap.set('n', '<leader>z', ":lua require('FTerm').open()<CR>")             --open term
+            vim.keymap.set('t', '<Esc>', '<C-\\><C-n><CMD>lua require("FTerm").close()<CR>') --preserves session
+        end,
+    }
 }
 
 
@@ -416,6 +454,8 @@ return {
             fzf = {
                 -- fzf '--bind=' options
                 -- true,        -- uncomment to inherit all the below in your custom config
+                ["tab"]         = "down",
+                ["shift-tab"]   = "up",
                 ["ctrl-z"]      = "abort",
                 ["ctrl-u"]      = "unix-line-discard",
                 ["ctrl-f"]      = "half-page-down",
@@ -618,17 +658,6 @@ return {
 	config = function()
 		vim.cmd("colorscheme rose-pine")
 	end
-}
-
-
-===== ./lua/plugins/toogleterm.lua =====
-return {
-  -- amongst your other plugins
-  -- {'akinsho/toggleterm.nvim', version = "*", config = true}
-  -- or
-  {'akinsho/toggleterm.nvim', version = "*", opts = {
-    direction = "float"
-        --[[ things you want to change go here]]}}
 }
 
 
