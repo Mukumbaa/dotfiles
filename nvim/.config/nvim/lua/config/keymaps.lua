@@ -9,8 +9,8 @@ vim.keymap.set('n', 'j', 'gj', { desc = 'Up', noremap = true})
 vim.keymap.set('n', 'k', 'gk', { desc = 'Down', noremap = true})
 
 vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>")                                --open file explorer
-vim.keymap.set('n', '<leader>z', ":ToggleTerm<CR>")
-vim.keymap.set('t', '<esc>', "<C-\\><C-n><CMD>ToggleTerm exit<CR>")
+-- vim.keymap.set('n', '<leader>z', ":ToggleTerm<CR>")
+-- vim.keymap.set('t', '<esc>', "<C-\\><C-n><CMD>ToggleTerm exit<CR>")
 vim.keymap.set("n", "<Tab>", ":bnext<CR>") -- go to next buffer
 vim.keymap.set("n", "<S-Tab>", ":bprevious<CR>") -- go to prev buffer
 vim.keymap.set("n", "gl", "$")
