@@ -16,6 +16,7 @@ alias fucking='sudo'
 alias cm='~/.config/scripts/change-monitor'
 alias ls='lsd'
 alias ff='fastfetch'
+alias nv='nvim'
 
 # Crea directory e ci entra
 mkcd() {
