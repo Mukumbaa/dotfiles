@@ -50,6 +50,8 @@ return {
             fzf = {
                 -- fzf '--bind=' options
                 -- true,        -- uncomment to inherit all the below in your custom config
+                ["tab"]         = "down",
+                ["shift-tab"]   = "up",
                 ["ctrl-z"]      = "abort",
                 ["ctrl-u"]      = "unix-line-discard",
                 ["ctrl-f"]      = "half-page-down",
