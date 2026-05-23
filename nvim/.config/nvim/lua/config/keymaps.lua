@@ -17,26 +17,18 @@ vim.keymap.set("n", "ge", "G") -- go to end of file
 vim.keymap.set("n", "<leader>a", "ggVG") -- select all file
 vim.keymap.set("n", "<C-c>", "gcc", { remap = true, silent = true }) -- comment line under cursor
 vim.keymap.set("v", "<C-c>", "gcc", { remap = true, silent = true }) -- comment block of line in V mode
-vim.keymap.set("n", "<leader>u", function()
-    local url = vim.fn.expand("<cWORD>")
-    -- remove symbols from the end of the string
-    url = url:gsub('["\',;%)]*$', ""):gsub('^["\'%s%[]*', "")
-    if url:match("^https?://") then
-        vim.fn.jobstart({"xdg-open", url}, {detach = true})
-    else
-        print("Invalid URL under cursor")
-    end
-end, { desc = "Open URL under cursor" }) -- Open URL under cursor
 vim.keymap.set("n", "<leader>w", "<cmd>update<CR>") -- save file
 vim.keymap.set("n", "<leader>f", ":lua require('fzf-lua').files()<CR>") --search cwd
 vim.keymap.set("n", "<leader>D", ":lua require('fzf-lua').diagnostics_document()<CR>") --diagnostics_document
 vim.keymap.set("n", "<leader>Fh", ":lua require('fzf-lua').files({ cwd = '~/' })<CR>") --search home
-vim.keymap.set("n", "<leader>Fc", ":lua require('fzf-lua').files({ cwd = '~/.config' })<CR>") --search .config
+vim.keymap.set("n", "<leader>Fc", ":lua require('fzf-lua').files({ cwd = '~/.config/nvim' })<CR>") --search .config
 vim.keymap.set("n", "<leader>Fl", ":lua require('fzf-lua').files({ cwd = '~/.local/src' })<CR>") --search .local/src
 vim.keymap.set("n", "<leader>Ff", ":lua require('fzf-lua').files({ cwd = '..' })<CR>") --search above
 vim.keymap.set("n", "<leader>Fr", ":lua require('fzf-lua').resume()<CR>") --last search
 vim.keymap.set("n", "<leader>g", ":lua require('fzf-lua').grep()<CR>") --grep
 vim.keymap.set("n", "<leader>G", ":lua require('fzf-lua').grep_cword()<CR>") --grep word under cursor
+vim.keymap.set("n", "<leader>FF", ":lua require('fzf-lua').files({ cwd = vim.fn.expand('%:p:h') })<CR>", { silent = true, desc = "Fzf search in file directory" })
+
 vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" }) -- delete without yanking
 vim.keymap.set("n", "<leader>c", ":nohl<CR>", { desc = "Clear search highlighting", silent = true }) -- clear search highlighting
 vim.keymap.set("v", "<", "<gv", { desc = "Unindent and keep selection" }) -- indent
@@ -60,3 +52,6 @@ vim.keymap.set("n", "<A-K>", "<cmd>t .-1<CR>", { desc = "copy line under cursor 
 
 vim.keymap.set("v", "<A-J>", ":t '><CR>'[V']", { desc = "copy block of line down" }) -- copy block of line down
 vim.keymap.set("v", "<A-K>", ":t '<-1<CR>'[V']", { desc = "copy block of line up" })-- copy block of line up
+
+
+
