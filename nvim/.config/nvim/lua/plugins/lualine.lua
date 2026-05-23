@@ -3,7 +3,6 @@ return {
   dependencies = { "nvim-tree/nvim-web-devicons" },
   event = "VeryLazy",
   opts = function()
-    -- Definiamo i componenti personalizzati all'interno della funzione opts
     local diagnostics = {
       "diagnostics",
       sources = { "nvim_diagnostic" },
@@ -38,13 +37,13 @@ return {
     local progress = function()
       local current_line = vim.fn.line(".")
       local total_lines = vim.fn.line("$")
-      local chars = { "", "", "" }
+      -- local chars = { "", "", "" }
       local line_ratio = current_line / total_lines
-      local index = math.ceil(line_ratio * #chars)
-      return chars[index] .. " " .. math.floor(line_ratio * 100) .. "%%"
+      -- local index = math.ceil(line_ratio * #chars)
+      -- return chars[index] .. " " .. math.floor(line_ratio * 100) .. "%%"
+      return math.floor(line_ratio * 100) .. "%%"
     end
 
-    -- Ritorniamo la tabella di configurazione vera e propria
     return {
       options = {
         icons_enabled = true,
@@ -59,8 +58,9 @@ return {
         lualine_b = { mode },
         lualine_c = { diagnostics, "filename" },
         -- lualine_x = { diff, "fileformat", "filetype" },
-        lualine_y = { "location" },
-        lualine_z = { progress },
+        -- lualine_x = { "location" },
+        lualine_y = { progress },
+        lualine_z = {{"datetime", style = "%H:%M"}}
       },
       extensions = { "nvim-tree" },
     }
