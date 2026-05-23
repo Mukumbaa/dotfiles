@@ -4,6 +4,7 @@ return {
     opts = {
         -- popup immediato
         delay = 0,
+        preset = "helix",
 
         win = {
             border = "single",
