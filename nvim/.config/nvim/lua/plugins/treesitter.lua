@@ -9,7 +9,7 @@ return {
     local parsers = {
       "c", "lua", "vim", "vimdoc", "typescript", "javascript",
       "tsx", "html", "css", "go", "markdown", "cpp", "python", "java", "typst",
-      "bash"
+      "bash", "solidity"
     }
 
     ts.install(parsers)

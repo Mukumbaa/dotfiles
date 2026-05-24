@@ -23,7 +23,7 @@ return {
 
     dashboard.section.buttons.val = {
       dashboard.button("f", "󰍉  Find file", ":lua require('fzf-lua').files() <CR>"),
-      dashboard.button("o", "󰍉  Find old file", ":lua require('fzf-lua').oldfiles() <CR>"),
+      dashboard.button("o", "󰍉  Recent files", ":lua require('fzf-lua').oldfiles() <CR>"),
       dashboard.button("c", "  NeoVim Config", ":lua require('fzf-lua').files({ cwd = '~/.config/nvim/' })<CR>"),
       dashboard.button("m", "  Mappings", ":e ~/.config/nvim/lua/config/keymaps.lua<CR>"),
       dashboard.button("q", "󰅙  Quit", ":q!<CR>"),

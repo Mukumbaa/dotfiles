@@ -54,4 +54,3 @@ vim.keymap.set("v", "<A-J>", ":t '><CR>'[V']", { desc = "copy block of line down
 vim.keymap.set("v", "<A-K>", ":t '<-1<CR>'[V']", { desc = "copy block of line up" })-- copy block of line up
 
 
-
