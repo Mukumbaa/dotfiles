@@ -24,6 +24,7 @@ require("config.lazy")
   "nvim-tree.lua": { "branch": "master", "commit": "85d1145ac71c1b8e1423862c78165a1f609faf60" },
   "nvim-treesitter": { "branch": "main", "commit": "4916d6592ede8c07973490d9322f187e07dfefac" },
   "nvim-web-devicons": { "branch": "master", "commit": "7d8dad2c837fcdf2e65997e68657c1a21c568074" },
+  "render-markdown.nvim": { "branch": "main", "commit": "629eb9533ec989d9d5c6cab8f3ad5372422c24e0" },
   "rose-pine": { "branch": "main", "commit": "ff483051a47e27d84bdef47703538df1ed9f4a47" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" }
 }
@@ -49,26 +50,18 @@ vim.keymap.set("n", "ge", "G") -- go to end of file
 vim.keymap.set("n", "<leader>a", "ggVG") -- select all file
 vim.keymap.set("n", "<C-c>", "gcc", { remap = true, silent = true }) -- comment line under cursor
 vim.keymap.set("v", "<C-c>", "gcc", { remap = true, silent = true }) -- comment block of line in V mode
-vim.keymap.set("n", "<leader>u", function()
-    local url = vim.fn.expand("<cWORD>")
-    -- remove symbols from the end of the string
-    url = url:gsub('["\',;%)]*$', ""):gsub('^["\'%s%[]*', "")
-    if url:match("^https?://") then
-        vim.fn.jobstart({"xdg-open", url}, {detach = true})
-    else
-        print("Invalid URL under cursor")
-    end
-end, { desc = "Open URL under cursor" }) -- Open URL under cursor
 vim.keymap.set("n", "<leader>w", "<cmd>update<CR>") -- save file
 vim.keymap.set("n", "<leader>f", ":lua require('fzf-lua').files()<CR>") --search cwd
 vim.keymap.set("n", "<leader>D", ":lua require('fzf-lua').diagnostics_document()<CR>") --diagnostics_document
 vim.keymap.set("n", "<leader>Fh", ":lua require('fzf-lua').files({ cwd = '~/' })<CR>") --search home
-vim.keymap.set("n", "<leader>Fc", ":lua require('fzf-lua').files({ cwd = '~/.config' })<CR>") --search .config
+vim.keymap.set("n", "<leader>Fc", ":lua require('fzf-lua').files({ cwd = '~/.config/nvim' })<CR>") --search .config
 vim.keymap.set("n", "<leader>Fl", ":lua require('fzf-lua').files({ cwd = '~/.local/src' })<CR>") --search .local/src
 vim.keymap.set("n", "<leader>Ff", ":lua require('fzf-lua').files({ cwd = '..' })<CR>") --search above
 vim.keymap.set("n", "<leader>Fr", ":lua require('fzf-lua').resume()<CR>") --last search
 vim.keymap.set("n", "<leader>g", ":lua require('fzf-lua').grep()<CR>") --grep
 vim.keymap.set("n", "<leader>G", ":lua require('fzf-lua').grep_cword()<CR>") --grep word under cursor
+vim.keymap.set("n", "<leader>FF", ":lua require('fzf-lua').files({ cwd = vim.fn.expand('%:p:h') })<CR>", { silent = true, desc = "Fzf search in file directory" })
+
 vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" }) -- delete without yanking
 vim.keymap.set("n", "<leader>c", ":nohl<CR>", { desc = "Clear search highlighting", silent = true }) -- clear search highlighting
 vim.keymap.set("v", "<", "<gv", { desc = "Unindent and keep selection" }) -- indent
@@ -92,6 +85,8 @@ vim.keymap.set("n", "<A-K>", "<cmd>t .-1<CR>", { desc = "copy line under cursor 
 
 vim.keymap.set("v", "<A-J>", ":t '><CR>'[V']", { desc = "copy block of line down" }) -- copy block of line down
 vim.keymap.set("v", "<A-K>", ":t '<-1<CR>'[V']", { desc = "copy block of line up" })-- copy block of line up
+
+
 
 
 ===== ./lua/config/lazy.lua =====
@@ -143,7 +138,7 @@ local options = {
   laststatus = 3,
   ruler = false, --disable extra numbering
   showmode = false, --not needed due to lualine
-  showcmd = false,
+  showcmd = true,
   wrap = true, --toggle bound to leader W
   mouse = "a", --enable mouse
   history = 100, --command line history
@@ -267,7 +262,7 @@ return {
 
     dashboard.section.buttons.val = {
       dashboard.button("f", "󰍉  Find file", ":lua require('fzf-lua').files() <CR>"),
-      dashboard.button("o", "󰍉  Find old file", ":lua require('fzf-lua').oldfiles() <CR>"),
+      dashboard.button("o", "󰍉  Recent files", ":lua require('fzf-lua').oldfiles() <CR>"),
       dashboard.button("c", "  NeoVim Config", ":lua require('fzf-lua').files({ cwd = '~/.config/nvim/' })<CR>"),
       dashboard.button("m", "  Mappings", ":e ~/.config/nvim/lua/config/keymaps.lua<CR>"),
       dashboard.button("q", "󰅙  Quit", ":q!<CR>"),
@@ -493,92 +488,99 @@ return {
 
 ===== ./lua/plugins/lsp.lua =====
 return {
-    'neovim/nvim-lspconfig',
-    dependencies = {
-        "hrsh7th/cmp-nvim-lsp",
-    },
-    config = function()
-        vim.lsp.log.set_level("error")
+  'neovim/nvim-lspconfig',
+  dependencies = {
+    "hrsh7th/cmp-nvim-lsp",
+  },
+  config = function()
+    vim.lsp.log.set_level("error")
 
-        -- Configurazione hover border (modo moderno)
-        vim.lsp.handlers["textDocument/hover"] = function(err, result, context, config)
-            vim.lsp.handlers.hover(err, result, context, { border = "single" })
+    -- Configurazione hover border (modo moderno)
+    -- vim.lsp.handlers["textDocument/hover"] = function(err, result, context, config)
+      --     vim.lsp.handlers.hover(err, result, context, { border = "single" })
+      -- end
+
+      local capabilities = require('cmp_nvim_lsp').default_capabilities()
+      local lsp_keymaps = function(_, bufnr)
+        local opts = { buffer = bufnr }
+        vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+        vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+        vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+        vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, opts)
+        vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+        -- vim.keymap.set("n", "<leader>df", vim.diagnostic.goto_next, opts)
+        vim.keymap.set("n", "<leader>j", function()
+          vim.diagnostic.jump({ count = 1 })
+        end, opts)
+
+        -- vim.keymap.set("n", "<leader>dp", vim.diagnostic.goto_prev, opts)
+        vim.keymap.set("n", "<leader>k", function()
+          vim.diagnostic.jump({ count = -1 })
+        end, opts)
+
+        vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
+        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+        -- vim.keymap.set("n", "<leader>Fr", require("telescope.builtin").lsp_references, opts)
+        -- vim.keymap.set("n", "<leader>e", function()
+          --   vim.diagnostic.open_float(nil, {focusable = false, scope = "line", max_width = 80, border = "single"})
+          -- end, opts)
         end
 
-        local capabilities = require('cmp_nvim_lsp').default_capabilities()
-        local lsp_keymaps = function(_, bufnr)
-            local opts = { buffer = bufnr }
-            vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-            vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-            vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-            vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, opts)
-            vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-            vim.keymap.set("n", "<leader>df", vim.diagnostic.goto_next, opts)
-            vim.keymap.set("n", "<leader>dp", vim.diagnostic.goto_prev, opts)
-            -- vim.keymap.set("n", "<leader>dl", "<cmd>Telescope diagnostics<cr>", opts)
-            vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
-            vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-            -- vim.keymap.set("n", "<leader>Fr", require("telescope.builtin").lsp_references, opts)
-            -- vim.keymap.set("n", "<leader>e", function()
-                --   vim.diagnostic.open_float(nil, {focusable = false, scope = "line", max_width = 80, border = "single"})
-                -- end, opts)
-            end
+        vim.lsp.config("clangd", {
+          capabilities = capabilities,
+          on_attach = lsp_keymaps,
+          cmd = { "clangd", "--compile-commands-dir=build" },
+          -- root_dir = require("lspconfig.util").root_pattern("compile_commands.json", ".git"),
+        })
 
-            vim.lsp.config("clangd", {
-                capabilities = capabilities,
-                on_attach = lsp_keymaps,
-                cmd = { "clangd", "--compile-commands-dir=build" },
-                -- root_dir = require("lspconfig.util").root_pattern("compile_commands.json", ".git"),
-            })
+        vim.lsp.config("gopls", {
+          capabilities = capabilities,
+          on_attach = lsp_keymaps,
+        })
 
-            vim.lsp.config("gopls", {
-                capabilities = capabilities,
-                on_attach = lsp_keymaps,
-            })
+        -- vim.lsp.config("pyright", {
+          --     capabilities = capabilities,
+          --     on_attach = lsp_keymaps,
+          -- })
 
-            -- vim.lsp.config("pyright", {
-                --     capabilities = capabilities,
-                --     on_attach = lsp_keymaps,
-                -- })
+          vim.lsp.config("lua_ls", {
+            capabilities = capabilities,
+            on_attach = lsp_keymaps,
+            cmd = { "lua-language-server" },
 
-                vim.lsp.config("lua_ls", {
-                    capabilities = capabilities,
-                    on_attach = lsp_keymaps,
-                    cmd = { "lua-language-server" },
+          })
+          vim.lsp.config("tinymist", {
+            capabilities = capabilities,
+            on_attach = function(client, bufnr)
+              -- Configura i tuoi tasti di default (gd, K, ecc.)
+              lsp_keymaps(client, bufnr)
 
-                })
-                vim.lsp.config("tinymist", {
-                    capabilities = capabilities,
-                    on_attach = function(client, bufnr)
-                        -- Configura i tuoi tasti di default (gd, K, ecc.)
-                        lsp_keymaps(client, bufnr) 
-
-                        -- Tasto per attivare l'anteprima nativa (Senza avvisi di deprecazione)
-                        vim.keymap.set("n", "<leader>tp", function()
-                            client:request("workspace/executeCommand", {
-                                command = "tinymist.startDefaultPreview",
-                                arguments = { vim.api.nvim_buf_get_name(bufnr) },
-                            }, function(err, result, ctx, config)
-                                if err then
-                                    vim.notify("Errore anteprima Tinymist: " .. err.message, vim.log.levels.ERROR)
-                                else
-                                    vim.notify("Anteprima Tinymist avviata nel browser!", vim.log.levels.INFO)
-                                end
-                            end, bufnr)
-                        end, { buffer = bufnr, desc = "Avvia anteprima Typst" })
-                    end,
-                    cmd = { "tinymist" },
-                })
-                vim.lsp.enable({
-                    "lua_ls",
-                    "clangd",
-                    "gopls",
-                    "pyright",
-                    "tinymist"
-                })
-
+              -- Tasto per attivare l'anteprima nativa (Senza avvisi di deprecazione)
+              vim.keymap.set("n", "<leader>tp", function()
+                client:request("workspace/executeCommand", {
+                  command = "tinymist.startDefaultPreview",
+                  arguments = { vim.api.nvim_buf_get_name(bufnr) },
+                }, function(err, result, ctx, config)
+                  if err then
+                    vim.notify("Errore anteprima Tinymist: " .. err.message, vim.log.levels.ERROR)
+                  else
+                    vim.notify("Anteprima Tinymist avviata nel browser!", vim.log.levels.INFO)
+                  end
+                end, bufnr)
+              end, { buffer = bufnr, desc = "Avvia anteprima Typst" })
             end,
-        }
+            cmd = { "tinymist" },
+          })
+          vim.lsp.enable({
+            "lua_ls",
+            "clangd",
+            "gopls",
+            "pyright",
+            "tinymist"
+          })
+
+        end,
+      }
 
 
 ===== ./lua/plugins/lualine.lua =====
@@ -587,7 +589,6 @@ return {
   dependencies = { "nvim-tree/nvim-web-devicons" },
   event = "VeryLazy",
   opts = function()
-    -- Definiamo i componenti personalizzati all'interno della funzione opts
     local diagnostics = {
       "diagnostics",
       sources = { "nvim_diagnostic" },
@@ -622,13 +623,13 @@ return {
     local progress = function()
       local current_line = vim.fn.line(".")
       local total_lines = vim.fn.line("$")
-      local chars = { "", "", "" }
+      -- local chars = { "", "", "" }
       local line_ratio = current_line / total_lines
-      local index = math.ceil(line_ratio * #chars)
-      return chars[index] .. " " .. math.floor(line_ratio * 100) .. "%%"
+      -- local index = math.ceil(line_ratio * #chars)
+      -- return chars[index] .. " " .. math.floor(line_ratio * 100) .. "%%"
+      return math.floor(line_ratio * 100) .. "%%"
     end
 
-    -- Ritorniamo la tabella di configurazione vera e propria
     return {
       options = {
         icons_enabled = true,
@@ -643,8 +644,9 @@ return {
         lualine_b = { mode },
         lualine_c = { diagnostics, "filename" },
         -- lualine_x = { diff, "fileformat", "filetype" },
-        lualine_y = { "location" },
-        lualine_z = { progress },
+        -- lualine_x = { "location" },
+        lualine_y = { progress },
+        lualine_z = {{"datetime", style = "%H:%M"}}
       },
       extensions = { "nvim-tree" },
     }
@@ -663,7 +665,19 @@ return {
   config = function()
     require("nvim-tree").setup {}
   end,
-} 
+}
+
+
+===== ./lua/plugins/rendermarkdown.lua =====
+return {
+    'MeanderingProgrammer/render-markdown.nvim',
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' },            -- if you use the mini.nvim suite
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = {},
+}
 
 
 ===== ./lua/plugins/theme.lua =====
@@ -679,36 +693,34 @@ return {
 ===== ./lua/plugins/treesitter.lua =====
 return {
   "nvim-treesitter/nvim-treesitter",
+  branch = "main",
   build = ":TSUpdate",
   lazy = false,
-  config = function () 
-    local configs = require("nvim-treesitter.config")
+  config = function ()
+    local ts = require("nvim-treesitter")
 
-    configs.setup({
-      ensure_installed = { "c", "lua", "vim", "vimdoc", "typescript", "javascript", "tsx", "html", "css", "go", "markdown", "cpp", "python", "java", "typst"},
-      sync_install = false,
-      highlight = {
-        enable = true,
-        -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
-        disable = function(lang, buf)
-          local max_filesize = 100 * 1024 -- 100 KB
-          local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-          if ok and stats and stats.size > max_filesize then
-            return true
-          end
-        end,
+    local parsers = {
+      "c", "lua", "vim", "vimdoc", "typescript", "javascript",
+      "tsx", "html", "css", "go", "markdown", "cpp", "python", "java", "typst",
+      "bash", "solidity"
+    }
 
-        -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-        -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-        -- Using this option may slow down your editor, and you may see some duplicate highlights.
-        -- Instead of true it can also be a list of languages
-        additional_vim_regex_highlighting = false,
-      },
-      indent = { enable = true },  
+    ts.install(parsers)
+
+    vim.api.nvim_create_autocmd("FileType", {
+      callback = function(args)
+        local max_filesize = 3 * 1024 * 1024 -- 100 KB
+        local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(args.buf))
+
+        if ok and stats and stats.size > max_filesize then
+          return
+        end
+
+        pcall(vim.treesitter.start, args.buf)
+      end,
     })
   end
 }
-
 
 
 ===== ./lua/plugins/whichkey.lua =====
@@ -718,6 +730,7 @@ return {
     opts = {
         -- popup immediato
         delay = 0,
+        preset = "helix",
 
         win = {
             border = "single",
