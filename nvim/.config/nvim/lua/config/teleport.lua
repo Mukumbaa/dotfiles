@@ -27,14 +27,41 @@ function M.teleport()
   local lines = vim.api.nvim_buf_get_lines(buf, start_line, end_line, false)
 
   -- generate all two‑letter labels from aa to zz
-  local chars = "abcdefghijklmnopqrstuvwxyz"
+  -- local chars = "abcdefghijklmnopqrstuvwxyz"
+  -- local labels_list = {}
+  -- for i = 1, #chars do
+  --   for j = 1, #chars do
+  --     table.insert(labels_list, chars:sub(i, i) .. chars:sub(j, j))
+  --   end
+  -- end
+  local lower = "abcdefghijklmnopqrstuvwxyz"
+  local extras = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   local labels_list = {}
-  for i = 1, #chars do
-    for j = 1, #chars do
-      table.insert(labels_list, chars:sub(i, i) .. chars:sub(j, j))
+
+  -- generate all purely lowercase two‑letter combinations
+  for i = 1, #lower do
+    for j = 1, #lower do
+      table.insert(labels_list, lower:sub(i, i) .. lower:sub(j, j))
     end
   end
 
+  -- generate mixed combinations using numbers and uppercase letters
+  -- concatenate all characters for the remaining combinations
+  local all_chars = lower .. extras
+  for i = 1, #all_chars do
+    for j = 1, #all_chars do
+      local lbl = all_chars:sub(i, i) .. all_chars:sub(j, j)
+
+      -- insert label only if it is not two lowercase letters 
+      -- (those were already generated in the first loop)
+      local first_is_lower = lower:find(lbl:sub(1, 1), 1, true) ~= nil
+      local second_is_lower = lower:find(lbl:sub(2, 2), 1, true) ~= nil
+
+      if not (first_is_lower and second_is_lower) then
+        table.insert(labels_list, lbl)
+      end
+    end
+  end
   -- collect every word (alphanumeric sequence) and assign a label
   local all_targets = {}
   local label_idx = 1
