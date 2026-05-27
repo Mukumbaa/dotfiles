@@ -29,7 +29,7 @@ return {
           vim.diagnostic.jump({ count = -1 })
         end, opts)
 
-        vim.keymap.set("n", "<leader>r", vim.lsp.buf.rename, opts)
+        vim.keymap.set("n", "<leader>R", vim.lsp.buf.rename, opts)
         vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
         -- vim.keymap.set("n", "<leader>Fr", require("telescope.builtin").lsp_references, opts)
         -- vim.keymap.set("n", "<leader>e", function()

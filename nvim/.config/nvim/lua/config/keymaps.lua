@@ -50,4 +50,5 @@ vim.keymap.set("n", "<A-K>", "<cmd>t .-1<CR>", { desc = "copy line under cursor 
 vim.keymap.set("v", "<A-J>", ":t '><CR>'[V']", { desc = "copy block of line down" }) -- copy block of line down
 vim.keymap.set("v", "<A-K>", ":t '<-1<CR>'[V']", { desc = "copy block of line up" })-- copy block of line up
 
-
+local tp = require("config.teleport")
+vim.keymap.set("n", "<CR>", tp.teleport)
