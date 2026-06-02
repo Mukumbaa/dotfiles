@@ -49,6 +49,14 @@ return {
           on_attach = lsp_keymaps,
         })
 
+        vim.lsp.config("zls", {
+          capabilities = capabilities,
+          on_attach = lsp_keymaps,
+          cmd = { "zls" },
+          filetypes = { "zig" },
+
+        })
+
         -- vim.lsp.config("pyright", {
           --     capabilities = capabilities,
           --     on_attach = lsp_keymaps,
@@ -87,7 +95,8 @@ return {
             "clangd",
             "gopls",
             "pyright",
-            "tinymist"
+            "tinymist",
+            "zls"
           })
 
         end,
