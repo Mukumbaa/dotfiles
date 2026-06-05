@@ -27,7 +27,7 @@ vim.keymap.set("n", "<leader>G", ":lua require('fzf-lua').grep_cword()<CR>") --g
 vim.keymap.set("n", "<leader>FF", ":lua require('fzf-lua').files({ cwd = vim.fn.expand('%:p:h') })<CR>", { silent = true, desc = "Fzf search in file directory" })
 
 vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" }) -- delete without yanking
-vim.keymap.set("n", "<leader>u", ":nohl<CR>", { desc = "Clear search highlighting", silent = true }) -- clear search highlighting
+vim.keymap.set("n", "<leader>x", ":nohl<CR>", { desc = "Clear search highlighting", silent = true }) -- clear search highlighting
 vim.keymap.set("v", "<", "<gv", { desc = "Unindent and keep selection" }) -- indent
 vim.keymap.set("v", ">", ">gv", { desc = "Indent and keep selection" }) -- indent
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
