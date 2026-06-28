@@ -3,3 +3,5 @@
 
 # (don't mess with these directly, just overwrite them here!)
 source ~/.config/bash-config/rc
+
+export PATH="$PATH:/home/mukumba/.config/.foundry/bin"
