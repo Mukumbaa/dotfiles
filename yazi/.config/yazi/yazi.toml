@@ -23,3 +23,7 @@ prepend_rules =[
     # Regola di "fallback": per qualsiasi altra cosa, usa l'app di sistema
     { url = "*", use = "system" },
 ]
+#ya pkg add ndtoan96/ouch
+[[plugin.prepend_previewers]]
+mime = "application/{*zip,tar,bzip2,7z*,rar,xz,zstd,java-archive}"
+run  = "ouch"
