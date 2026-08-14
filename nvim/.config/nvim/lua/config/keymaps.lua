@@ -55,3 +55,9 @@ vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = tr
 vim.opt.whichwrap:append({ ['<'] = true, ['>'] = true, ['h'] = true, ['l'] = true, ['['] = true, [']'] = true })
 -- local tp = require("config.teleport")
 vim.keymap.set("n", "<CR>", require("config.teleport").teleport)
+
+-- Adds tab on all selected line
+vim.keymap.set('v', '<Tab>', '>gv', { noremap = true, silent = true })
+
+-- Subs tab on all selected line
+vim.keymap.set('v', '<S-Tab>', '<gv', { noremap = true, silent = true })
