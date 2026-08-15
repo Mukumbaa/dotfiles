@@ -27,4 +27,5 @@ RowLayout {
       onClicked: clockText.showFullDate = !clockText.showFullDate
     }
   }
+
 }
