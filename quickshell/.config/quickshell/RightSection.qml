@@ -19,31 +19,37 @@ RowLayout {
     proc.running = true
   }
 
+
   // ------------------------------------------------------------------
   // 1. LAYOUT TASTIERA
   // ------------------------------------------------------------------
-  Text {
-    id: kbText
-    property string layoutName: "IT"
+  Item {
+    implicitWidth: kbText.implicitWidth
+    implicitHeight: kbText.implicitHeight
 
-    text: layoutName
-    color: Theme.text
-    font { pixelSize: 12; family: Theme.fontFamily; weight: Font.Bold }
+    Text {
+      id: kbText
+      property string layoutName: "IT"
 
-    Process {
-      id: kbProc
-      command: ["sh", "-c", "hyprctl devices -j | jq -r '.keyboards[] | select(.main == true) | .active_keymap'"]
-      stdout: SplitParser {
-        onRead: data => {
-          let raw = data.trim()
-          if (raw.includes("Italian")) kbText.layoutName = "IT"
-          else if (raw.includes("English")) kbText.layoutName = "US"
-          else if (raw.length > 0) kbText.layoutName = raw.substring(0, 2).toUpperCase()
+      text: layoutName
+      color: Theme.text
+      font { pixelSize: 12; family: Theme.fontFamily; weight: Font.Bold }
+
+      Process {
+        id: kbProc
+        command: ["sh", "-c", "hyprctl devices -j | jq -r '.keyboards[] | select(.main == true) | .active_keymap'"]
+        stdout: SplitParser {
+          onRead: data => {
+            let raw = data.trim()
+            if (raw.includes("Italian")) kbText.layoutName = "IT"
+            else if (raw.includes("English")) kbText.layoutName = "US"
+            else if (raw.length > 0) kbText.layoutName = raw.substring(0, 2).toUpperCase()
+          }
         }
       }
-    }
 
-    Timer { interval: 250; running: true; repeat: true; triggeredOnStart: true; onTriggered: kbProc.running = true }
+      Timer { interval: 250; running: true; repeat: true; triggeredOnStart: true; onTriggered: kbProc.running = true }
+    }
 
     MouseArea {
       anchors.fill: parent
@@ -55,10 +61,16 @@ RowLayout {
   // ------------------------------------------------------------------
   // 2. CPU
   // ------------------------------------------------------------------
-  Text {
-    text: "󰍛"
-    color: Theme.text
-    font { pixelSize: 18; family: Theme.fontFamily }
+  Item {
+    implicitWidth: cpuText.implicitWidth
+    implicitHeight: cpuText.implicitHeight
+
+    Text {
+      id: cpuText
+      text: "󰍛"
+      color: Theme.text
+      font { pixelSize: 18; family: Theme.fontFamily }
+    }
 
     MouseArea {
       anchors.fill: parent
@@ -68,56 +80,57 @@ RowLayout {
   }
 
   // ------------------------------------------------------------------
-  // 3. BLUETOOTH (Zero-Delay via DBus + Feedback Ottimistico)
+  // 3. BLUETOOTH
   // ------------------------------------------------------------------
-  Text {
-    id: btText
-    property string btState: "disabled"
+  Item {
+    implicitWidth: btText.implicitWidth
+    implicitHeight: btText.implicitHeight
 
-    text: btState === "connected" ? "󰂱" : (btState === "on" ? "" : "󰂲")
-    color: btState === "disabled" ? Theme.subtle : Theme.text
-    font { pixelSize: 18; family: Theme.fontFamily }
+    Text {
+      id: btText
+      property string btState: "disabled"
 
-    // Verifica rapida e non bloccante via DBus CLI
-    Process {
-      id: btCheckProc
-      command: ["sh", "-c", "dbus-send --system --print-reply --dest=org.bluez /org/bluez/hci0 org.freedesktop.DBus.Properties.Get string:'org.bluez.Adapter1' string:'Powered' 2>/dev/null | grep -q 'boolean true' && (bluetoothctl info 2>/dev/null | grep -q 'Connected: yes' && echo 'connected' || echo 'on') || echo 'disabled'"]
-      stdout: SplitParser {
-        onRead: data => {
-          let state = data.trim()
-          if (state.length > 0) btText.btState = state
-        }
-      }
-    }
+      text: btState === "connected" ? "󰂱" : (btState === "on" ? "" : "󰂲")
+      color: btState === "disabled" ? Theme.subtle : Theme.text
+      font { pixelSize: 18; family: Theme.fontFamily }
 
-    // Ascolta gli eventi DBus in tempo reale direttamente dal kernel/BlueZ
-    Process {
-      id: btMonitorProc
-      running: true
-      command: ["sh", "-c", "stdbuf -oL -eL dbus-monitor --system \"type='signal',sender='org.bluez'\""]
-      stdout: SplitParser {
-        onRead: data => {
-          // Appena viene intercettata qualsiasi modifica di stato, aggiorna subito
-          if (!btCheckProc.running) {
-            btCheckProc.running = true
+      Process {
+        id: btCheckProc
+        command: ["sh", "-c", "dbus-send --system --print-reply --dest=org.bluez /org/bluez/hci0 org.freedesktop.DBus.Properties.Get string:'org.bluez.Adapter1' string:'Powered' 2>/dev/null | grep -q 'boolean true' && (bluetoothctl info 2>/dev/null | grep -q 'Connected: yes' && echo 'connected' || echo 'on') || echo 'disabled'"]
+        stdout: SplitParser {
+          onRead: data => {
+            let state = data.trim()
+            if (state.length > 0) btText.btState = state
           }
         }
       }
-    }
 
-    Timer {
-      interval: 4000
-      running: true
-      repeat: true
-      triggeredOnStart: true
-      onTriggered: if (!btCheckProc.running) btCheckProc.running = true
+      Process {
+        id: btMonitorProc
+        running: true
+        command: ["sh", "-c", "stdbuf -oL -eL dbus-monitor --system \"type='signal',sender='org.bluez'\""]
+        stdout: SplitParser {
+          onRead: data => {
+            if (!btCheckProc.running) {
+              btCheckProc.running = true
+            }
+          }
+        }
+      }
+
+      Timer {
+        interval: 4000
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: if (!btCheckProc.running) btCheckProc.running = true
+      }
     }
 
     MouseArea {
       anchors.fill: parent
       cursorShape: Qt.PointingHandCursor
       onClicked: {
-        // Feedback visivo istantaneo al click (cambia stato subito prima di verificare)
         btText.btState = (btText.btState === "disabled") ? "on" : "disabled"
         runCmd("blueman-manager")
         if (!btCheckProc.running) btCheckProc.running = true
@@ -128,40 +141,45 @@ RowLayout {
   // ------------------------------------------------------------------
   // 4. WI-FI
   // ------------------------------------------------------------------
-  RowLayout {
-    spacing: 4
-    id: wifiGroup
-    property string ssid: "Not connected"
+  Item {
+    implicitWidth: wifiLayout.implicitWidth
+    implicitHeight: wifiLayout.implicitHeight
 
-    Process {
-      id: wifiProc
-      command: ["sh", "-c", "nmcli -t -f ACTIVE,SSID dev wifi | grep '^yes:' | cut -d: -f2"]
-      stdout: SplitParser {
-        onRead: data => {
-          let trimmed = data.trim()
-          wifiGroup.ssid = trimmed.length > 0 ? trimmed : "Not connected"
+    RowLayout {
+      id: wifiLayout
+      spacing: 4
+      property string ssid: "Not connected"
+
+      Process {
+        id: wifiProc
+        command: ["sh", "-c", "nmcli -t -f ACTIVE,SSID dev wifi | grep '^yes:' | cut -d: -f2"]
+        stdout: SplitParser {
+          onRead: data => {
+            let trimmed = data.trim()
+            wifiLayout.ssid = trimmed.length > 0 ? trimmed : "Not connected"
+          }
         }
       }
-    }
 
-    Timer {
-      interval: 4000
-      running: true
-      repeat: true
-      triggeredOnStart: true
-      onTriggered: if (!wifiProc.running) wifiProc.running = true
-    }
+      Timer {
+        interval: 4000
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: if (!wifiProc.running) wifiProc.running = true
+      }
 
-    Text {
-      text: wifiGroup.ssid !== "Not connected" && wifiGroup.ssid !== "" ? "󰤨" : "󰤮"
-      color: Theme.text
-      font { pixelSize: 18; family: Theme.fontFamily }
-    }
+      Text {
+        text: wifiLayout.ssid !== "Not connected" && wifiLayout.ssid !== "" ? "󰤨" : "󰤮"
+        color: Theme.text
+        font { pixelSize: 18; family: Theme.fontFamily }
+      }
 
-    Text {
-      text: wifiGroup.ssid
-      color: Theme.text
-      font { pixelSize: 12; family: Theme.fontFamily }
+      Text {
+        text: wifiLayout.ssid
+        color: Theme.text
+        font { pixelSize: 12; family: Theme.fontFamily }
+      }
     }
 
     MouseArea {
@@ -172,7 +190,7 @@ RowLayout {
   }
 
   // ------------------------------------------------------------------
-  // 5. LUMINOSITÀ (Zero Delay / Event-Driven via inotifywait)
+  // 5. LUMINOSITÀ
   // ------------------------------------------------------------------
   RowLayout {
     spacing: 6
@@ -199,7 +217,6 @@ RowLayout {
       }
     }
 
-    // Processo per la lettura istantanea del valore attuale
     Process {
       id: brightProc
       command: ["sh", "-c", "brightnessctl -m | cut -d, -f4 | tr -d '%'"]
@@ -213,7 +230,6 @@ RowLayout {
       }
     }
 
-    // Stream di eventi in tempo reale: ascolta i cambiamenti del file di sistema /sys/class/backlight
     Process {
       id: brightMonitorProc
       running: true
@@ -229,7 +245,6 @@ RowLayout {
 
     Component.onCompleted: brightProc.running = true
 
-    // Slider Orizzontale Custom per Luminosità
     Rectangle {
       id: brightSliderContainer
       implicitWidth: brightGroup.isHovered ? 80 : 0
@@ -278,41 +293,43 @@ RowLayout {
       }
     }
 
-    // Blocco Testo + Icona
-    RowLayout {
-      spacing: 4
+    // Blocco Testo + Icona (senza anchors)
+    MouseArea {
+      id: brightTextMouse
+      implicitWidth: brightTextRow.implicitWidth
+      implicitHeight: brightTextRow.implicitHeight
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
 
-      Text {
-        text: brightGroup.brightnessLevel + "%"
-        color: Theme.text
-        font { pixelSize: 12; family: Theme.fontFamily }
+      onEntered: brightGroup.checkHover()
+      onExited: brightGroup.checkHover()
+
+      onWheel: (wheel) => {
+        let cmd = wheel.angleDelta.y > 0 ? "brightnessctl set +5%" : "brightnessctl set 5%-"
+        runCmd(cmd)
       }
 
-      Text {
-        text: brightGroup.brightnessLevel >= 50 ? "" : ""
-        color: Theme.text
-        font { pixelSize: 18; family: Theme.fontFamily }
-      }
+      RowLayout {
+        id: brightTextRow
+        spacing: 4
 
-      MouseArea {
-        id: brightTextMouse
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
+        Text {
+          text: brightGroup.brightnessLevel + "%"
+          color: Theme.text
+          font { pixelSize: 12; family: Theme.fontFamily }
+        }
 
-        onEntered: brightGroup.checkHover()
-        onExited: brightGroup.checkHover()
-
-        onWheel: (wheel) => {
-          let cmd = wheel.angleDelta.y > 0 ? "brightnessctl set +5%" : "brightnessctl set 5%-"
-          runCmd(cmd)
+        Text {
+          text: brightGroup.brightnessLevel >= 50 ? "" : ""
+          color: Theme.text
+          font { pixelSize: 18; family: Theme.fontFamily }
         }
       }
     }
   }
 
   // ------------------------------------------------------------------
-  // 6. VOLUME (Zero Delay Event-Driven + Slider Fluido)
+  // 6. VOLUME
   // ------------------------------------------------------------------
   RowLayout {
     spacing: 6
@@ -347,7 +364,6 @@ RowLayout {
       }
     }
 
-    // Processo per leggere istantaneamente il valore di PipeWire
     Process {
       id: volProc
       command: ["sh", "-c", "wpctl get-volume @DEFAULT_AUDIO_SINK@"]
@@ -357,7 +373,6 @@ RowLayout {
           let newMuted = str.includes("[MUTED]")
           let match = str.match(/Volume:\s+([0-9.]+)/)
 
-          // Aggiorna solo se l'utente non sta trascinando lo slider
           if (!sliderMouse.pressed) {
             volGroup.isMuted = newMuted
             if (match && match[1]) {
@@ -368,7 +383,6 @@ RowLayout {
       }
     }
 
-    // Stream eventi a zero latenza da PipeWire/PulseAudio
     Process {
       id: volSubscribeProc
       running: true
@@ -386,7 +400,6 @@ RowLayout {
 
     Component.onCompleted: volProc.running = true
 
-    // Slider Orizzontale Custom
     Rectangle {
       id: sliderContainer
       implicitWidth: volGroup.isHovered ? 80 : 0
@@ -436,70 +449,75 @@ RowLayout {
       }
     }
 
-    // Blocco Testo + Icona
-    RowLayout {
-      spacing: 4
+    // Blocco Testo + Icona (senza anchors)
+    MouseArea {
+      id: textMouse
+      implicitWidth: volTextRow.implicitWidth
+      implicitHeight: volTextRow.implicitHeight
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
 
-      Text {
-        text: (volGroup.isMuted ? "0" : volGroup.volumeLevel) + "%"
-        color: volGroup.isMuted ? Theme.subtle : Theme.text
-        font { pixelSize: 12; family: Theme.fontFamily }
+      onEntered: volGroup.checkHover()
+      onExited: volGroup.checkHover()
+
+      onClicked: runCmd("alacritty --class menus -e wiremix")
+      onWheel: (wheel) => {
+        let cmd = wheel.angleDelta.y > 0 ? "wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 && wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+" : "wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 && wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+        runCmd(cmd)
       }
 
-      Text {
-        text: volGroup.volIcon
-        color: volGroup.isMuted ? Theme.subtle : Theme.text
-        font { pixelSize: 18; family: Theme.fontFamily }
-      }
+      RowLayout {
+        id: volTextRow
+        spacing: 4
 
-      MouseArea {
-        id: textMouse
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
+        Text {
+          text: (volGroup.isMuted ? "0" : volGroup.volumeLevel) + "%"
+          color: volGroup.isMuted ? Theme.subtle : Theme.text
+          font { pixelSize: 12; family: Theme.fontFamily }
+        }
 
-        onEntered: volGroup.checkHover()
-        onExited: volGroup.checkHover()
-
-        onClicked: runCmd("alacritty --class menus -e wiremix")
-        onWheel: (wheel) => {
-          let cmd = wheel.angleDelta.y > 0 ? "wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 && wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+" : "wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 && wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-          runCmd(cmd)
+        Text {
+          text: volGroup.volIcon
+          color: volGroup.isMuted ? Theme.subtle : Theme.text
+          font { pixelSize: 18; family: Theme.fontFamily }
         }
       }
     }
   }
 
-
   // ------------------------------------------------------------------
   // 7. BATTERIA
   // ------------------------------------------------------------------
-  RowLayout {
-    spacing: 4
-    property var displayDevice: UPower.displayDevice
-    property int batteryLevel: displayDevice ? Math.round(displayDevice.percentage * 100) : 0
-    property bool isCharging: displayDevice ? displayDevice.state === UPowerDeviceState.Charging : false
+  Item {
+    implicitWidth: batRow.implicitWidth
+    implicitHeight: batRow.implicitHeight
 
-    // property var iconsCharging: ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"]
-    property var iconsCharging: "󰂄"
-    property var iconsDefault: ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+    RowLayout {
+      id: batRow
+      spacing: 4
+      property var displayDevice: UPower.displayDevice
+      property int batteryLevel: displayDevice ? Math.round(displayDevice.percentage * 100) : 0
+      property bool isCharging: displayDevice ? displayDevice.state === UPowerDeviceState.Charging : false
 
+      property var iconsCharging: "󰂄"
+      property var iconsDefault: ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
 
-    property string batIcon: {
-      let idx = Math.min(Math.floor(batteryLevel / 10), 9)
-      return isCharging ? iconsCharging : iconsDefault[idx]
-    }
+      property string batIcon: {
+        let idx = Math.min(Math.floor(batteryLevel / 10), 9)
+        return isCharging ? iconsCharging : iconsDefault[idx]
+      }
 
-    Text {
-      text: parent.batteryLevel + "%"
-      color: (parent.batteryLevel <= 20 && !parent.isCharging) ? "#f7768e" : Theme.text
-      font { pixelSize: 12; family: Theme.fontFamily }
-    }
+      Text {
+        text: batRow.batteryLevel + "%"
+        color: (batRow.batteryLevel <= 20 && !batRow.isCharging) ? "#f7768e" : Theme.text
+        font { pixelSize: 12; family: Theme.fontFamily }
+      }
 
-    Text {
-      text: parent.batIcon
-      color: (parent.batteryLevel <= 20 && !parent.isCharging) ? "#f7768e" : Theme.text
-      font { pixelSize: 18; family: Theme.fontFamily }
+      Text {
+        text: batRow.batIcon
+        color: (batRow.batteryLevel <= 20 && !batRow.isCharging) ? "#f7768e" : Theme.text
+        font { pixelSize: 18; family: Theme.fontFamily }
+      }
     }
 
     MouseArea {
