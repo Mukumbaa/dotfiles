@@ -49,6 +49,11 @@ return {
           on_attach = lsp_keymaps,
         })
 
+        vim.lsp.config("qmlls", {
+          capabilities = capabilities,
+          on_attach = lsp_keymaps,
+        })
+
         vim.lsp.config("zls", {
           capabilities = capabilities,
           on_attach = lsp_keymaps,
@@ -115,7 +120,8 @@ vim.lsp.config("tinymist", {
             "gopls",
             "pyright",
             "tinymist",
-            "zls"
+            "zls",
+            "qmlls"
           })
 
         end,

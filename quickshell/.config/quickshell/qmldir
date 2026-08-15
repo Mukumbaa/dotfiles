@@ -1,0 +1,4 @@
+singleton Theme Theme.qml
+LeftSection LeftSection.qml
+CenterSection CenterSection.qml
+RightSection RightSection.qml
