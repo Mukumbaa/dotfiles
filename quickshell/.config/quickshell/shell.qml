@@ -21,7 +21,7 @@ PanelWindow {
     RowLayout {
       anchors.fill: parent
       anchors.leftMargin: 16
-      anchors.rightMargin: 10
+      anchors.rightMargin: 16
 
       LeftSection {}
 

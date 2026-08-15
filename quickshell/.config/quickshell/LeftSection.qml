@@ -5,7 +5,7 @@ import Quickshell.Io
 
 RowLayout {
   Layout.alignment: Qt.AlignLeft
-  spacing: 16
+  spacing: 15
 
   Process {
     id: hyprDispatcher
