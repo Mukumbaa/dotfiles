@@ -181,7 +181,7 @@ PanelWindow {
           root.passwordInput = ""
           root.scanWifi()
         } else {
-          root.wifiErrorMsg = "Password errata o connessione fallita"
+          root.wifiErrorMsg = "Wrong password or failed connection"
         }
       }
     }
@@ -200,7 +200,7 @@ PanelWindow {
     if (net.inUse) return
 
     if (net.isSaved || net.isOpen) {
-      // Connessione diretta
+      // Connecting diretta
       root.wifiActionSsid = net.ssid
       Quickshell.execDetached(["sh", "-c", "nmcli dev wifi connect \"" + net.ssid + "\""])
       wifiRefreshDelayTimer.restart()
@@ -563,7 +563,7 @@ PanelWindow {
             spacing: 8
 
             Text {
-              text: "Connetti a " + root.targetSsid
+              text: "Connect to " + root.targetSsid
               color: Theme.text
               font.family: Theme.fontFamily
               font.pixelSize: 12
@@ -598,7 +598,7 @@ PanelWindow {
                 anchors.left: parent.left
                 anchors.leftMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Inserisci password..."
+                text: "Insert password..."
                 color: Theme.subtle
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
@@ -622,7 +622,7 @@ PanelWindow {
                 implicitHeight: 28
                 radius: 6
                 color: Theme.overlay
-                Text { anchors.centerIn: parent; text: "Annulla"; color: Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                Text { anchors.centerIn: parent; text: "Cancel"; color: Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 11 }
                 MouseArea {
                   anchors.fill: parent
                   cursorShape: Qt.PointingHandCursor
@@ -644,7 +644,7 @@ PanelWindow {
                     RotationAnimation on rotation { running: root.isConnectingWithPass; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
                   }
                   Text {
-                    text: root.isConnectingWithPass ? "Connessione..." : "Connetti"
+                    text: root.isConnectingWithPass ? "Connecting..." : "Connetti"
                     color: root.isConnectingWithPass ? Theme.subtle : Theme.base
                     font.family: Theme.fontFamily
                     font.pixelSize: 11
@@ -723,8 +723,8 @@ PanelWindow {
 
                 Text {
                   text: {
-                    if (wifiItem.isBusy) return "Connessione..."
-                    return modelData.inUse ? "Connesso" : ""
+                    if (wifiItem.isBusy) return "Connecting..."
+                    return modelData.inUse ? "Connected" : ""
                   }
                   color: wifiItem.isBusy ? Theme.gold : Theme.foam
                   font.family: Theme.fontFamily
@@ -764,7 +764,7 @@ PanelWindow {
           Text {
             visible: !root.wifiEnabled
             anchors.centerIn: parent
-            text: "Wi-Fi disattivato"
+            text: "Wi-Fi disactivated"
             color: Theme.subtle
             font.family: Theme.fontFamily
             font.pixelSize: 11
@@ -831,8 +831,8 @@ PanelWindow {
 
                 Text {
                   text: {
-                    if (devItem.isBusy) return modelData.connected ? "Disconnessione..." : "Connessione..."
-                    return modelData.connected ? "Connesso" : ""
+                    if (devItem.isBusy) return modelData.connected ? "Disconnecting..." : "Connecting..."
+                    return modelData.connected ? "Connected" : ""
                   }
                   color: devItem.isBusy ? Theme.gold : Theme.iris
                   font.family: Theme.fontFamily
@@ -875,10 +875,10 @@ PanelWindow {
             Layout.fillWidth: true
             spacing: 6
 
-            Text { text: "Nelle vicinanze"; color: Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true }
+            Text { text: "Nearby"; color: Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true }
             Item { Layout.fillWidth: true }
 
-            // Bottone "Cerca Nuovi"
+            // Bottone "Search Nuovi"
             Rectangle {
               implicitWidth: 54; implicitHeight: 20; radius: 4
               color: root.isBtScanning ? Theme.overlay : Theme.base
@@ -891,7 +891,7 @@ PanelWindow {
                   RotationAnimation on rotation { running: root.isBtScanning; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
                 }
                 Text {
-                  text: root.isBtScanning ? "Cerco..." : "Cerca"
+                  text: root.isBtScanning ? "Searching..." : "Search"
                   color: Theme.iris
                   font.family: Theme.fontFamily
                   font.pixelSize: 10
@@ -929,7 +929,7 @@ PanelWindow {
 
                 Text { text: availItem.isBusy ? "󰑐" : "󰂲"; color: Theme.subtle; font.pixelSize: 11 }
                 Text { text: modelData.name; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight }
-                Text { text: availItem.isBusy ? "Accoppio..." : "Associa"; color: Theme.iris; font.family: Theme.fontFamily; font.pixelSize: 9; font.bold: true }
+                Text { text: availItem.isBusy ? "Pairing..." : "Pair"; color: Theme.iris; font.family: Theme.fontFamily; font.pixelSize: 9; font.bold: true }
               }
 
               MouseArea {
