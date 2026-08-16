@@ -101,25 +101,45 @@ PanelWindow {
     }
   }
 
+property string wifiActionSsid: "" // SSID della rete in corso di connessione
+
   Process {
     id: wifiScanProc
-    command: ["sh", "-c", "nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list --rescan yes"]
+    command: ["sh", "-c", "current=$(nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | grep '^yes:' | head -n1 | cut -d: -f2); nmcli -t -f SSID,SIGNAL,SECURITY dev wifi list --rescan yes 2>/dev/null | while IFS=: read -r ssid signal security; do if [ -n \"$ssid\" ]; then if [ \"$ssid\" = \"$current\" ]; then echo \"$ssid|$signal|$security|yes\"; else echo \"$ssid|$signal|$security|no\"; fi; fi; done"]
     stdout: StdioCollector {
       onStreamFinished: {
         let lines = this.text.trim().split("\n")
         let list = []
+        let activeItem = null
+
         for (let line of lines) {
           if (!line) continue
-          let parts = line.split(":")
-          let inUse = parts[0] === "*"
-          let ssid = parts[1] || ""
-          let signal = parseInt(parts[2]) || 0
-          let security = parts[3] || "Open"
-          if (ssid && !list.find(n => n.ssid === ssid)) {
-            list.push({ inUse: inUse, ssid: ssid, signal: signal, security: security })
+          let parts = line.split("|")
+          if (parts.length >= 4) {
+            let ssid = parts[0].trim()
+            let signal = parseInt(parts[1]) || 0
+            let security = parts[2].trim()
+            let inUse = parts[3].trim() === "yes"
+
+            // Evita duplicati
+            if (ssid && !list.find(n => n.ssid === ssid) && (!activeItem || activeItem.ssid !== ssid)) {
+              let item = { inUse: inUse, ssid: ssid, signal: signal, security: security }
+              if (inUse) {
+                activeItem = item
+              } else {
+                list.push(item)
+              }
+            }
           }
         }
+
+        // Mette la rete connessa sempre in cima alla lista
+        if (activeItem) {
+          list.unshift(activeItem)
+        }
+
         root.wifiNetworks = list
+        root.wifiActionSsid = ""
       }
     }
   }
@@ -491,7 +511,7 @@ PanelWindow {
               }
 
               Text {
-                text: "Ricerca reti..."
+                text: "Searching..."
                 color: Theme.subtle
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
@@ -501,7 +521,7 @@ PanelWindow {
             Text {
               anchors.centerIn: parent
               visible: !root.wifiEnabled
-              text: "Wi-Fi disattivato"
+              text: "Wi-Fi disactivated"
               color: Theme.subtle
               font.family: Theme.fontFamily
               font.pixelSize: 11
@@ -544,7 +564,7 @@ PanelWindow {
                   }
 
                   Text {
-                    text: modelData.inUse ? "Connesso" : ""
+                    text: modelData.inUse ? "Connected" : ""
                     color: Theme.foam
                     font.family: Theme.fontFamily
                     font.pixelSize: 10
@@ -588,7 +608,7 @@ PanelWindow {
               }
 
               Text {
-                text: "Ricerca dispositivi..."
+                text: "Searching devices..."
                 color: Theme.subtle
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
@@ -598,7 +618,7 @@ PanelWindow {
             Text {
               anchors.centerIn: parent
               visible: !root.btEnabled
-              text: "Bluetooth disattivato"
+              text: "Bluetooth disactivated"
               color: Theme.subtle
               font.family: Theme.fontFamily
               font.pixelSize: 11
@@ -655,9 +675,9 @@ PanelWindow {
                   Text {
                     text: {
                       if (devItem.isBusy) {
-                        return modelData.connected ? "Disconnessione..." : "Connessione..."
+                        return modelData.connected ? "Disconneting..." : "Connecting..."
                       }
-                      return modelData.connected ? "Connesso" : ""
+                      return modelData.connected ? "Connected" : ""
                     }
                     color: devItem.isBusy ? Theme.gold : Theme.iris
                     font.family: Theme.fontFamily

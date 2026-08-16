@@ -116,7 +116,8 @@ hl.bind("SUPER + L", hl.dsp.exec_cmd("hyprlock"))
 hl.bind("ALT + TAB", hl.dsp.window.cycle_next())
 
 hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd(Browser))
-hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("wlogout"))
+-- hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("wlogout"))
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("qs ipc call powermenu toggle"))
 
 hl.bind("SUPER + I", hl.dsp.exec_cmd("nmgui"))
 hl.bind("SUPER + SHIFT + I", hl.dsp.exec_cmd(Terminal .. " -e nmtui"))

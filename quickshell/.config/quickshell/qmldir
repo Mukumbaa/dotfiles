@@ -1,6 +1,10 @@
 singleton Theme Theme.qml
 singleton ControlCenterState ControlCenterState.qml
+singleton CalendarState CalendarState.qml
+singleton PowerMenuState PowerMenuState.qml
 LeftSection LeftSection.qml
 CenterSection CenterSection.qml
 RightSection RightSection.qml
 ControlCenter ControlCenter.qml
+PowerMenu PowerMenu.qml
+CalendarPopup CalendarPopup.qml

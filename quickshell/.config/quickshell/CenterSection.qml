@@ -23,9 +23,14 @@ RowLayout {
 
     MouseArea {
       anchors.fill: parent
+      hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
-      onClicked: clockText.showFullDate = !clockText.showFullDate
+
+      // Hover: apre il calendario
+      onEntered: CalendarState.open()
+
+      // Click: toggle (o cambio formato data)
+      onClicked: CalendarState.toggle()
     }
   }
-
 }

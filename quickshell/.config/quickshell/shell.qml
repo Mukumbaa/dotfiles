@@ -2,38 +2,38 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 
-PanelWindow {
+Scope {
+  // 1. Barra Superiore
+  PanelWindow {
+    anchors {
+      top: true
+      left: true
+      right: true
+    }
+    implicitHeight: 26
 
-  anchors {
-    top: true
-    left: true
-    right: true
-  }
-
-  implicitHeight: 26
-
-  Rectangle {
-    id: bar
-    anchors.fill: parent
-    color: Theme.base
-
-    // Sezioni Sinistra e Destra
-    RowLayout {
+    Rectangle {
+      id: bar
       anchors.fill: parent
-      anchors.leftMargin: 16
-      anchors.rightMargin: 16
+      color: Theme.base
 
-      LeftSection {}
+      RowLayout {
+        anchors.fill: parent
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
 
-      Item {
-        Layout.fillWidth: true
+        LeftSection {}
+        Item { Layout.fillWidth: true }
+        RightSection {}
       }
 
-      RightSection{}
+      CenterSection {}
     }
 
-    // Sezione Centro (Centrata in modo assoluto)
-    CenterSection {}
+    ControlCenter {}
+    CalendarPopup {}
   }
-  ControlCenter {}
+
+  // 2. Power Menu a schermo intero
+  PowerMenu {}
 }
