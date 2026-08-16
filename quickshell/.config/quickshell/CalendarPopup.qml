@@ -11,6 +11,7 @@ PanelWindow {
   property real animProgress: isOpen ? 1.0 : 0.0
   visible: isOpen || animProgress > 0.001
 
+  // Stessa identica curva di animazione ultra-fluida del Control Center
   Behavior on animProgress {
     NumberAnimation {
       duration: 200
@@ -18,7 +19,6 @@ PanelWindow {
     }
   }
 
-  // Centrato esattamente sotto l'orologio
   anchors {
     top: true
   }
@@ -26,18 +26,19 @@ PanelWindow {
     top: -1
   }
 
-  implicitWidth: 300
-  implicitHeight: 305
+  implicitWidth: 290
+  implicitHeight: 295
   color: "transparent"
 
   WlrLayershell.layer: WlrLayer.Overlay
   exclusiveZone: 0
 
   // -------------------------------------------------------------
-  // LOGICA DATE E CALENDARIO
+  // LOGICA CALENDARIO OTTIMIZZATA
   // -------------------------------------------------------------
   property var displayDate: new Date()
   property var today: new Date()
+  property var daysModel: []
 
   function prevMonth() {
     displayDate = new Date(displayDate.getFullYear(), displayDate.getMonth() - 1, 1)
@@ -51,35 +52,34 @@ PanelWindow {
     displayDate = new Date()
   }
 
-  // Genera i 42 giorni (6 settimane) per la griglia
-  property var daysModel: {
+  function updateCalendar() {
     let year = displayDate.getFullYear()
     let month = displayDate.getMonth()
-    let firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7 // Lunedì = 0
+    let firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7
     let daysInMonth = new Date(year, month + 1, 0).getDate()
     let daysInPrevMonth = new Date(year, month, 0).getDate()
 
     let days = []
 
-    // Giorni mese precedente
     for (let i = firstDayIndex - 1; i >= 0; i--) {
       days.push({ day: daysInPrevMonth - i, isCurrent: false, isToday: false })
     }
 
-    // Giorni mese corrente
     for (let i = 1; i <= daysInMonth; i++) {
       let isToday = (i === today.getDate() && month === today.getMonth() && year === today.getFullYear())
       days.push({ day: i, isCurrent: true, isToday: isToday })
     }
 
-    // Giorni mese successivo a riempimento griglia (totale 42)
     let nextDays = 42 - days.length
     for (let i = 1; i <= nextDays; i++) {
       days.push({ day: i, isCurrent: false, isToday: false })
     }
 
-    return days
+    daysModel = days
   }
+
+  onDisplayDateChanged: updateCalendar()
+  Component.onCompleted: updateCalendar()
 
   // -------------------------------------------------------------
   // AUTO-CHIUSURA AL MOUSE LEAVE
@@ -106,16 +106,13 @@ PanelWindow {
   }
 
   onIsOpenChanged: {
-    if (isOpen) {
-      today = new Date()
-      resetToday()
-    } else {
+    if (!isOpen) {
       autoCloseTimer.stop()
     }
   }
 
   // -------------------------------------------------------------
-  // CONTENITORE CON ANIMAZIONE
+  // CONTENITORE PRINCIPALE (Accelerato via GPU)
   // -------------------------------------------------------------
   Item {
     anchors.fill: parent
@@ -125,6 +122,9 @@ PanelWindow {
       id: card
       width: parent.width
       height: parent.height
+
+      // Cache GPU per fluidità assoluta durante lo scorrimento
+      layer.enabled: root.isOpen || root.animProgress > 0.001
 
       y: (root.animProgress - 1.0) * height
       opacity: root.animProgress
@@ -139,21 +139,20 @@ PanelWindow {
 
       ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 12
-        spacing: 10
+        anchors.margins: 10
+        spacing: 8
 
-        // 1. Header con Mese, Anno e Controlli Navigazione
+        // Header Mese / Anno / Controlli
         RowLayout {
           Layout.fillWidth: true
-          spacing: 6
+          spacing: 4
 
-          // Bottone Mese Precedente
           Rectangle {
-            implicitWidth: 26
-            implicitHeight: 26
-            radius: 6
+            implicitWidth: 24
+            implicitHeight: 24
+            radius: 5
             color: prevMouse.containsMouse ? Theme.overlay : "transparent"
-            Text { anchors.centerIn: parent; text: "󰅁"; color: Theme.text; font.pixelSize: 14 }
+            Text { anchors.centerIn: parent; text: "󰅁"; color: Theme.text; font.pixelSize: 13 }
             MouseArea {
               id: prevMouse
               anchors.fill: parent
@@ -163,24 +162,22 @@ PanelWindow {
             }
           }
 
-          // Nome Mese e Anno
           Text {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             text: Qt.formatDateTime(root.displayDate, "MMMM yyyy").toUpperCase()
             color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: 12
+            font.pixelSize: 11
             font.bold: true
           }
 
-          // Bottone "Oggi"
           Rectangle {
-            implicitWidth: 38
-            implicitHeight: 22
-            radius: 5
+            implicitWidth: 36
+            implicitHeight: 20
+            radius: 4
             color: todayMouse.containsMouse ? Theme.overlay : Theme.base
-            Text { anchors.centerIn: parent; text: "Today"; color: Theme.foam; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true }
+            Text { anchors.centerIn: parent; text: "Oggi"; color: Theme.foam; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true }
             MouseArea {
               id: todayMouse
               anchors.fill: parent
@@ -190,13 +187,12 @@ PanelWindow {
             }
           }
 
-          // Bottone Mese Successivo
           Rectangle {
-            implicitWidth: 26
-            implicitHeight: 26
-            radius: 6
+            implicitWidth: 24
+            implicitHeight: 24
+            radius: 5
             color: nextMouse.containsMouse ? Theme.overlay : "transparent"
-            Text { anchors.centerIn: parent; text: "󰅂"; color: Theme.text; font.pixelSize: 14 }
+            Text { anchors.centerIn: parent; text: "󰅂"; color: Theme.text; font.pixelSize: 13 }
             MouseArea {
               id: nextMouse
               anchors.fill: parent
@@ -209,13 +205,13 @@ PanelWindow {
 
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
-        // 2. Intestazione Giorni della Settimana
+        // Giorni della settimana
         RowLayout {
           Layout.fillWidth: true
           spacing: 0
 
           Repeater {
-            model: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+            model: ["Lu", "Ma", "Me", "Gi", "Ve", "Sa", "Do"]
             Text {
               Layout.fillWidth: true
               horizontalAlignment: Text.AlignHCenter
@@ -228,12 +224,12 @@ PanelWindow {
           }
         }
 
-        // 3. Griglia dei Giorni del Mese
+        // Griglia dei 42 Giorni
         GridLayout {
           Layout.fillWidth: true
           Layout.fillHeight: true
           columns: 7
-          rowSpacing: 4
+          rowSpacing: 3
           columnSpacing: 0
 
           Repeater {
@@ -241,8 +237,8 @@ PanelWindow {
 
             Rectangle {
               Layout.fillWidth: true
-              implicitHeight: 26
-              radius: 6
+              implicitHeight: 24
+              radius: 5
               color: modelData.isToday ? Theme.foam : (dayMouse.containsMouse && modelData.isCurrent ? Theme.overlay : "transparent")
 
               Text {

@@ -27,7 +27,7 @@ RowLayout {
       cursorShape: Qt.PointingHandCursor
 
       // Hover: apre il calendario
-      onEntered: CalendarState.open()
+      // onEntered: CalendarState.open()
 
       // Click: toggle (o cambio formato data)
       onClicked: CalendarState.toggle()
