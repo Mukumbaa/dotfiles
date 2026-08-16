@@ -436,109 +436,108 @@ PanelWindow {
           }
         }
 
-        // 2A. Sotto-Header Wi-Fi
+        // 2. SOTTO-HEADER UNIFICATO
         RowLayout {
-          visible: ControlCenterState.currentTab === "wifi" && !root.isPasswordPromptOpen
+          visible: !root.isPasswordPromptOpen
           Layout.fillWidth: true
           implicitHeight: 24
           spacing: 6
 
-          Text { text: "Wi-Fi"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true }
+          // Titolo Dinamico
+          Text {
+            text: ControlCenterState.currentTab === "wifi" ? "Wi-Fi" : "Bluetooth"
+            color: Theme.text
+            font.family: Theme.fontFamily
+            font.pixelSize: 12
+            font.bold: true
+          }
+
           Item { Layout.fillWidth: true }
 
-          // Bottone Refresh
+          // Bottone Refresh Dinamico
           Rectangle {
-            implicitWidth: 24; implicitHeight: 24; radius: 5
+            implicitWidth: 24
+            implicitHeight: 24
+            radius: 5
             color: refreshMouse.containsMouse ? Theme.overlay : "transparent"
+
             Text {
               anchors.centerIn: parent
-              text: "󰑐"; color: wifiScanProc.running ? Theme.foam : Theme.subtle; font.pixelSize: 13
-              RotationAnimation on rotation { running: wifiScanProc.running; loops: Animation.Infinite; from: 0; to: 360; duration: 900 }
+              text: "󰑐"
+              color: {
+                let isScanning = ControlCenterState.currentTab === "wifi" ? wifiScanProc.running : btScanProc.running
+                if (isScanning) return (ControlCenterState.currentTab === "wifi" ? Theme.foam : Theme.iris)
+                return Theme.subtle
+              }
+              font.pixelSize: 13
+
+              RotationAnimation on rotation {
+                running: ControlCenterState.currentTab === "wifi" ? wifiScanProc.running : btScanProc.running
+                loops: Animation.Infinite
+                from: 0
+                to: 360
+                duration: 900
+              }
             }
+
             MouseArea {
               id: refreshMouse
               anchors.fill: parent
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
-              enabled: root.wifiEnabled
-              onClicked: root.scanWifi()
-            }
-          }
-
-          // Toggle Wi-Fi
-          Rectangle {
-            implicitWidth: 36; implicitHeight: 18; radius: 9; color: root.wifiEnabled ? Theme.foam : Theme.overlay
-            Rectangle {
-              x: root.wifiEnabled ? 20 : 2; y: 2; implicitWidth: 14; implicitHeight: 14; radius: 7; color: Theme.base
-              Behavior on x { NumberAnimation { duration: 120 } }
-            }
-            MouseArea {
-              anchors.fill: parent
-              cursorShape: Qt.PointingHandCursor
+              enabled: ControlCenterState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
               onClicked: {
-                if (root.wifiEnabled) {
-                  root.wifiEnabled = false
-                  root.wifiNetworks = []
-                  Quickshell.execDetached(["nmcli", "radio", "wifi", "off"])
-                } else {
-                  root.wifiEnabled = true
-                  Quickshell.execDetached(["nmcli", "radio", "wifi", "on"])
-                  wifiPowerOnDelayTimer.restart()
-                }
+                if (ControlCenterState.currentTab === "wifi") root.scanWifi()
+                else root.scanBt()
               }
             }
           }
-        }
 
-        // 2B. Sotto-Header Bluetooth
-        RowLayout {
-          visible: ControlCenterState.currentTab === "bluetooth"
-          Layout.fillWidth: true
-          implicitHeight: 24
-          spacing: 6
-
-          Text { text: "Bluetooth"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true }
-          Item { Layout.fillWidth: true }
-
-          // Bottone Refresh
+          // Switch On/Off Dinamico
           Rectangle {
-            implicitWidth: 24; implicitHeight: 24; radius: 5
-            color: btRefreshMouse.containsMouse ? Theme.overlay : "transparent"
-            Text {
-              anchors.centerIn: parent
-              text: "󰑐"; color: btScanProc.running ? Theme.iris : Theme.subtle; font.pixelSize: 13
-              RotationAnimation on rotation { running: btScanProc.running; loops: Animation.Infinite; from: 0; to: 360; duration: 900 }
-            }
-            MouseArea {
-              id: btRefreshMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              enabled: root.btEnabled
-              onClicked: root.scanBt()
-            }
-          }
+            property bool isTabEnabled: ControlCenterState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
+            property color accentColor: ControlCenterState.currentTab === "wifi" ? Theme.foam : Theme.iris
 
-          // Toggle Bluetooth
-          Rectangle {
-            implicitWidth: 36; implicitHeight: 18; radius: 9; color: root.btEnabled ? Theme.iris : Theme.overlay
+            implicitWidth: 36
+            implicitHeight: 18
+            radius: 9
+            color: isTabEnabled ? accentColor : Theme.overlay
+
             Rectangle {
-              x: root.btEnabled ? 20 : 2; y: 2; implicitWidth: 14; implicitHeight: 14; radius: 7; color: Theme.base
+              x: parent.isTabEnabled ? 20 : 2
+              y: 2
+              implicitWidth: 14
+              implicitHeight: 14
+              radius: 7
+              color: Theme.base
               Behavior on x { NumberAnimation { duration: 120 } }
             }
+
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
               onClicked: {
-                if (root.btEnabled) {
-                  root.btEnabled = false
-                  root.btDevices = []
-                  root.btAvailableDevices = []
-                  Quickshell.execDetached(["sh", "-c", "bluetoothctl power off"])
+                if (ControlCenterState.currentTab === "wifi") {
+                  if (root.wifiEnabled) {
+                    root.wifiEnabled = false
+                    root.wifiNetworks = []
+                    Quickshell.execDetached(["nmcli", "radio", "wifi", "off"])
+                  } else {
+                    root.wifiEnabled = true
+                    Quickshell.execDetached(["nmcli", "radio", "wifi", "on"])
+                    wifiPowerOnDelayTimer.restart()
+                  }
                 } else {
-                  root.btEnabled = true
-                  Quickshell.execDetached(["sh", "-c", "rfkill unblock bluetooth && sleep 0.2 && bluetoothctl power on"])
-                  btPowerOnDelayTimer.restart()
+                  if (root.btEnabled) {
+                    root.btEnabled = false
+                    root.btDevices = []
+                    root.btAvailableDevices = []
+                    Quickshell.execDetached(["sh", "-c", "bluetoothctl power off"])
+                  } else {
+                    root.btEnabled = true
+                    Quickshell.execDetached(["sh", "-c", "rfkill unblock bluetooth && sleep 0.2 && bluetoothctl power on"])
+                    btPowerOnDelayTimer.restart()
+                  }
                 }
               }
             }
@@ -880,7 +879,7 @@ PanelWindow {
 
             // Bottone "Search Nuovi"
             Rectangle {
-              implicitWidth: 54; implicitHeight: 20; radius: 4
+              implicitWidth: 75; implicitHeight: 20; radius: 4
               color: root.isBtScanning ? Theme.overlay : Theme.base
               RowLayout {
                 anchors.centerIn: parent
@@ -891,7 +890,7 @@ PanelWindow {
                   RotationAnimation on rotation { running: root.isBtScanning; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
                 }
                 Text {
-                  text: root.isBtScanning ? "Searching..." : "Search"
+                  text: root.isBtScanning ? "Searching" : "Search"
                   color: Theme.iris
                   font.family: Theme.fontFamily
                   font.pixelSize: 10
