@@ -35,4 +35,5 @@ PanelWindow {
     // Sezione Centro (Centrata in modo assoluto)
     CenterSection {}
   }
+  ControlCenter {}
 }

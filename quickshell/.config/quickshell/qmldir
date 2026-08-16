@@ -1,4 +1,6 @@
 singleton Theme Theme.qml
+singleton ControlCenterState ControlCenterState.qml
 LeftSection LeftSection.qml
 CenterSection CenterSection.qml
 RightSection RightSection.qml
+ControlCenter ControlCenter.qml
