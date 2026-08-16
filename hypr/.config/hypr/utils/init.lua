@@ -13,5 +13,6 @@ merge(require("utils.mirror-monitor"))
 merge(require("utils.lid-down"))
 merge(require("utils.lid-up"))
 merge(require("utils.hyprshot"))
+merge(require("utils.toggle-quickshell-bar"))
 
 return utils

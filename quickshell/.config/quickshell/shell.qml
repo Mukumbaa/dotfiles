@@ -1,10 +1,31 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 
 Scope {
-  // 1. Barra Superiore
+  id: rootScope
+
+  // Stato visibilità della sola barra
+  property bool showBar: true
+
+  // Ricevitore comandi IPC per la barra
+  IpcHandler {
+    target: "bar"
+
+    function toggle(): void {
+      rootScope.showBar = !rootScope.showBar
+    }
+    function isVisible(): bool {
+      return rootScope.showBar
+    }
+  }
+
+  // 1. Barra di Stato
   PanelWindow {
+    id: barWindow
+    visible: rootScope.showBar
+
     anchors {
       top: true
       left: true
@@ -31,9 +52,11 @@ Scope {
     }
 
     ControlCenter {}
-    CalendarPopup {}
   }
 
-  // 2. Power Menu a schermo intero
+  // 2. Calendario
+  CalendarPopup {}
+
+  // 3. PowerMenu (Rimane sempre attivo in memoria)
   PowerMenu {}
 }
