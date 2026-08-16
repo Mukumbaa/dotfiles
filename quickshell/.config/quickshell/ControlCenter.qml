@@ -24,7 +24,7 @@ PanelWindow {
     right: true
   }
   margins {
-    top: -1
+    top: 4
     right: 16
   }
 
@@ -376,18 +376,19 @@ PanelWindow {
       y: (root.animProgress - 1.0) * height
       opacity: root.animProgress
 
-      color: Theme.surface
-      topLeftRadius: 0
-      topRightRadius: 0
-      bottomLeftRadius: 12
-      bottomRightRadius: 12
-      border.color: Theme.base
-      border.width: 1
+      color: Theme.base
+      radius: 12
+      // topLeftRadius: 0
+      // topRightRadius: 0
+      // bottomLeftRadius: 12
+      // bottomRightRadius: 12
+      border.color: Theme.overlay
+      border.width: 4
 
       ColumnLayout {
         id: contentCol
         anchors.fill: parent
-        anchors.topMargin: 8
+        anchors.topMargin: 10
         anchors.bottomMargin: 10
         anchors.leftMargin: 10
         anchors.rightMargin: 10
