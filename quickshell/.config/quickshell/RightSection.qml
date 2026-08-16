@@ -154,11 +154,7 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: {
-      btText.btState = (btText.btState === "disabled") ? "on" : "disabled"
-      runCmd("blueman-manager")
-      if (!btCheckProc.running) btCheckProc.running = true
-    }
+    onClicked: ControlCenterState.toggle("bluetooth")
   }
 }
 

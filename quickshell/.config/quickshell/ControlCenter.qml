@@ -442,10 +442,12 @@ PanelWindow {
                 if (root.btEnabled) {
                   root.btEnabled = false
                   root.btDevices = []
-                  Quickshell.execDetached(["bluetoothctl", "power", "off"])
+                  // Spegnimento
+                  Quickshell.execDetached(["sh", "-c", "bluetoothctl power off"])
                 } else {
                   root.btEnabled = true
-                  Quickshell.execDetached(["bluetoothctl", "power", "on"])
+                  // Sblocca prima il kernel (rfkill) e poi accende il Bluetooth
+                  Quickshell.execDetached(["sh", "-c", "rfkill unblock bluetooth && sleep 0.2 && bluetoothctl power on"])
                   btPowerOnDelayTimer.restart()
                 }
               }

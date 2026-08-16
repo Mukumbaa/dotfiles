@@ -6,7 +6,8 @@ Browser = "google-chrome"
 Browser2 = "brave-browser"
 
 hl.on("hyprland.start", function()
-        hl.exec_cmd("waybar")
+        -- hl.exec_cmd("waybar")
+        hl.exec_cmd("quickshell")
         hl.exec_cmd("hyprpaper")
         hl.exec_cmd("brightnessctl -n3277 set 50%")
         hl.exec_cmd("dbus-update-activation-environment --systemd --all")
