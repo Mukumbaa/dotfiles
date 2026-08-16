@@ -193,7 +193,7 @@ PanelWindow {
             implicitHeight: 20
             radius: 4
             color: todayMouse.containsMouse ? Theme.overlay : Theme.base
-            Text { anchors.centerIn: parent; text: "Oggi"; color: Theme.foam; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true }
+            Text { anchors.centerIn: parent; text: "Today"; color: Theme.foam; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true }
             MouseArea {
               id: todayMouse
               anchors.fill: parent
@@ -227,7 +227,7 @@ PanelWindow {
           spacing: 0
 
           Repeater {
-            model: ["Lu", "Ma", "Me", "Gi", "Ve", "Sa", "Do"]
+            model: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
             Text {
               Layout.fillWidth: true
               horizontalAlignment: Text.AlignHCenter
