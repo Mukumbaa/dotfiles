@@ -82,19 +82,21 @@ PanelWindow {
   Component.onCompleted: updateCalendar()
 
   // -------------------------------------------------------------
-  // AUTO-CHIUSURA AL MOUSE LEAVE
+  // AUTO-CHIUSURA INTELLIGENTE
   // -------------------------------------------------------------
   HoverHandler {
     id: panelHover
     onHoveredChanged: {
       if (hovered) {
         autoCloseTimer.stop()
+        inactivityTimer.stop()
       } else {
         autoCloseTimer.restart()
       }
     }
   }
 
+  // Timer di chiusura rapido quando esci dal calendario (600ms)
   Timer {
     id: autoCloseTimer
     interval: 600
@@ -105,9 +107,23 @@ PanelWindow {
     }
   }
 
+  // Timer di sicurezza se apri il calendario ma non ci sposti mai il cursore sopra (3 sec)
+  Timer {
+    id: inactivityTimer
+    interval: 3000
+    onTriggered: {
+      if (!panelHover.hovered) {
+        CalendarState.close()
+      }
+    }
+  }
+
   onIsOpenChanged: {
-    if (!isOpen) {
+    if (isOpen) {
+      inactivityTimer.restart()
+    } else {
       autoCloseTimer.stop()
+      inactivityTimer.stop()
     }
   }
 
