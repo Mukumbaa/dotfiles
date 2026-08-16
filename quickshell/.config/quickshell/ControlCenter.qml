@@ -28,19 +28,23 @@ PanelWindow {
     right: 16
   }
 
-  implicitWidth: 340
-  implicitHeight: 280
+  implicitWidth: 350
+  implicitHeight: 330
   color: "transparent"
 
   WlrLayershell.layer: WlrLayer.Overlay
+  exclusiveZone: 0
+
+  // Richiede il focus della tastiera solo quando stai digitando la password del Wi-Fi
+  WlrLayershell.keyboardFocus: isPasswordPromptOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
   // -------------------------------------------------------------
-  // GESTIONE AUTO-CHIUSURA AL MOUSE LEAVE
+  // GESTIONE AUTO-CHIUSURA
   // -------------------------------------------------------------
   HoverHandler {
     id: panelHover
     onHoveredChanged: {
-      if (hovered) {
+      if (hovered || isPasswordPromptOpen) {
         autoCloseTimer.stop()
         inactivityTimer.stop()
       } else {
@@ -51,9 +55,9 @@ PanelWindow {
 
   Timer {
     id: autoCloseTimer
-    interval: 1000
+    interval: 600
     onTriggered: {
-      if (!panelHover.hovered) {
+      if (!panelHover.hovered && !isPasswordPromptOpen) {
         ControlCenterState.visible = false
       }
     }
@@ -63,7 +67,7 @@ PanelWindow {
     id: inactivityTimer
     interval: 3500
     onTriggered: {
-      if (!panelHover.hovered) {
+      if (!panelHover.hovered && !isPasswordPromptOpen) {
         ControlCenterState.visible = false
       }
     }
@@ -75,16 +79,28 @@ PanelWindow {
       if (ControlCenterState.currentTab === "wifi") scanWifi()
       if (ControlCenterState.currentTab === "bluetooth") scanBt()
     } else {
+      isPasswordPromptOpen = false
       autoCloseTimer.stop()
       inactivityTimer.stop()
     }
   }
 
-  // -------------------------------------------------------------
-  // LOGICA WI-FI
-  // -------------------------------------------------------------
+  // =============================================================
+  // 1. LOGICA WI-FI COMPLETA (Nuove reti, Password, Dimentica)
+  // =============================================================
   property bool wifiEnabled: true
   property var wifiNetworks: []
+  property var savedConnections: []
+  property string wifiActionSsid: ""
+
+  // Stato per il prompt della password
+  property bool isPasswordPromptOpen: false
+  property string targetSsid: ""
+  property string targetSecurity: ""
+  property string passwordInput: ""
+  property bool isConnectingWithPass: false
+  property string wifiErrorMsg: ""
+
   Timer {
     id: wifiPowerOnDelayTimer
     interval: 600
@@ -93,6 +109,7 @@ PanelWindow {
       wifiScanProc.running = true
     }
   }
+
   Process {
     id: wifiToggleProc
     command: ["nmcli", "radio", "wifi"]
@@ -101,7 +118,22 @@ PanelWindow {
     }
   }
 
-property string wifiActionSsid: "" // SSID della rete in corso di connessione
+  // Legge TUTTE le connessioni Wi-Fi salvate nel sistema (connesse o disconnesse)
+  Process {
+    id: savedWifiProc
+    command: ["sh", "-c", "nmcli -t -f TYPE,NAME connection show | grep -E '^(802-11-wireless|wifi):' | cut -d: -f2"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        let lines = this.text.trim().split("\n")
+        let list = []
+        for (let l of lines) {
+          let s = l.trim()
+          if (s) list.push(s)
+        }
+        root.savedConnections = list
+      }
+    }
+  }
 
   Process {
     id: wifiScanProc
@@ -120,43 +152,95 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
             let signal = parseInt(parts[1]) || 0
             let security = parts[2].trim()
             let inUse = parts[3].trim() === "yes"
+            let isSaved = root.savedConnections.includes(ssid)
+            let isOpen = (security === "Open" || security === "--" || security === "")
 
-            // Evita duplicati
             if (ssid && !list.find(n => n.ssid === ssid) && (!activeItem || activeItem.ssid !== ssid)) {
-              let item = { inUse: inUse, ssid: ssid, signal: signal, security: security }
-              if (inUse) {
-                activeItem = item
-              } else {
-                list.push(item)
-              }
+              let item = { inUse: inUse, ssid: ssid, signal: signal, security: security, isSaved: isSaved, isOpen: isOpen }
+              if (inUse) activeItem = item
+              else list.push(item)
             }
           }
         }
 
-        // Mette la rete connessa sempre in cima alla lista
-        if (activeItem) {
-          list.unshift(activeItem)
-        }
-
+        if (activeItem) list.unshift(activeItem)
         root.wifiNetworks = list
         root.wifiActionSsid = ""
       }
     }
   }
 
+  // Processo di connessione con password
+  Process {
+    id: wifiConnectPassProc
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.isConnectingWithPass = false
+        if (this.text.includes("successfully activated") || this.text.includes("attivata con successo")) {
+          root.isPasswordPromptOpen = false
+          root.passwordInput = ""
+          root.scanWifi()
+        } else {
+          root.wifiErrorMsg = "Password errata o connessione fallita"
+        }
+      }
+    }
+  }
+
   function scanWifi() {
+    savedWifiProc.running = false
     wifiToggleProc.running = false
     wifiScanProc.running = false
+    savedWifiProc.running = true
     wifiToggleProc.running = true
     wifiScanProc.running = true
   }
 
-  // -------------------------------------------------------------
-  // LOGICA BLUETOOTH
-  // -------------------------------------------------------------
+  function handleWifiClick(net) {
+    if (net.inUse) return
+
+    if (net.isSaved || net.isOpen) {
+      // Connessione diretta
+      root.wifiActionSsid = net.ssid
+      Quickshell.execDetached(["sh", "-c", "nmcli dev wifi connect \"" + net.ssid + "\""])
+      wifiRefreshDelayTimer.restart()
+    } else {
+      // Richiede password
+      root.targetSsid = net.ssid
+      root.targetSecurity = net.security
+      root.passwordInput = ""
+      root.wifiErrorMsg = ""
+      root.isPasswordPromptOpen = true
+    }
+  }
+
+  function submitWifiPassword() {
+    if (!root.passwordInput) return
+    root.isConnectingWithPass = true
+    root.wifiErrorMsg = ""
+    wifiConnectPassProc.command = ["sh", "-c", "nmcli dev wifi connect \"" + root.targetSsid + "\" password \"" + root.passwordInput + "\""]
+    wifiConnectPassProc.running = true
+  }
+
+  function forgetWifi(ssid) {
+    Quickshell.execDetached(["sh", "-c", "nmcli connection delete id \"" + ssid + "\""])
+    wifiRefreshDelayTimer.restart()
+  }
+
+  Timer {
+    id: wifiRefreshDelayTimer
+    interval: 2500
+    onTriggered: root.scanWifi()
+  }
+
+  // =============================================================
+  // 2. LOGICA BLUETOOTH COMPLETA (Pairing nuovi dispositivi, Unpair)
+  // =============================================================
   property bool btEnabled: true
   property var btDevices: []
+  property var btAvailableDevices: []
   property string btActionMac: ""
+  property bool isBtScanning: false
 
   Process {
     id: btPowerProc
@@ -166,6 +250,7 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
     }
   }
 
+  // Dispositivi già associati
   Process {
     id: btScanProc
     command: ["sh", "-c", "bluetoothctl devices 2>/dev/null | sed -r 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' | while read -r tag mac name; do if [ \"$tag\" = \"Device\" ] && [ -n \"$mac\" ]; then if bluetoothctl info \"$mac\" 2>/dev/null | grep -q 'Connected: yes'; then echo \"$mac|yes|$name\"; else echo \"$mac|no|$name\"; fi; fi; done"]
@@ -181,8 +266,8 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
             let mac = parts[0].trim()
             let isConnected = parts[1].trim() === "yes"
             let name = parts.slice(2).join("|").trim()
-
             let isMac = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(mac)
+
             if (isMac && name.length > 0) {
               list.push({ mac: mac, connected: isConnected, name: name })
             }
@@ -194,18 +279,45 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
     }
   }
 
+  // Scansione attiva per trovare nuovi dispositivi nelle vicinanze
+  Process {
+    id: btDiscoveryProc
+    command: ["sh", "-c", "bluetoothctl --timeout 6 scan on >/dev/null 2>&1; bluetoothctl devices 2>/dev/null | sed -r 's/\\x1b\\[[0-9;]*[a-zA-Z]//g'"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.isBtScanning = false
+        let lines = this.text.trim().split("\n")
+        let list = []
+        let pairedMacs = root.btDevices.map(d => d.mac)
+
+        for (let line of lines) {
+          let match = line.match(/^Device\s+([0-9A-Fa-f:]{17})\s+(.+)$/)
+          if (match) {
+            let mac = match[1]
+            let name = match[2].trim()
+            // Mostra solo i dispositivi NON ancora associati
+            if (!pairedMacs.includes(mac) && name && !name.match(/^[0-9A-Fa-f-]{17}$/)) {
+              if (!list.find(d => d.mac === mac)) {
+                list.push({ mac: mac, name: name })
+              }
+            }
+          }
+        }
+        root.btAvailableDevices = list
+      }
+    }
+  }
+
   Process {
     id: btActionProc
     stdout: StdioCollector {
-      onStreamFinished: {
-        btSyncDelayTimer.restart()
-      }
+      onStreamFinished: btSyncDelayTimer.restart()
     }
   }
 
   Timer {
     id: btSyncDelayTimer
-    interval: 300
+    interval: 400
     onTriggered: root.scanBt()
   }
 
@@ -222,18 +334,36 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
     btScanProc.running = true
   }
 
+  function startBtDiscovery() {
+    root.isBtScanning = true
+    btDiscoveryProc.running = false
+    btDiscoveryProc.running = true
+  }
+
   function toggleDeviceConnection(device) {
     if (btActionProc.running) return
     root.btActionMac = device.mac
-
     let action = device.connected ? "disconnect" : "connect"
     btActionProc.command = ["bluetoothctl", action, device.mac]
     btActionProc.running = true
   }
 
-  // -------------------------------------------------------------
-  // CONTENITORE PRINCIPALE (Layout Lineare Diretto)
-  // -------------------------------------------------------------
+  function pairNewDevice(device) {
+    if (btActionProc.running) return
+    root.btActionMac = device.mac
+    // Sequenza pairing + trust + connect
+    btActionProc.command = ["sh", "-c", "bluetoothctl pair " + device.mac + " && bluetoothctl trust " + device.mac + " && bluetoothctl connect " + device.mac]
+    btActionProc.running = true
+  }
+
+  function forgetBtDevice(mac) {
+    Quickshell.execDetached(["sh", "-c", "bluetoothctl remove " + mac])
+    btSyncDelayTimer.restart()
+  }
+
+  // =============================================================
+  // 3. INTERFACCIA GRAFICA
+  // =============================================================
   Item {
     anchors.fill: parent
     clip: true
@@ -308,42 +438,23 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
 
         // 2A. Sotto-Header Wi-Fi
         RowLayout {
-          visible: ControlCenterState.currentTab === "wifi"
+          visible: ControlCenterState.currentTab === "wifi" && !root.isPasswordPromptOpen
           Layout.fillWidth: true
           implicitHeight: 24
           spacing: 6
 
-          Text {
-            text: "Wi-Fi"
-            color: Theme.text
-            font.family: Theme.fontFamily
-            font.pixelSize: 12
-            font.bold: true
-          }
-
+          Text { text: "Wi-Fi"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true }
           Item { Layout.fillWidth: true }
 
+          // Bottone Refresh
           Rectangle {
-            implicitWidth: 24
-            implicitHeight: 24
-            radius: 5
+            implicitWidth: 24; implicitHeight: 24; radius: 5
             color: refreshMouse.containsMouse ? Theme.overlay : "transparent"
-
             Text {
               anchors.centerIn: parent
-              text: "󰑐"
-              color: wifiScanProc.running ? Theme.foam : Theme.subtle
-              font.pixelSize: 13
-
-              RotationAnimation on rotation {
-                running: wifiScanProc.running
-                loops: Animation.Infinite
-                from: 0
-                to: 360
-                duration: 900
-              }
+              text: "󰑐"; color: wifiScanProc.running ? Theme.foam : Theme.subtle; font.pixelSize: 13
+              RotationAnimation on rotation { running: wifiScanProc.running; loops: Animation.Infinite; from: 0; to: 360; duration: 900 }
             }
-
             MouseArea {
               id: refreshMouse
               anchors.fill: parent
@@ -354,36 +465,24 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
             }
           }
 
+          // Toggle Wi-Fi
           Rectangle {
-            implicitWidth: 36
-            implicitHeight: 18
-            radius: 9
-            color: root.wifiEnabled ? Theme.foam : Theme.overlay
-
+            implicitWidth: 36; implicitHeight: 18; radius: 9; color: root.wifiEnabled ? Theme.foam : Theme.overlay
             Rectangle {
-              x: root.wifiEnabled ? 20 : 2
-              y: 2
-              implicitWidth: 14
-              implicitHeight: 14
-              radius: 7
-              color: Theme.base
+              x: root.wifiEnabled ? 20 : 2; y: 2; implicitWidth: 14; implicitHeight: 14; radius: 7; color: Theme.base
               Behavior on x { NumberAnimation { duration: 120 } }
             }
-
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
               onClicked: {
                 if (root.wifiEnabled) {
-                  // Spegnimento immediato
                   root.wifiEnabled = false
                   root.wifiNetworks = []
                   Quickshell.execDetached(["nmcli", "radio", "wifi", "off"])
                 } else {
-                  // Accensione immediata
                   root.wifiEnabled = true
                   Quickshell.execDetached(["nmcli", "radio", "wifi", "on"])
-                  // Diamo 600ms alla scheda Wi-Fi per accendersi prima di cercare le reti
                   wifiPowerOnDelayTimer.restart()
                 }
               }
@@ -398,37 +497,18 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
           implicitHeight: 24
           spacing: 6
 
-          Text {
-            text: "Bluetooth"
-            color: Theme.text
-            font.family: Theme.fontFamily
-            font.pixelSize: 12
-            font.bold: true
-          }
-
+          Text { text: "Bluetooth"; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true }
           Item { Layout.fillWidth: true }
 
+          // Bottone Refresh
           Rectangle {
-            implicitWidth: 24
-            implicitHeight: 24
-            radius: 5
+            implicitWidth: 24; implicitHeight: 24; radius: 5
             color: btRefreshMouse.containsMouse ? Theme.overlay : "transparent"
-
             Text {
               anchors.centerIn: parent
-              text: "󰑐"
-              color: btScanProc.running ? Theme.iris : Theme.subtle
-              font.pixelSize: 13
-
-              RotationAnimation on rotation {
-                running: btScanProc.running
-                loops: Animation.Infinite
-                from: 0
-                to: 360
-                duration: 900
-              }
+              text: "󰑐"; color: btScanProc.running ? Theme.iris : Theme.subtle; font.pixelSize: 13
+              RotationAnimation on rotation { running: btScanProc.running; loops: Animation.Infinite; from: 0; to: 360; duration: 900 }
             }
-
             MouseArea {
               id: btRefreshMouse
               anchors.fill: parent
@@ -439,22 +519,13 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
             }
           }
 
+          // Toggle Bluetooth
           Rectangle {
-            implicitWidth: 36
-            implicitHeight: 18
-            radius: 9
-            color: root.btEnabled ? Theme.iris : Theme.overlay
-
+            implicitWidth: 36; implicitHeight: 18; radius: 9; color: root.btEnabled ? Theme.iris : Theme.overlay
             Rectangle {
-              x: root.btEnabled ? 20 : 2
-              y: 2
-              implicitWidth: 14
-              implicitHeight: 14
-              radius: 7
-              color: Theme.base
+              x: root.btEnabled ? 20 : 2; y: 2; implicitWidth: 14; implicitHeight: 14; radius: 7; color: Theme.base
               Behavior on x { NumberAnimation { duration: 120 } }
             }
-
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
@@ -462,11 +533,10 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
                 if (root.btEnabled) {
                   root.btEnabled = false
                   root.btDevices = []
-                  // Spegnimento
+                  root.btAvailableDevices = []
                   Quickshell.execDetached(["sh", "-c", "bluetoothctl power off"])
                 } else {
                   root.btEnabled = true
-                  // Sblocca prima il kernel (rfkill) e poi accende il Bluetooth
                   Quickshell.execDetached(["sh", "-c", "rfkill unblock bluetooth && sleep 0.2 && bluetoothctl power on"])
                   btPowerOnDelayTimer.restart()
                 }
@@ -476,42 +546,59 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
         }
 
         // 3. Divisore
-        Rectangle {
-          Layout.fillWidth: true
-          implicitHeight: 1
-          color: Theme.overlay
-        }
+        Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
-        // 4. Area Liste / Contenuto (occupa tutto il resto)
+        // =========================================================
+        // 4. VISTA WI-FI
+        // =========================================================
         Item {
+          visible: ControlCenterState.currentTab === "wifi"
           Layout.fillWidth: true
           Layout.fillHeight: true
 
-          // Vista Wi-Fi
-          Item {
+          // A. SCHEDA INSERIMENTO PASSWORD
+          ColumnLayout {
+            visible: root.isPasswordPromptOpen
             anchors.fill: parent
-            visible: ControlCenterState.currentTab === "wifi"
+            spacing: 8
 
-            RowLayout {
-              anchors.centerIn: parent
-              visible: wifiScanProc.running && root.wifiNetworks.length === 0
-              spacing: 8
+            Text {
+              text: "Connetti a " + root.targetSsid
+              color: Theme.text
+              font.family: Theme.fontFamily
+              font.pixelSize: 12
+              font.bold: true
+            }
 
-              Text {
-                text: "󰑐"
-                color: Theme.foam
-                font.pixelSize: 13
-                RotationAnimation on rotation {
-                  running: true
-                  loops: Animation.Infinite
-                  from: 0
-                  to: 360
-                  duration: 900
-                }
+            Rectangle {
+              Layout.fillWidth: true
+              implicitHeight: 32
+              radius: 6
+              color: Theme.overlay
+              border.color: passInput.activeFocus ? Theme.foam : Theme.overlay
+              border.width: 1
+
+              TextInput {
+                id: passInput
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                verticalAlignment: TextInput.AlignVCenter
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: 12
+                echoMode: TextInput.Password
+                focus: root.isPasswordPromptOpen
+                onTextEdited: root.passwordInput = text
+                onAccepted: root.submitWifiPassword()
               }
 
               Text {
-                text: "Searching..."
+                visible: !passInput.text
+                anchors.left: parent.left
+                anchors.leftMargin: 8
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Inserisci password..."
                 color: Theme.subtle
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
@@ -519,180 +606,339 @@ property string wifiActionSsid: "" // SSID della rete in corso di connessione
             }
 
             Text {
-              anchors.centerIn: parent
-              visible: !root.wifiEnabled
-              text: "Wi-Fi disactivated"
-              color: Theme.subtle
+              visible: root.wifiErrorMsg.length > 0
+              text: root.wifiErrorMsg
+              color: Theme.love
               font.family: Theme.fontFamily
-              font.pixelSize: 11
+              font.pixelSize: 10
             }
 
-            ListView {
-              anchors.fill: parent
-              visible: root.wifiEnabled && (!wifiScanProc.running || root.wifiNetworks.length > 0)
-              clip: true
-              model: root.wifiNetworks
+            RowLayout {
+              Layout.fillWidth: true
+              spacing: 8
 
-              populate: Transition {
-                NumberAnimation { properties: "opacity"; from: 0; to: 1; duration: 180; easing.type: Easing.OutQuad }
-              }
-
-              delegate: Rectangle {
-                width: ListView.view.width
-                implicitHeight: 34
-                radius: 5
-                color: modelData.inUse ? Theme.overlay : "transparent"
-
-                RowLayout {
-                  anchors.fill: parent
-                  anchors.margins: 6
-                  spacing: 8
-
-                  Text {
-                    text: modelData.signal > 70 ? "󰤨" : (modelData.signal > 40 ? "󰤥" : "󰤟")
-                    color: modelData.inUse ? Theme.foam : Theme.subtle
-                    font.pixelSize: 13
-                  }
-
-                  Text {
-                    text: modelData.ssid
-                    color: modelData.inUse ? Theme.foam : Theme.text
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 11
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
-                  }
-
-                  Text {
-                    text: modelData.inUse ? "Connected" : ""
-                    color: Theme.foam
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 10
-                  }
-                }
-
+              Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 28
+                radius: 6
+                color: Theme.overlay
+                Text { anchors.centerIn: parent; text: "Annulla"; color: Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 11 }
                 MouseArea {
                   anchors.fill: parent
                   cursorShape: Qt.PointingHandCursor
-                  onClicked: {
-                    if (!modelData.inUse) {
-                      Quickshell.execDetached(["nmcli", "dev", "wifi", "connect", modelData.ssid])
-                    }
+                  onClicked: root.isPasswordPromptOpen = false
+                }
+              }
+
+              Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 28
+                radius: 6
+                color: root.isConnectingWithPass ? Theme.overlay : Theme.foam
+                RowLayout {
+                  anchors.centerIn: parent
+                  spacing: 6
+                  Text {
+                    visible: root.isConnectingWithPass
+                    text: "󰑐"; color: Theme.base; font.pixelSize: 12
+                    RotationAnimation on rotation { running: root.isConnectingWithPass; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
+                  }
+                  Text {
+                    text: root.isConnectingWithPass ? "Connessione..." : "Connetti"
+                    color: root.isConnectingWithPass ? Theme.subtle : Theme.base
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 11
+                    font.bold: true
+                  }
+                }
+                MouseArea {
+                  anchors.fill: parent
+                  cursorShape: Qt.PointingHandCursor
+                  enabled: !root.isConnectingWithPass && root.passwordInput.length > 0
+                  onClicked: root.submitWifiPassword()
+                }
+              }
+            }
+
+            Item { Layout.fillHeight: true }
+          }
+
+          // B. LISTA NORMALE RETI (Click di connessione e Cestino perfettamente funzionanti)
+          ListView {
+            visible: !root.isPasswordPromptOpen && root.wifiEnabled
+            anchors.fill: parent
+            clip: true
+            model: root.wifiNetworks
+
+            delegate: Rectangle {
+              id: wifiItem
+              width: ListView.view.width
+              implicitHeight: 34
+              radius: 5
+              color: modelData.inUse ? Theme.overlay : (rowMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.05) : "transparent")
+
+              property bool isBusy: root.wifiActionSsid === modelData.ssid
+              property bool isSavedNet: root.savedConnections.includes(modelData.ssid)
+
+              // 1. Area di click su tutta la riga per connettersi
+              MouseArea {
+                id: rowMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: wifiItem.isBusy ? Qt.ArrowCursor : Qt.PointingHandCursor
+                enabled: !wifiItem.isBusy && !modelData.inUse
+                onClicked: root.handleWifiClick(modelData)
+              }
+
+              // 2. Contenuto grafico
+              RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 6
+                anchors.rightMargin: 6
+                spacing: 8
+
+                Text {
+                  text: wifiItem.isBusy ? "󰑐" : (modelData.signal > 70 ? "󰤨" : (modelData.signal > 40 ? "󰤥" : "󰤟"))
+                  color: wifiItem.isBusy ? Theme.gold : (modelData.inUse ? Theme.foam : Theme.subtle)
+                  font.pixelSize: 13
+                  RotationAnimation on rotation { running: wifiItem.isBusy; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
+                }
+
+                Text {
+                  text: modelData.ssid
+                  color: modelData.inUse ? Theme.foam : Theme.text
+                  font.family: Theme.fontFamily
+                  font.pixelSize: 11
+                  font.bold: modelData.inUse
+                  Layout.fillWidth: true
+                  elide: Text.ElideRight
+                }
+
+                Text {
+                  visible: !modelData.isOpen && !wifiItem.isSavedNet && !modelData.inUse
+                  text: "󰌾"
+                  color: Theme.subtle
+                  font.pixelSize: 10
+                }
+
+                Text {
+                  text: {
+                    if (wifiItem.isBusy) return "Connessione..."
+                    return modelData.inUse ? "Connesso" : ""
+                  }
+                  color: wifiItem.isBusy ? Theme.gold : Theme.foam
+                  font.family: Theme.fontFamily
+                  font.pixelSize: 10
+                  font.bold: true
+                }
+
+                // Cestino (con z: 2 per catturare il click in esclusiva)
+                Rectangle {
+                  id: forgetBtn
+                  z: 2
+                  visible: wifiItem.isSavedNet && !wifiItem.isBusy
+                  implicitWidth: 22
+                  implicitHeight: 22
+                  radius: 4
+                  color: forgetWifiMouse.containsMouse ? Theme.love : "transparent"
+
+                  Text {
+                    anchors.centerIn: parent
+                    text: "󰆴"
+                    color: forgetWifiMouse.containsMouse ? Theme.base : Theme.subtle
+                    font.pixelSize: 12
+                  }
+
+                  MouseArea {
+                    id: forgetWifiMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.forgetWifi(modelData.ssid)
                   }
                 }
               }
             }
           }
 
-          // Vista Bluetooth
-          Item {
-            anchors.fill: parent
-            visible: ControlCenterState.currentTab === "bluetooth"
+          Text {
+            visible: !root.wifiEnabled
+            anchors.centerIn: parent
+            text: "Wi-Fi disattivato"
+            color: Theme.subtle
+            font.family: Theme.fontFamily
+            font.pixelSize: 11
+          }
+        }
 
-            RowLayout {
-              anchors.centerIn: parent
-              visible: btScanProc.running && root.btDevices.length === 0
-              spacing: 8
+        // =========================================================
+        // 5. VISTA BLUETOOTH (Associati con Cestino + Nuovi Dispositivi)
+        // =========================================================
+        ColumnLayout {
+          visible: ControlCenterState.currentTab === "bluetooth"
+          Layout.fillWidth: true
+          Layout.fillHeight: true
+          spacing: 6
 
-              Text {
-                text: "󰑐"
-                color: Theme.iris
-                font.pixelSize: 13
-                RotationAnimation on rotation {
-                  running: true
-                  loops: Animation.Infinite
-                  from: 0
-                  to: 360
-                  duration: 900
-                }
+          // A. LISTA DISPOSITIVI GIÀ ASSOCIATI
+          ListView {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            clip: true
+            model: root.btDevices
+
+            delegate: Rectangle {
+              id: devItem
+              width: ListView.view.width
+              implicitHeight: 36
+              radius: 5
+              color: modelData.connected ? Theme.overlay : (devMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.05) : "transparent")
+              property bool isBusy: root.btActionMac === modelData.mac
+
+              // Area click per connettere/disconnettere
+              MouseArea {
+                id: devMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: devItem.isBusy ? Qt.ArrowCursor : Qt.PointingHandCursor
+                enabled: !devItem.isBusy
+                onClicked: root.toggleDeviceConnection(modelData)
               }
 
-              Text {
-                text: "Searching devices..."
-                color: Theme.subtle
-                font.family: Theme.fontFamily
-                font.pixelSize: 11
+              RowLayout {
+                id: btRowLayout
+                anchors.fill: parent
+                anchors.leftMargin: 6
+                anchors.rightMargin: 6
+                spacing: 8
+
+                Text {
+                  text: devItem.isBusy ? "󰑐" : (modelData.connected ? "󰂱" : "󰂲")
+                  color: devItem.isBusy ? Theme.gold : (modelData.connected ? Theme.iris : Theme.subtle)
+                  font.pixelSize: 14
+                  RotationAnimation on rotation { running: devItem.isBusy; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
+                }
+
+                Text {
+                  text: modelData.name
+                  color: modelData.connected ? Theme.iris : Theme.text
+                  font.family: Theme.fontFamily
+                  font.pixelSize: 11
+                  font.bold: modelData.connected
+                  Layout.fillWidth: true
+                  elide: Text.ElideRight
+                }
+
+                Text {
+                  text: {
+                    if (devItem.isBusy) return modelData.connected ? "Disconnessione..." : "Connessione..."
+                    return modelData.connected ? "Connesso" : ""
+                  }
+                  color: devItem.isBusy ? Theme.gold : Theme.iris
+                  font.family: Theme.fontFamily
+                  font.pixelSize: 10
+                }
+
+                // Cestino per DIMENTICARE il dispositivo
+                Rectangle {
+                  id: forgetBtBtn
+                  z: 2
+                  visible: !devItem.isBusy
+                  implicitWidth: 22
+                  implicitHeight: 22
+                  radius: 4
+                  color: forgetBtMouse.containsMouse ? Theme.love : "transparent"
+
+                  Text {
+                    anchors.centerIn: parent
+                    text: "󰆴"
+                    color: forgetBtMouse.containsMouse ? Theme.base : Theme.subtle
+                    font.pixelSize: 12
+                  }
+
+                  MouseArea {
+                    id: forgetBtMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.forgetBtDevice(modelData.mac)
+                  }
+                }
               }
             }
+          }
 
-            Text {
-              anchors.centerIn: parent
-              visible: !root.btEnabled
-              text: "Bluetooth disactivated"
-              color: Theme.subtle
-              font.family: Theme.fontFamily
-              font.pixelSize: 11
+          // B. SEZIONE ACCOPPIAMENTO NUOVI DISPOSITIVI
+          Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
+
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: 6
+
+            Text { text: "Nelle vicinanze"; color: Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true }
+            Item { Layout.fillWidth: true }
+
+            // Bottone "Cerca Nuovi"
+            Rectangle {
+              implicitWidth: 54; implicitHeight: 20; radius: 4
+              color: root.isBtScanning ? Theme.overlay : Theme.base
+              RowLayout {
+                anchors.centerIn: parent
+                spacing: 4
+                Text {
+                  visible: root.isBtScanning
+                  text: "󰑐"; color: Theme.iris; font.pixelSize: 10
+                  RotationAnimation on rotation { running: root.isBtScanning; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
+                }
+                Text {
+                  text: root.isBtScanning ? "Cerco..." : "Cerca"
+                  color: Theme.iris
+                  font.family: Theme.fontFamily
+                  font.pixelSize: 10
+                  font.bold: true
+                }
+              }
+              MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                enabled: !root.isBtScanning && root.btEnabled
+                onClicked: root.startBtDiscovery()
+              }
             }
+          }
 
-            ListView {
-              anchors.fill: parent
-              visible: root.btEnabled && (!btScanProc.running || root.btDevices.length > 0)
-              clip: true
-              model: root.btDevices
+          // Lista Nuovi Dispositivi Trovati
+          ListView {
+            Layout.fillWidth: true
+            implicitHeight: Math.min(contentHeight, 70)
+            clip: true
+            model: root.btAvailableDevices
 
-              populate: Transition {
-                NumberAnimation { properties: "opacity"; from: 0; to: 1; duration: 180; easing.type: Easing.OutQuad }
+            delegate: Rectangle {
+              id: availItem
+              width: ListView.view.width
+              implicitHeight: 28
+              radius: 4
+              color: availMouse.containsMouse ? Theme.overlay : "transparent"
+              property bool isBusy: root.btActionMac === modelData.mac
+
+              RowLayout {
+                anchors.fill: parent
+                anchors.margins: 4
+                spacing: 6
+
+                Text { text: availItem.isBusy ? "󰑐" : "󰂲"; color: Theme.subtle; font.pixelSize: 11 }
+                Text { text: modelData.name; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight }
+                Text { text: availItem.isBusy ? "Accoppio..." : "Associa"; color: Theme.iris; font.family: Theme.fontFamily; font.pixelSize: 9; font.bold: true }
               }
 
-              delegate: Rectangle {
-                id: devItem
-                width: ListView.view.width
-                implicitHeight: 36
-                radius: 5
-                color: modelData.connected ? Theme.overlay : (devMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.05) : "transparent")
-
-                property bool isBusy: root.btActionMac === modelData.mac
-
-                RowLayout {
-                  anchors.fill: parent
-                  anchors.margins: 6
-                  spacing: 8
-
-                  Text {
-                    text: devItem.isBusy ? "󰑐" : (modelData.connected ? "󰂱" : "󰂲")
-                    color: devItem.isBusy ? Theme.gold : (modelData.connected ? Theme.iris : Theme.subtle)
-                    font.pixelSize: 14
-
-                    RotationAnimation on rotation {
-                      running: devItem.isBusy
-                      loops: Animation.Infinite
-                      from: 0
-                      to: 360
-                      duration: 800
-                    }
-                  }
-
-                  Text {
-                    text: modelData.name
-                    color: modelData.connected ? Theme.iris : Theme.text
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 11
-                    font.bold: modelData.connected
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
-                  }
-
-                  Text {
-                    text: {
-                      if (devItem.isBusy) {
-                        return modelData.connected ? "Disconneting..." : "Connecting..."
-                      }
-                      return modelData.connected ? "Connected" : ""
-                    }
-                    color: devItem.isBusy ? Theme.gold : Theme.iris
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 10
-                  }
-                }
-
-                MouseArea {
-                  id: devMouse
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: devItem.isBusy ? Qt.ArrowCursor : Qt.PointingHandCursor
-                  enabled: !devItem.isBusy
-                  onClicked: root.toggleDeviceConnection(modelData)
-                }
+              MouseArea {
+                id: availMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                enabled: !availItem.isBusy
+                onClicked: root.pairNewDevice(modelData)
               }
             }
           }
