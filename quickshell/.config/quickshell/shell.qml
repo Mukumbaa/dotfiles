@@ -51,11 +51,12 @@ Scope {
       CenterSection {}
     }
 
-    ControlCenter {}
   }
+  ControlCenter {}
 
   // 2. Calendario
   CalendarPopup {}
+  BatteryPopup {}
 
   // 3. PowerMenu (Rimane sempre attivo in memoria)
   PowerMenu {}

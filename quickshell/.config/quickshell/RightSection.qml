@@ -527,7 +527,8 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: runCmd("alacritty --class algo -e algo ~/.config/algo/menus/power-profile-custom.txt")
+    // Apre/chiude il popup dei profili batteria
+    onClicked: BatteryState.toggle()
   }
 }
 }
