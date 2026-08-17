@@ -14,7 +14,7 @@ PanelWindow {
   // Stessa identica curva di animazione ultra-fluida del Control Center
   Behavior on animProgress {
     NumberAnimation {
-      duration: 200
+      duration: 250
       easing.type: Easing.InOutQuad
     }
   }
