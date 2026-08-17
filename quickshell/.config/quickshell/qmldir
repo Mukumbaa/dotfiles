@@ -19,3 +19,6 @@ CalendarPopup CalendarPopup.qml
 BatteryPopup BatteryPopup.qml
 AudioPopup AudioPopup.qml
 PowerMenu PowerMenu.qml
+OsdPopup OsdPopup.qml
+Lockscreen Lockscreen.qml
+Wallpaper Wallpaper.qml

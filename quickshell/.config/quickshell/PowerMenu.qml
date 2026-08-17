@@ -77,7 +77,7 @@ PanelWindow {
 
       Keys.onEscapePressed: PowerMenuState.close()
       Keys.onPressed: event => {
-        if (event.key === Qt.Key_L) executeAction("hyprlock")
+        if (event.key === Qt.Key_L) executeAction("qs ipc call lock lock")
         else if (event.key === Qt.Key_S) executeAction("systemctl suspend")
         else if (event.key === Qt.Key_E) executeAction("hyprctl dispatch exit")
         else if (event.key === Qt.Key_R) executeAction("systemctl reboot")
@@ -97,7 +97,7 @@ PanelWindow {
           label: "Lock"
           keyHint: "L"
           accentColor: Theme.iris
-          onTriggered: root.executeAction("hyprlock")
+          onTriggered: root.executeAction("qs ipc call lock lock")
         }
 
         // 2. SUSPEND

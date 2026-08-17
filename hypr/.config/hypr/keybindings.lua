@@ -112,7 +112,8 @@ hl.bind("SUPER + SHIFT + DOWN",
 -- =========================
 -- Extra binds
 -- =========================
-hl.bind("SUPER + L", hl.dsp.exec_cmd("hyprlock"))
+-- hl.bind("SUPER + L", hl.dsp.exec_cmd("hyprlock"))
+hl.bind("SUPER + L", hl.dsp.exec_cmd("qs ipc call lock lock"))
 hl.bind("ALT + TAB", hl.dsp.window.cycle_next())
 
 hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd(Browser))
