@@ -36,7 +36,7 @@ PanelWindow {
   WlrLayershell.layer: WlrLayer.Overlay
   exclusiveZone: 0
 
-  // -------------------------------------------------------------
+// -------------------------------------------------------------
   // TRACCIAMENTO NODI PIPEWIRE (Output, Input, Volumi)
   // -------------------------------------------------------------
   PwObjectTracker {
@@ -47,21 +47,22 @@ PanelWindow {
   property var defaultSink: Pipewire.defaultAudioSink
   property var defaultSource: Pipewire.defaultAudioSource
 
-  // Filtra solo i veri nodi fisici di output e input (esclude i singoli stream delle app)
+  // Filtra solo i veri dispositivi fisici di uscita (Cuffie, Casse, HDMI)
   property var outputNodes: {
     let list = []
     for (let node of Pipewire.nodes.values) {
-      if (node && node.isSink && !node.isStream) {
+      if (node && node.isSink && !node.isStream && node.audio) {
         list.push(node)
       }
     }
     return list
   }
 
+  // Filtra solo i veri dispositivi fisici di ingresso (Microfoni, Headset Mic, ecc.)
   property var inputNodes: {
     let list = []
     for (let node of Pipewire.nodes.values) {
-      if (node && node.isSource && !node.isStream) {
+      if (node && !node.isSink && !node.isStream && node.audio) {
         list.push(node)
       }
     }
