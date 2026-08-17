@@ -1,14 +1,21 @@
 singleton Theme Theme.qml
 singleton ControlCenterState ControlCenterState.qml
 singleton CalendarState CalendarState.qml
-singleton PowerMenuState PowerMenuState.qml
 singleton BatteryState BatteryState.qml
 singleton AudioState AudioState.qml
+singleton PowerMenuState PowerMenuState.qml
 LeftSection LeftSection.qml
 CenterSection CenterSection.qml
 RightSection RightSection.qml
+KeyboardWidget KeyboardWidget.qml
+CpuWidget CpuWidget.qml
+BluetoothWidget BluetoothWidget.qml
+WifiWidget WifiWidget.qml
+BrightnessWidget BrightnessWidget.qml
+VolumeWidget VolumeWidget.qml
+BatteryWidget BatteryWidget.qml
 ControlCenter ControlCenter.qml
-PowerMenu PowerMenu.qml
 CalendarPopup CalendarPopup.qml
 BatteryPopup BatteryPopup.qml
 AudioPopup AudioPopup.qml
+PowerMenu PowerMenu.qml
