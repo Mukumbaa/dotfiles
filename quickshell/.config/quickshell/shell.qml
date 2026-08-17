@@ -60,7 +60,6 @@ Scope {
   AudioPopup {}
   // 3. PowerMenu (Rimane sempre attivo in memoria)
   PowerMenu {}
-
   OsdPopup {}
   Lockscreen {}
   Wallpaper {}

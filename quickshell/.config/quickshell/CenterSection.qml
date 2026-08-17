@@ -1,9 +1,12 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Services.Mpris
 
 RowLayout {
   anchors.centerIn: parent
+  spacing: 8
+
 
   SystemClock {
     id: clock
@@ -18,8 +21,8 @@ RowLayout {
 
     property bool showFullDate: false
     text: showFullDate 
-      ? Qt.formatDateTime(clock.date, "dd MMMM yyyy")
-      : Qt.formatDateTime(clock.date, "dddd hh:mm")
+    ? Qt.formatDateTime(clock.date, "dd MMMM yyyy")
+    : Qt.formatDateTime(clock.date, "dddd hh:mm")
 
     MouseArea {
       anchors.fill: parent
@@ -33,4 +36,5 @@ RowLayout {
       onClicked: CalendarState.toggle()
     }
   }
+
 }
