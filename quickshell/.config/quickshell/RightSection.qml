@@ -392,58 +392,6 @@ RowLayout {
     }
   }
 
-  // SLIDER ANIMATO
-  Rectangle {
-    id: sliderContainer
-    implicitWidth: volGroup.isHovered ? 80 : 0
-    implicitHeight: 12
-    color: Theme.subtle ?? "#313244"
-    radius: 6
-    visible: implicitWidth > 0
-    clip: true
-
-    Behavior on implicitWidth {
-      NumberAnimation { duration: 150; easing.type: Easing.InOutQuad }
-    }
-
-    Rectangle {
-      width: parent.width * (Math.min(volGroup.volumeLevel, 100) / 100)
-      height: parent.height
-      color: volGroup.isMuted ? (Theme.subtle ?? "#6c7086") : (Theme.text ?? "#cdd6f4")
-      radius: 6
-    }
-
-    MouseArea {
-      id: sliderMouse
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-
-      onEntered: volGroup.checkHover()
-      onExited: volGroup.checkHover()
-      onReleased: volGroup.checkHover()
-
-      function updateVol(mouse) {
-        if (!volGroup.sink || !volGroup.sink.audio) return
-        let percent = Math.max(0, Math.min(100, Math.round((mouse.x / width) * 100)))
-        volGroup.sink.audio.muted = false
-        volGroup.sink.audio.volume = percent / 100.0
-      }
-
-      onPressed: mouse => {
-        volGroup.checkHover()
-        updateVol(mouse)
-      }
-      onPositionChanged: mouse => { if (pressed) updateVol(mouse) }
-
-      onWheel: (wheel) => {
-        if (!volGroup.sink || !volGroup.sink.audio) return
-        let delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05
-        volGroup.sink.audio.muted = false
-        volGroup.sink.audio.volume = Math.max(0.0, Math.min(1.0, volGroup.sink.audio.volume + delta))
-      }
-    }
-  }
 
   // ICONA + TESTO PERCENTUALE
   MouseArea {
@@ -457,12 +405,12 @@ RowLayout {
     onExited: volGroup.checkHover()
 
     // Click: Toggle Mute istantaneo
-    onClicked: {
-      if (volGroup.sink && volGroup.sink.audio) {
-        volGroup.sink.audio.muted = !volGroup.sink.audio.muted
-      }
-    }
-
+    // onClicked: {
+    //   if (volGroup.sink && volGroup.sink.audio) {
+    //     volGroup.sink.audio.muted = !volGroup.sink.audio.muted
+    //   }
+    // }
+onClicked: AudioState.toggle("output")
     onWheel: (wheel) => {
       if (!volGroup.sink || !volGroup.sink.audio) return
       let delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05

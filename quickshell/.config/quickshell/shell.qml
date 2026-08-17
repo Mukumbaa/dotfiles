@@ -57,7 +57,7 @@ Scope {
   // 2. Calendario
   CalendarPopup {}
   BatteryPopup {}
-
+  AudioPopup {}
   // 3. PowerMenu (Rimane sempre attivo in memoria)
   PowerMenu {}
 }
