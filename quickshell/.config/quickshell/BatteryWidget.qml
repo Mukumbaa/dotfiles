@@ -14,12 +14,12 @@ Item {
     property int batteryLevel: displayDevice ? Math.round(displayDevice.percentage * 100) : 0
     property bool isCharging: displayDevice ? displayDevice.state === UPowerDeviceState.Charging : false
 
-    property var iconsCharging: ["󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂅"]
+    property var iconsCharging: "󰂄"
     property var iconsDefault:  ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
 
     property string batIcon: {
       let idx = Math.max(0, Math.min(Math.floor(batteryLevel / 10), 9))
-      return isCharging ? iconsCharging[idx] : iconsDefault[idx]
+      return isCharging ? iconsCharging : iconsDefault[idx]
     }
 
     Text {
