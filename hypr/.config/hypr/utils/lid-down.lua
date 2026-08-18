@@ -8,7 +8,8 @@ function module.lid_down()
       utils.toggle_waybar()
       hl.monitor({ output = "eDP-1", disabled = true })
   else
-      hl.exec_cmd("hyprlock")
+      -- hl.exec_cmd("hyprlock")
+      hl.exec_cmd("qs ipc call lock lock")
   end
 end
 
