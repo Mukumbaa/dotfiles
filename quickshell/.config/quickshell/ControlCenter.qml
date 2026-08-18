@@ -86,14 +86,13 @@ PanelWindow {
   }
 
   // =============================================================
-  // 1. LOGICA WI-FI COMPLETA (Nuove reti, Password, Dimentica)
+  // 1. LOGICA WI-FI COMPLETA
   // =============================================================
   property bool wifiEnabled: true
   property var wifiNetworks: []
   property var savedConnections: []
   property string wifiActionSsid: ""
 
-  // Stato per il prompt della password
   property bool isPasswordPromptOpen: false
   property string targetSsid: ""
   property string targetSecurity: ""
@@ -118,7 +117,7 @@ PanelWindow {
     }
   }
 
-  // Legge TUTTE le connessioni Wi-Fi salvate nel sistema (connesse o disconnesse)
+  // Legge TUTTE le connessioni Wi-Fi salvate
   Process {
     id: savedWifiProc
     command: ["sh", "-c", "nmcli -t -f TYPE,NAME connection show | grep -E '^(802-11-wireless|wifi):' | cut -d: -f2"]
@@ -137,37 +136,45 @@ PanelWindow {
 
   property real lastWifiScan: 0
 
-  // Scansione: di default usa la cache (--rescan no), solo su refresh manuale fa la scansione radio completa
+  // Scansione Wi-Fi robusta con doppio rilevamento stato attivo
   Process {
     id: wifiScanProc
     property bool forceRescan: false
     command: [
       "sh", "-c",
-      "current=$(nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | grep '^yes:' | head -n1 | cut -d: -f2); " +
-      "nmcli -t -f SSID,SIGNAL,SECURITY dev wifi list --rescan " + (forceRescan ? "yes" : "no") + " 2>/dev/null | " +
-      "while IFS=: read -r ssid signal security; do " +
-      "if [ -n \"$ssid\" ]; then " +
-      "if [ \"$ssid\" = \"$current\" ]; then echo \"$ssid|$signal|$security|yes\"; else echo \"$ssid|$signal|$security|no\"; fi; " +
-      "fi; done"
+      "active=$(nmcli -t -f NAME,TYPE connection show --active 2>/dev/null | grep -E ':(802-11-wireless|wifi)$' | cut -d: -f1 | head -n1); " +
+      "[ -z \"$active\" ] && active=$(nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | grep -E '^(\\*|yes):' | head -n1 | cut -d: -f2); " +
+      "echo \"ACTIVE:$active\"; " +
+      "nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list --rescan " + (forceRescan ? "yes" : "no") + " 2>/dev/null"
     ]
     stdout: StdioCollector {
       onStreamFinished: {
         let lines = this.text.trim().split("\n")
+        let activeSsid = ""
         let list = []
         let activeItem = null
 
         for (let line of lines) {
           if (!line) continue
-          let parts = line.split("|")
+          if (line.startsWith("ACTIVE:")) {
+            activeSsid = line.substring(7).trim()
+            continue
+          }
+
+          let parts = line.split(":")
           if (parts.length >= 4) {
-            let ssid = parts[0].trim()
-            let signal = parseInt(parts[1]) || 0
-            let security = parts[2].trim()
-            let inUse = parts[3].trim() === "yes"
+            let inUseFlag = parts[0].trim()
+            let ssid = parts[1].trim()
+            let signal = parseInt(parts[2]) || 0
+            let security = parts.slice(3).join(":").trim()
+
+            if (!ssid) continue
+
+            let inUse = (inUseFlag === "*" || inUseFlag === "yes" || (activeSsid.length > 0 && ssid === activeSsid))
             let isSaved = root.savedConnections.includes(ssid)
             let isOpen = (security === "Open" || security === "--" || security === "")
 
-            if (ssid && !list.find(n => n.ssid === ssid) && (!activeItem || activeItem.ssid !== ssid)) {
+            if (!list.find(n => n.ssid === ssid) && (!activeItem || activeItem.ssid !== ssid)) {
               let item = { inUse: inUse, ssid: ssid, signal: signal, security: security, isSaved: isSaved, isOpen: isOpen }
               if (inUse) activeItem = item
               else list.push(item)
@@ -183,16 +190,34 @@ PanelWindow {
     }
   }
 
-  // Processo di connessione con password
+  // Timer di delay post-connessione per attendere DHCP / attivazione
+  Timer {
+    id: wifiPostConnectTimer
+    interval: 600
+    onTriggered: root.scanWifi(true)
+  }
+
+  // Connessione a reti salvate o aperte
+  Process {
+    id: wifiConnectDirectProc
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.wifiActionSsid = ""
+        wifiPostConnectTimer.restart()
+      }
+    }
+  }
+
+  // Connessione con password
   Process {
     id: wifiConnectPassProc
     stdout: StdioCollector {
       onStreamFinished: {
         root.isConnectingWithPass = false
-        if (this.text.includes("successfully activated") || this.text.includes("attivata con successo")) {
+        if (this.text.includes("successfully activated") || this.text.includes("attivata con successo") || this.text.includes("successfully")) {
           root.isPasswordPromptOpen = false
           root.passwordInput = ""
-          root.scanWifi()
+          wifiPostConnectTimer.restart()
         } else {
           root.wifiErrorMsg = "Wrong password or failed connection"
         }
@@ -200,8 +225,15 @@ PanelWindow {
     }
   }
 
+  // Dimentica rete Wi-Fi
+  Process {
+    id: wifiForgetProc
+    stdout: StdioCollector {
+      onStreamFinished: root.scanWifi(true)
+    }
+  }
+
   function scanWifi(force = false) {
-    // Se non è forzato, abbiamo già reti e sono passati meno di 20 secondi, non ricaricare
     if (!force && root.wifiNetworks.length > 0 && (Date.now() - root.lastWifiScan < 20000)) {
       return
     }
@@ -216,12 +248,12 @@ PanelWindow {
   }
 
   function handleWifiClick(net) {
-    if (net.inUse) return
+    if (net.inUse || wifiConnectDirectProc.running || wifiConnectPassProc.running) return
 
     if (net.isSaved || net.isOpen) {
       root.wifiActionSsid = net.ssid
-      Quickshell.execDetached(["nmcli", "dev", "wifi", "connect", net.ssid])
-      wifiRefreshDelayTimer.restart()
+      wifiConnectDirectProc.command = ["nmcli", "dev", "wifi", "connect", net.ssid]
+      wifiConnectDirectProc.running = true
     } else {
       root.targetSsid = net.ssid
       root.targetSecurity = net.security
@@ -240,18 +272,12 @@ PanelWindow {
   }
 
   function forgetWifi(ssid) {
-    Quickshell.execDetached(["nmcli", "connection", "delete", "id", ssid])
-    wifiRefreshDelayTimer.restart()
-  }
-
-  Timer {
-    id: wifiRefreshDelayTimer
-    interval: 2500
-    onTriggered: root.scanWifi()
+    wifiForgetProc.command = ["nmcli", "connection", "delete", "id", ssid]
+    wifiForgetProc.running = true
   }
 
   // =============================================================
-  // 2. LOGICA BLUETOOTH COMPLETA (Pairing nuovi dispositivi, Unpair)
+  // 2. LOGICA BLUETOOTH COMPLETA
   // =============================================================
   property bool btEnabled: true
   property var btDevices: []
@@ -267,7 +293,6 @@ PanelWindow {
     }
   }
 
-  // Dispositivi già associati
   Process {
     id: btScanProc
     command: ["sh", "-c", "bluetoothctl devices 2>/dev/null | sed -r 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' | while read -r tag mac name; do if [ \"$tag\" = \"Device\" ] && [ -n \"$mac\" ]; then if bluetoothctl info \"$mac\" 2>/dev/null | grep -q 'Connected: yes'; then echo \"$mac|yes|$name\"; else echo \"$mac|no|$name\"; fi; fi; done"]
@@ -296,7 +321,6 @@ PanelWindow {
     }
   }
 
-  // Scansione attiva per trovare nuovi dispositivi nelle vicinanze
   Process {
     id: btDiscoveryProc
     command: ["sh", "-c", "bluetoothctl --timeout 6 scan on >/dev/null 2>&1; bluetoothctl devices 2>/dev/null | sed -r 's/\\x1b\\[[0-9;]*[a-zA-Z]//g'"]
@@ -312,7 +336,6 @@ PanelWindow {
           if (match) {
             let mac = match[1]
             let name = match[2].trim()
-            // Mostra solo i dispositivi NON ancora associati
             if (!pairedMacs.includes(mac) && name && !name.match(/^[0-9A-Fa-f-]{17}$/)) {
               if (!list.find(d => d.mac === mac)) {
                 list.push({ mac: mac, name: name })
@@ -338,18 +361,28 @@ PanelWindow {
     onTriggered: root.scanBt()
   }
 
-  // Timer {
-  //   id: btPowerOnDelayTimer
-  //   interval: 600
-  //   onTriggered: root.scanBt()
-  // }
   Process {
     id: btPowerOnProc
-    command: ["sh", "-c", "rfkill unblock bluetooth 2>/dev/null; bluetoothctl power on"]
+    command: [
+      "sh", "-c",
+      "rfkill unblock bluetooth 2>/dev/null; " +
+      "for i in $(seq 1 30); do " +
+      "  bluetoothctl power on >/dev/null 2>&1; " +
+      "  if bluetoothctl show 2>/dev/null | grep -q 'Powered: yes'; then " +
+      "    echo 'enabled'; exit 0; " +
+      "  fi; " +
+      "  sleep 0.1; " +
+      "done; " +
+      "echo 'disabled'"
+    ]
     stdout: StdioCollector {
       onStreamFinished: {
-        root.btEnabled = true
-        root.scanBt(true)
+        let state = this.text.trim()
+        root.btEnabled = (state === "enabled")
+        if (root.btEnabled) {
+          btScanProc.running = false
+          btScanProc.running = true
+        }
       }
     }
   }
@@ -365,6 +398,7 @@ PanelWindow {
       }
     }
   }
+
   property real lastBtScan: 0
 
   function scanBt(force = false) {
@@ -395,7 +429,6 @@ PanelWindow {
   function pairNewDevice(device) {
     if (btActionProc.running) return
     root.btActionMac = device.mac
-    // Sequenza pairing + trust + connect
     btActionProc.command = ["sh", "-c", "bluetoothctl pair " + device.mac + " && bluetoothctl trust " + device.mac + " && bluetoothctl connect " + device.mac]
     btActionProc.running = true
   }
@@ -422,10 +455,6 @@ PanelWindow {
 
       color: Theme.base
       radius: 12
-      // topLeftRadius: 0
-      // topRightRadius: 0
-      // bottomLeftRadius: 12
-      // bottomRightRadius: 12
       border.color: Theme.overlay
       border.width: 4
 
@@ -481,14 +510,13 @@ PanelWindow {
           }
         }
 
-        // 2. SOTTO-HEADER UNIFICATO
+        // 2. Sotto-header unificato
         RowLayout {
           visible: !root.isPasswordPromptOpen
           Layout.fillWidth: true
           implicitHeight: 24
           spacing: 6
 
-          // Titolo Dinamico
           Text {
             text: ControlCenterState.currentTab === "wifi" ? "Wi-Fi" : "Bluetooth"
             color: Theme.text
@@ -499,7 +527,7 @@ PanelWindow {
 
           Item { Layout.fillWidth: true }
 
-          // Bottone Refresh Dinamico
+          // Bottone Refresh
           Rectangle {
             implicitWidth: 24
             implicitHeight: 24
@@ -532,13 +560,13 @@ PanelWindow {
               cursorShape: Qt.PointingHandCursor
               enabled: ControlCenterState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
               onClicked: {
-                if (ControlCenterState.currentTab === "wifi") root.scanWifi(true) // Forzato con --rescan yes
+                if (ControlCenterState.currentTab === "wifi") root.scanWifi(true)
                 else root.scanBt(true)
               }
             }
           }
 
-          // Switch On/Off Dinamico
+          // Switch On/Off
           Rectangle {
             property bool isTabEnabled: ControlCenterState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
             property color accentColor: ControlCenterState.currentTab === "wifi" ? Theme.foam : Theme.iris
@@ -561,6 +589,7 @@ PanelWindow {
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
+              enabled: !(ControlCenterState.currentTab === "bluetooth" && (btPowerOnProc.running || btPowerOffProc.running))
               onClicked: {
                 if (ControlCenterState.currentTab === "wifi") {
                   if (root.wifiEnabled) {
@@ -573,7 +602,6 @@ PanelWindow {
                     wifiPowerOnDelayTimer.restart()
                   }
                 } else {
-                  // GESTIONE BLUETOOTH SENZA SFARFALLIO
                   if (root.btEnabled) {
                     root.btEnabled = false
                     btPowerOffProc.running = false
@@ -589,7 +617,6 @@ PanelWindow {
           }
         }
 
-        // 3. Divisore
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
         // =========================================================
@@ -600,7 +627,7 @@ PanelWindow {
           Layout.fillWidth: true
           Layout.fillHeight: true
 
-          // A. SCHEDA INSERIMENTO PASSWORD
+          // Scheda Password
           ColumnLayout {
             visible: root.isPasswordPromptOpen
             anchors.fill: parent
@@ -707,7 +734,7 @@ PanelWindow {
             Item { Layout.fillHeight: true }
           }
 
-          // B. LISTA NORMALE RETI (Click di connessione e Cestino perfettamente funzionanti)
+          // Lista Reti
           ListView {
             visible: !root.isPasswordPromptOpen && root.wifiEnabled
             anchors.fill: parent
@@ -724,7 +751,6 @@ PanelWindow {
               property bool isBusy: root.wifiActionSsid === modelData.ssid
               property bool isSavedNet: root.savedConnections.includes(modelData.ssid)
 
-              // 1. Area di click su tutta la riga per connettersi
               MouseArea {
                 id: rowMouse
                 anchors.fill: parent
@@ -734,7 +760,6 @@ PanelWindow {
                 onClicked: root.handleWifiClick(modelData)
               }
 
-              // 2. Contenuto grafico
               RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 6
@@ -776,7 +801,6 @@ PanelWindow {
                   font.bold: true
                 }
 
-                // Cestino (con z: 2 per catturare il click in esclusiva)
                 Rectangle {
                   id: forgetBtn
                   z: 2
@@ -816,7 +840,7 @@ PanelWindow {
         }
 
         // =========================================================
-        // 5. VISTA BLUETOOTH (Associati con Cestino + Nuovi Dispositivi)
+        // 5. VISTA BLUETOOTH
         // =========================================================
         ColumnLayout {
           visible: ControlCenterState.currentTab === "bluetooth"
@@ -824,7 +848,6 @@ PanelWindow {
           Layout.fillHeight: true
           spacing: 6
 
-          // A. LISTA DISPOSITIVI GIÀ ASSOCIATI
           ListView {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -839,7 +862,6 @@ PanelWindow {
               color: modelData.connected ? Theme.overlay : (devMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.05) : "transparent")
               property bool isBusy: root.btActionMac === modelData.mac
 
-              // Area click per connettere/disconnettere
               MouseArea {
                 id: devMouse
                 anchors.fill: parent
@@ -883,7 +905,6 @@ PanelWindow {
                   font.pixelSize: 10
                 }
 
-                // Cestino per DIMENTICARE il dispositivo
                 Rectangle {
                   id: forgetBtBtn
                   z: 2
@@ -912,7 +933,6 @@ PanelWindow {
             }
           }
 
-          // B. SEZIONE ACCOPPIAMENTO NUOVI DISPOSITIVI
           Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
           RowLayout {
@@ -922,7 +942,6 @@ PanelWindow {
             Text { text: "Nearby"; color: Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true }
             Item { Layout.fillWidth: true }
 
-            // Bottone "Search Nuovi"
             Rectangle {
               implicitWidth: 75; implicitHeight: 20; radius: 4
               color: root.isBtScanning ? Theme.overlay : Theme.base
@@ -951,7 +970,6 @@ PanelWindow {
             }
           }
 
-          // Lista Nuovi Dispositivi Trovati
           ListView {
             Layout.fillWidth: true
             implicitHeight: Math.min(contentHeight, 70)
