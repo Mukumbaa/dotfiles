@@ -4,14 +4,16 @@ function module.toggle_waybar(notification)
     local running = io.popen("pidof waybar"):read("*a"):match("%d+")
 
     if running then
-        os.execute("pkill -9 -x waybar")
+        hl.exec_cmd("pkill -9 -x waybar")
         if notification == true then
-            hl.notification.create({text="Waybar off", duration = "2500", color = "rgb(31748f)"})
+          -- hl.notification.create({text="Waybar off", duration = "2500", color = "rgb(31748f)"})
+          hl.exec_cmd('notify-send -a "Hyprland" "Waybar" "Bar off"')
         end
     else
-        os.execute("waybar > /dev/null 2>&1 &")
+        hl.exec_cmd("waybar > /dev/null 2>&1 &")
         if notification == true then
-            hl.notification.create({text="Waybar on", duration = "2500", color = "rgb(31748f)"})
+            -- hl.notification.create({text="Waybar on", duration = "2500", color = "rgb(31748f)"})
+            hl.exec_cmd('notify-send -a "Hyprland" "Waybar" "Bar on"')
         end
     end
 end

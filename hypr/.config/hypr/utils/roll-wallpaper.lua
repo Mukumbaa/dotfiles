@@ -39,7 +39,7 @@
 --   end
 --
 --   local next_i = (tonumber(filename) % #wallpapers) + 1
---   os.execute('hyprctl hyprpaper wallpaper ",' .. wallpaper_dir .. "/" .. wallpapers[next_i] .. '"')
+--   hl.exec_cmd('hyprctl hyprpaper wallpaper ",' .. wallpaper_dir .. "/" .. wallpapers[next_i] .. '"')
 --
 --   hl.notification.create({text="Wallpaper changed", duration = "2500", color = "rgb(31748f)"})
 -- end
@@ -49,10 +49,11 @@ local module = {}
 
 function module.roll_wallpaper()
     -- Invia il comando di cambio sfondo a Quickshell
-    os.execute("qs ipc call wallpaper next 2>/dev/null || quickshell ipc call wallpaper next 2>/dev/null")
+    hl.exec_cmd("qs ipc call wallpaper next 2>/dev/null || quickshell ipc call wallpaper next 2>/dev/null")
 
     -- Notifica Hyprland
-    hl.notification.create({text = "Wallpaper changed", duration = "2500", color = "rgb(31748f)"})
+    -- hl.notification.create({text = "Wallpaper changed", duration = "2500", color = "rgb(31748f)"})
+    hl.exec_cmd('notify-send -a "Hyprland" "Wallpaper" "Wallpaper changed"')
 end
 
 return module

@@ -35,7 +35,8 @@ function module.hyprshot(mode)
             ) or "slurp -or"
         end
 
-        local notification = 'hyprctl notify -1 3500 "rgb(31748f)" "Screenshot copied and saved in Pictures/Screenshots/' .. fn .. '"'
+        -- local notification = 'hyprctl notify -1 3500 "rgb(31748f)" "Screenshot copied and saved in Pictures/Screenshots/' .. fn .. '"'
+        local notification = 'notify-send -a "Hyprland" "Screenshot" "Screenshot copied and saved in Pictures/Screenshots/' .. fn .. '"'
         -- local cmd = string.format(
         --     "sh -c 'mkdir -p \"%s\" && %s | grim -g - \"%s\" && wl-copy --type image/png < \"%s\"; %s'",
         --     dir,

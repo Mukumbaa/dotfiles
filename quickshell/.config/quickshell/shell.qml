@@ -63,4 +63,5 @@ Scope {
   OsdPopup {}
   Lockscreen {}
   Wallpaper {}
+  NotificationPopup {}
 }
