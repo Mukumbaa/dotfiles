@@ -316,7 +316,8 @@ PanelWindow {
           }
         }
         root.btDevices = list
-        root.btActionMac = ""
+        root.btActionMac = "" // Azzera lo spinner
+        btActionTimeoutTimer.stop()
       }
     }
   }
@@ -348,17 +349,30 @@ PanelWindow {
     }
   }
 
+  // Timer di sincronizzazione Bluetooth con FORZATURA attiva
+  Timer {
+    id: btSyncDelayTimer
+    interval: 500
+    onTriggered: root.scanBt(true) // <-- Passa true per bypassare il cooldown!
+  }
+
+  // Timer di sicurezza anti-blocco (se il bluetooth ci mette troppo)
+  Timer {
+    id: btActionTimeoutTimer
+    interval: 8000
+    onTriggered: {
+      if (root.btActionMac.length > 0) {
+        root.btActionMac = ""
+        root.scanBt(true)
+      }
+    }
+  }
+
   Process {
     id: btActionProc
     stdout: StdioCollector {
       onStreamFinished: btSyncDelayTimer.restart()
     }
-  }
-
-  Timer {
-    id: btSyncDelayTimer
-    interval: 400
-    onTriggered: root.scanBt()
   }
 
   Process {
@@ -421,6 +435,7 @@ PanelWindow {
   function toggleDeviceConnection(device) {
     if (btActionProc.running) return
     root.btActionMac = device.mac
+    btActionTimeoutTimer.restart()
     let action = device.connected ? "disconnect" : "connect"
     btActionProc.command = ["bluetoothctl", action, device.mac]
     btActionProc.running = true
@@ -429,6 +444,7 @@ PanelWindow {
   function pairNewDevice(device) {
     if (btActionProc.running) return
     root.btActionMac = device.mac
+    btActionTimeoutTimer.restart()
     btActionProc.command = ["sh", "-c", "bluetoothctl pair " + device.mac + " && bluetoothctl trust " + device.mac + " && bluetoothctl connect " + device.mac]
     btActionProc.running = true
   }
