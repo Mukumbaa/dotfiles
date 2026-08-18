@@ -15,7 +15,7 @@ PanelWindow {
 
   Behavior on animProgress {
     NumberAnimation {
-      duration: 200
+      duration: Theme.animationDuration
       easing.type: Easing.InOutQuad
     }
   }
@@ -25,8 +25,8 @@ PanelWindow {
     right: true
   }
   margins {
-    top: 4
-    right: 16
+    top: Theme.marginTop
+    right: Theme.marginRight
   }
 
   implicitWidth: 265
@@ -199,13 +199,13 @@ PanelWindow {
       opacity: root.animProgress
 
       color: Theme.base
-      radius: 12
+      radius: Theme.radius
       // topLeftRadius: 0
       // topRightRadius: 0
       // bottomLeftRadius: 12
       // bottomRightRadius: 12
       border.color: Theme.overlay
-      border.width: 4
+      border.width: Theme.borderWidth
 
       ColumnLayout {
         anchors.fill: parent

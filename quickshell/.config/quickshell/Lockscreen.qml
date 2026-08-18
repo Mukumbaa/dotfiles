@@ -138,7 +138,7 @@ Scope {
           radius: 21
           color: Theme.surface
           border.color: lockScope.errorMessage.length > 0 ? Theme.love : (lockScope.isAuthenticating ? Theme.gold : Theme.overlay)
-          border.width: 4
+          border.width: Theme.borderWidth
 
           Behavior on border.color { ColorAnimation { duration: 150 } }
 

@@ -86,9 +86,9 @@ PanelWindow {
     Rectangle {
       anchors.fill: parent
       color: Theme.base
-      radius: 24
+      radius: Theme.radius * 2
       border.color: Theme.overlay
-      border.width: 4
+      border.width: Theme.borderWidth
 
       scale: 0.9 + (0.1 * root.animProgress)
       opacity: root.animProgress

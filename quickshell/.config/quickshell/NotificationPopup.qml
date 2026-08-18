@@ -28,8 +28,8 @@ Scope {
       right: true
     }
     margins {
-      top: 4
-      right: 16
+      top: Theme.marginTop
+      right: Theme.marginRight
     }
 
     implicitWidth: 320
@@ -61,10 +61,10 @@ Scope {
             id: notifCard
             width: parent.width
             height: Math.max(0, parent.height - 8)
-            radius: 12
+            radius: Theme.radius
             color: Theme.base
             border.color: Theme.overlay
-            border.width: 4
+            border.width: Theme.borderWidth
 
             property bool isClosing: false
 
