@@ -27,7 +27,6 @@ PanelWindow {
   // Percorso della cartella sfondi
   property string wallpaperDir: (Quickshell.env("HOME") || "/home/user") + "/.config/hypr/wallpaper"
 
-  // Scansiona la cartella e ordina numericamente i file (1.png, 2.png, ..., 10.png)
   Process {
     id: scanWallpapersProc
     command: ["sh", "-c", "find \"" + root.wallpaperDir + "\" -maxdepth 1 -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) | sort -V"]
@@ -41,7 +40,6 @@ PanelWindow {
         }
         root.wallpaperList = list
         if (list.length > 0) {
-          // Imposta il primo sfondo all'avvio
           img1.source = list[0]
         }
       }
@@ -50,7 +48,6 @@ PanelWindow {
 
   Component.onCompleted: scanWallpapersProc.running = true
 
-  // Ricevitore comandi IPC per il cambio sfondo
   IpcHandler {
     target: "wallpaper"
 
@@ -69,7 +66,6 @@ PanelWindow {
     root.currentIndex = (root.currentIndex + step + root.wallpaperList.length) % root.wallpaperList.length
     let nextPath = root.wallpaperList[root.currentIndex]
 
-    // Alterna tra img1 e img2 per creare la dissolvenza incrociata (Cross-fade)
     if (root.isImg1Active) {
       img2.source = nextPath
       root.isImg1Active = false
@@ -80,17 +76,27 @@ PanelWindow {
   }
 
   // -------------------------------------------------------------
-  // DOPPIO LAYER PER TRANSIZIONE MORBIDA (CROSS-FADE)
+  // DOPPIO LAYER PER TRANSIZIONE MORBIDA (CON RILASCIO MEMORIA RAM)
   // -------------------------------------------------------------
   Image {
     id: img1
     anchors.fill: parent
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
+    sourceSize.width: root.width
+    sourceSize.height: root.height
     opacity: root.isImg1Active ? 1.0 : 0.0
 
     Behavior on opacity {
-      NumberAnimation { duration: 400; easing.type: Easing.InOutQuad }
+      NumberAnimation {
+        duration: 400
+        easing.type: Easing.InOutQuad
+        onRunningChanged: {
+          if (!running && !root.isImg1Active) {
+            img1.source = "" // Scarica l'immagine dalla RAM quando invisibile
+          }
+        }
+      }
     }
   }
 
@@ -99,10 +105,20 @@ PanelWindow {
     anchors.fill: parent
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
+    sourceSize.width: root.width
+    sourceSize.height: root.height
     opacity: root.isImg1Active ? 0.0 : 1.0
 
     Behavior on opacity {
-      NumberAnimation { duration: 400; easing.type: Easing.InOutQuad }
+      NumberAnimation {
+        duration: 400
+        easing.type: Easing.InOutQuad
+        onRunningChanged: {
+          if (!running && root.isImg1Active) {
+            img2.source = "" // Scarica l'immagine dalla RAM quando invisibile
+          }
+        }
+      }
     }
   }
 }

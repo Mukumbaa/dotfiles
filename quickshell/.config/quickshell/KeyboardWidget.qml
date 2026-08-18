@@ -47,6 +47,6 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: Quickshell.execDetached(["sh", "-c", "hyprctl switchxkblayout all next"])
+    onClicked: Quickshell.execDetached(["hyprctl", "switchxkblayout", "all", "next"])
   }
 }

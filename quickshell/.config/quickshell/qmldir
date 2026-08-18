@@ -4,6 +4,7 @@ singleton CalendarState CalendarState.qml
 singleton BatteryState BatteryState.qml
 singleton AudioState AudioState.qml
 singleton PowerMenuState PowerMenuState.qml
+singleton BrightnessState BrightnessState.qml
 LeftSection LeftSection.qml
 CenterSection CenterSection.qml
 RightSection RightSection.qml

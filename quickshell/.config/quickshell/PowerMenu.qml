@@ -54,7 +54,7 @@ PanelWindow {
 
   function executeAction(cmd) {
     PowerMenuState.close()
-    Quickshell.execDetached(["sh", "-c", cmd])
+    Quickshell.execDetached(cmd)
   }
 
   // Sfondo scuro oscurato con fade-in
@@ -77,11 +77,11 @@ PanelWindow {
 
       Keys.onEscapePressed: PowerMenuState.close()
       Keys.onPressed: event => {
-        if (event.key === Qt.Key_L) executeAction("qs ipc call lock lock")
-        else if (event.key === Qt.Key_S) executeAction("systemctl suspend")
-        else if (event.key === Qt.Key_E) executeAction("hyprctl dispatch exit")
-        else if (event.key === Qt.Key_R) executeAction("systemctl reboot")
-        else if (event.key === Qt.Key_P) executeAction("systemctl poweroff")
+        if (event.key === Qt.Key_L) executeAction(["qs", "ipc", "call", "lock", "lock"])
+        else if (event.key === Qt.Key_S) executeAction(["systemctl", "suspend"])
+        else if (event.key === Qt.Key_E) executeAction(["hyprctl", "dispatch", "exit"])
+        else if (event.key === Qt.Key_R) executeAction(["systemctl", "reboot"])
+        else if (event.key === Qt.Key_P) executeAction(["systemctl", "poweroff"])
       }
 
       // Contenitore centrale dei 5 pulsanti
@@ -97,7 +97,7 @@ PanelWindow {
           label: "Lock"
           keyHint: "L"
           accentColor: Theme.iris
-          onTriggered: root.executeAction("qs ipc call lock lock")
+          onTriggered: root.executeAction(["qs", "ipc", "call", "lock", "lock"])
         }
 
         // 2. SUSPEND
@@ -106,7 +106,7 @@ PanelWindow {
           label: "Suspend"
           keyHint: "S"
           accentColor: Theme.foam
-          onTriggered: root.executeAction("systemctl suspend")
+          onTriggered: root.executeAction(["systemctl", "suspend"])
         }
 
         // 3. LOGOUT
@@ -115,7 +115,7 @@ PanelWindow {
           label: "Logout"
           keyHint: "E"
           accentColor: Theme.rose
-          onTriggered: root.executeAction("hyprctl dispatch exit")
+          onTriggered: root.executeAction(["hyprctl", "dispatch", "exit"])
         }
 
         // 4. REBOOT
@@ -124,7 +124,7 @@ PanelWindow {
           label: "Reboot"
           keyHint: "R"
           accentColor: Theme.gold
-          onTriggered: root.executeAction("systemctl reboot")
+          onTriggered: root.executeAction(["systemctl", "reboot"])
         }
 
         // 5. SHUTDOWN
@@ -133,7 +133,7 @@ PanelWindow {
           label: "Shutdown"
           keyHint: "P"
           accentColor: Theme.love
-          onTriggered: root.executeAction("systemctl poweroff")
+          onTriggered: root.executeAction(["systemctl", "poweroff"])
         }
       }
     }

@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Services.Pipewire
 
@@ -16,7 +15,6 @@ PanelWindow {
     NumberAnimation { duration: 180; easing.type: Easing.OutQuad }
   }
 
-  // Centrato in basso sullo schermo
   anchors {
     bottom: true
   }
@@ -42,11 +40,10 @@ PanelWindow {
   property real currentVol: (sink && sink.audio) ? sink.audio.volume : 0.0
   property bool isMuted: (sink && sink.audio) ? sink.audio.muted : false
 
-  property string osdType: "volume" // "volume" o "brightness"
+  property string osdType: "volume"
   property int osdValue: 0
   property string osdIcon: ""
 
-  // Mostra l'OSD e avvia il timer di dissolvenza da 1.5s
   function triggerOsd(type, val, icon) {
     osdType = type
     osdValue = Math.round(val)
@@ -61,7 +58,6 @@ PanelWindow {
     onTriggered: root.isOsdVisible = false
   }
 
-  // Intercetta i cambi di volume Pipewire
   onCurrentVolChanged: {
     if (sink && sink.audio) {
       let icon = isMuted ? "󰝟" : (currentVol > 0.6 ? "" : (currentVol > 0.2 ? "" : ""))
@@ -74,35 +70,16 @@ PanelWindow {
     triggerOsd("volume", isMuted ? 0 : currentVol * 100, icon)
   }
 
-  // Monitoraggio Luminosità tramite inotifywait
-  Process {
-    id: brightMonitor
-    running: true
-    command: ["sh", "-c", "stdbuf -oL inotifywait -m -e modify /sys/class/backlight/*/*brightness 2>/dev/null"]
-    stdout: SplitParser {
-      onRead: data => {
-        if (!brightReadProc.running) brightReadProc.running = true
-      }
+  // Riceve i cambi di luminosità dal singleton
+  Connections {
+    target: BrightnessState
+    function onBrightnessChanged() {
+      let val = BrightnessState.brightness
+      let icon = val >= 50 ? "" : ""
+      root.triggerOsd("brightness", val, icon)
     }
   }
 
-  Process {
-    id: brightReadProc
-    command: ["sh", "-c", "brightnessctl -m | cut -d, -f4 | tr -d '%'"]
-    stdout: SplitParser {
-      onRead: data => {
-        let val = parseInt(data.trim())
-        if (!isNaN(val)) {
-          let icon = val >= 50 ? "" : ""
-          root.triggerOsd("brightness", val, icon)
-        }
-      }
-    }
-  }
-
-  // -------------------------------------------------------------
-  // GRAFICA OSD (Pill Rosé Pine animato)
-  // -------------------------------------------------------------
   Item {
     anchors.fill: parent
 
@@ -128,7 +105,6 @@ PanelWindow {
           font.pixelSize: 18
         }
 
-        // Barra di avanzamento
         Rectangle {
           Layout.fillWidth: true
           implicitHeight: 6

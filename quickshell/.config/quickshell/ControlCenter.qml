@@ -135,9 +135,21 @@ PanelWindow {
     }
   }
 
+  property real lastWifiScan: 0
+
+  // Scansione: di default usa la cache (--rescan no), solo su refresh manuale fa la scansione radio completa
   Process {
     id: wifiScanProc
-    command: ["sh", "-c", "current=$(nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | grep '^yes:' | head -n1 | cut -d: -f2); nmcli -t -f SSID,SIGNAL,SECURITY dev wifi list --rescan yes 2>/dev/null | while IFS=: read -r ssid signal security; do if [ -n \"$ssid\" ]; then if [ \"$ssid\" = \"$current\" ]; then echo \"$ssid|$signal|$security|yes\"; else echo \"$ssid|$signal|$security|no\"; fi; fi; done"]
+    property bool forceRescan: false
+    command: [
+      "sh", "-c",
+      "current=$(nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | grep '^yes:' | head -n1 | cut -d: -f2); " +
+      "nmcli -t -f SSID,SIGNAL,SECURITY dev wifi list --rescan " + (forceRescan ? "yes" : "no") + " 2>/dev/null | " +
+      "while IFS=: read -r ssid signal security; do " +
+      "if [ -n \"$ssid\" ]; then " +
+      "if [ \"$ssid\" = \"$current\" ]; then echo \"$ssid|$signal|$security|yes\"; else echo \"$ssid|$signal|$security|no\"; fi; " +
+      "fi; done"
+    ]
     stdout: StdioCollector {
       onStreamFinished: {
         let lines = this.text.trim().split("\n")
@@ -166,6 +178,7 @@ PanelWindow {
         if (activeItem) list.unshift(activeItem)
         root.wifiNetworks = list
         root.wifiActionSsid = ""
+        root.lastWifiScan = Date.now()
       }
     }
   }
@@ -187,7 +200,13 @@ PanelWindow {
     }
   }
 
-  function scanWifi() {
+  function scanWifi(force = false) {
+    // Se non è forzato, abbiamo già reti e sono passati meno di 20 secondi, non ricaricare
+    if (!force && root.wifiNetworks.length > 0 && (Date.now() - root.lastWifiScan < 20000)) {
+      return
+    }
+
+    wifiScanProc.forceRescan = force
     savedWifiProc.running = false
     wifiToggleProc.running = false
     wifiScanProc.running = false
@@ -200,12 +219,10 @@ PanelWindow {
     if (net.inUse) return
 
     if (net.isSaved || net.isOpen) {
-      // Connecting diretta
       root.wifiActionSsid = net.ssid
-      Quickshell.execDetached(["sh", "-c", "nmcli dev wifi connect \"" + net.ssid + "\""])
+      Quickshell.execDetached(["nmcli", "dev", "wifi", "connect", net.ssid])
       wifiRefreshDelayTimer.restart()
     } else {
-      // Richiede password
       root.targetSsid = net.ssid
       root.targetSecurity = net.security
       root.passwordInput = ""
@@ -218,12 +235,12 @@ PanelWindow {
     if (!root.passwordInput) return
     root.isConnectingWithPass = true
     root.wifiErrorMsg = ""
-    wifiConnectPassProc.command = ["sh", "-c", "nmcli dev wifi connect \"" + root.targetSsid + "\" password \"" + root.passwordInput + "\""]
+    wifiConnectPassProc.command = ["nmcli", "dev", "wifi", "connect", root.targetSsid, "password", root.passwordInput]
     wifiConnectPassProc.running = true
   }
 
   function forgetWifi(ssid) {
-    Quickshell.execDetached(["sh", "-c", "nmcli connection delete id \"" + ssid + "\""])
+    Quickshell.execDetached(["nmcli", "connection", "delete", "id", ssid])
     wifiRefreshDelayTimer.restart()
   }
 
@@ -321,13 +338,40 @@ PanelWindow {
     onTriggered: root.scanBt()
   }
 
-  Timer {
-    id: btPowerOnDelayTimer
-    interval: 600
-    onTriggered: root.scanBt()
+  // Timer {
+  //   id: btPowerOnDelayTimer
+  //   interval: 600
+  //   onTriggered: root.scanBt()
+  // }
+  Process {
+    id: btPowerOnProc
+    command: ["sh", "-c", "rfkill unblock bluetooth 2>/dev/null; bluetoothctl power on"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.btEnabled = true
+        root.scanBt(true)
+      }
+    }
   }
 
-  function scanBt() {
+  Process {
+    id: btPowerOffProc
+    command: ["bluetoothctl", "power", "off"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        root.btEnabled = false
+        root.btDevices = []
+        root.btAvailableDevices = []
+      }
+    }
+  }
+  property real lastBtScan: 0
+
+  function scanBt(force = false) {
+    if (!force && root.btDevices.length > 0 && (Date.now() - root.lastBtScan < 15000)) {
+      return
+    }
+    root.lastBtScan = Date.now()
     btPowerProc.running = false
     btScanProc.running = false
     btPowerProc.running = true
@@ -357,7 +401,7 @@ PanelWindow {
   }
 
   function forgetBtDevice(mac) {
-    Quickshell.execDetached(["sh", "-c", "bluetoothctl remove " + mac])
+    Quickshell.execDetached(["bluetoothctl", "remove", mac])
     btSyncDelayTimer.restart()
   }
 
@@ -414,7 +458,7 @@ PanelWindow {
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
-              onClicked: { ControlCenterState.currentTab = "wifi"; root.scanWifi() }
+              onClicked: { ControlCenterState.currentTab = "wifi"; root.scanWifi(false) }
             }
           }
 
@@ -432,7 +476,7 @@ PanelWindow {
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
-              onClicked: { ControlCenterState.currentTab = "bluetooth"; root.scanBt() }
+              onClicked: { ControlCenterState.currentTab = "bluetooth"; root.scanBt(false) }
             }
           }
         }
@@ -488,8 +532,8 @@ PanelWindow {
               cursorShape: Qt.PointingHandCursor
               enabled: ControlCenterState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
               onClicked: {
-                if (ControlCenterState.currentTab === "wifi") root.scanWifi()
-                else root.scanBt()
+                if (ControlCenterState.currentTab === "wifi") root.scanWifi(true) // Forzato con --rescan yes
+                else root.scanBt(true)
               }
             }
           }
@@ -529,15 +573,15 @@ PanelWindow {
                     wifiPowerOnDelayTimer.restart()
                   }
                 } else {
+                  // GESTIONE BLUETOOTH SENZA SFARFALLIO
                   if (root.btEnabled) {
                     root.btEnabled = false
-                    root.btDevices = []
-                    root.btAvailableDevices = []
-                    Quickshell.execDetached(["sh", "-c", "bluetoothctl power off"])
+                    btPowerOffProc.running = false
+                    btPowerOffProc.running = true
                   } else {
                     root.btEnabled = true
-                    Quickshell.execDetached(["sh", "-c", "rfkill unblock bluetooth && sleep 0.2 && bluetoothctl power on"])
-                    btPowerOnDelayTimer.restart()
+                    btPowerOnProc.running = false
+                    btPowerOnProc.running = true
                   }
                 }
               }

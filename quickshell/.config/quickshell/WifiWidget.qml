@@ -12,24 +12,32 @@ Item {
     spacing: 4
     property string ssid: "Disconnected"
 
+    // OTTIMIZZATO (Zero polling, reattivo agli eventi istantaneamente)
     Process {
       id: wifiProc
-      command: ["sh", "-c", "nmcli -t -f ACTIVE,SSID dev wifi 2>/dev/null | grep '^yes:' | cut -d: -f2"]
+      command: ["nmcli", "-t", "-f", "ACTIVE,SSID", "dev", "wifi"]
       stdout: StdioCollector {
         onStreamFinished: {
           let trimmed = this.text.trim()
-          wifiLayout.ssid = trimmed.length > 0 ? trimmed : "Disconnected"
+          let match = trimmed.match(/^yes:(.*)$/m)
+          wifiLayout.ssid = (match && match[1]) ? match[1] : "Disconnected"
         }
       }
     }
 
-    Timer {
-      interval: 4000
+    Process {
+      id: wifiMonitorProc
       running: true
-      repeat: true
-      triggeredOnStart: true
-      onTriggered: if (!wifiProc.running) wifiProc.running = true
+      command: ["nmcli", "monitor"]
+      stdout: SplitParser {
+        onRead: {
+          if (!wifiProc.running) wifiProc.running = true
+        }
+      }
     }
+
+    Component.onCompleted: wifiProc.running = true
+
 
     Text {
       text: wifiLayout.ssid !== "Disconnected" && wifiLayout.ssid !== "" ? "󰤨" : "󰤮"

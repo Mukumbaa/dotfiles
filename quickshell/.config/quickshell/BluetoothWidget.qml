@@ -28,21 +28,18 @@ Item {
     Process {
       id: btMonitorProc
       running: true
-      command: ["sh", "-c", "stdbuf -oL -eL dbus-monitor --system \"type='signal',sender='org.bluez'\""]
+      command: ["stdbuf", "-oL", "-eL", "dbus-monitor", "--system", "type='signal',sender='org.bluez'"]
       stdout: SplitParser {
-        onRead: data => {
-          if (!btCheckProc.running) btCheckProc.running = true
-        }
+        onRead: data => btDebounce.restart() // Raggruppa gli eventi ravvicinati
       }
     }
-
     Timer {
-      interval: 4000
-      running: true
-      repeat: true
-      triggeredOnStart: true
+      id: btDebounce
+      interval: 250
       onTriggered: if (!btCheckProc.running) btCheckProc.running = true
     }
+
+    Component.onCompleted: btCheckProc.running = true  
   }
 
   MouseArea {

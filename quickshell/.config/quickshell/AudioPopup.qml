@@ -36,39 +36,38 @@ PanelWindow {
   WlrLayershell.layer: WlrLayer.Overlay
   exclusiveZone: 0
 
-// -------------------------------------------------------------
+  // -------------------------------------------------------------
   // TRACCIAMENTO NODI PIPEWIRE (Output, Input, Volumi)
   // -------------------------------------------------------------
   PwObjectTracker {
-    objects: Pipewire.nodes.values
+    objects: root.isOpen ? Pipewire.nodes.values : []
   }
 
-  // Dispositivi attivi predefiniti
   property var defaultSink: Pipewire.defaultAudioSink
   property var defaultSource: Pipewire.defaultAudioSource
 
-  // Filtra solo i veri dispositivi fisici di uscita (Cuffie, Casse, HDMI)
-  property var outputNodes: {
-    let list = []
-    for (let node of Pipewire.nodes.values) {
-      if (node && node.isSink && !node.isStream && node.audio) {
-        list.push(node)
-      }
-    }
-    return list
-  }
+  property var outputNodes: []
+  property var inputNodes: []
 
-  // Filtra solo i veri dispositivi fisici di ingresso (Microfoni, Headset Mic, ecc.)
-  property var inputNodes: {
-    let list = []
+  function refreshNodes() {
+    if (!root.isOpen) return
+    let outs = []
+    let ins = []
     for (let node of Pipewire.nodes.values) {
-      if (node && !node.isSink && !node.isStream && node.audio) {
-        list.push(node)
-      }
+      if (!node || node.isStream || !node.audio) continue
+      if (node.isSink) outs.push(node)
+      else ins.push(node)
     }
-    return list
+    outputNodes = outs
+    inputNodes = ins
   }
-
+  // Aggiorna la lista se colleghi/scolleghi dispositivi mentre il popup è aperto
+  Connections {
+    target: Pipewire.nodes
+    function onValuesChanged() {
+      if (root.isOpen) root.refreshNodes()
+    }
+  }
   function setDefaultDevice(node) {
     if (!node) return
     Quickshell.execDetached(["wpctl", "set-default", node.id.toString()])
@@ -111,6 +110,7 @@ PanelWindow {
 
   onIsOpenChanged: {
     if (isOpen) {
+      refreshNodes()
       inactivityTimer.restart()
     } else {
       autoCloseTimer.stop()
@@ -280,7 +280,7 @@ PanelWindow {
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
         // =========================================================
-        // 3. LISTA DISPOSITIVI DISPONIBILI (Click per cambiare)
+        // 3. LISTA DISPOSITIVI DISPONIBILI
         // =========================================================
         Text {
           text: AudioState.currentTab === "output" ? "SELECT OUTPUT DEVICE" : "SELECT INPUT DEVICE"
@@ -331,7 +331,6 @@ PanelWindow {
                 elide: Text.ElideRight
               }
 
-              // Indicatore attivo (Spunta)
               Text {
                 visible: devRow.isDefault
                 text: "󰄬"

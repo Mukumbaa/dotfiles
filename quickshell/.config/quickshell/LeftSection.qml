@@ -1,20 +1,14 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Hyprland
-import Quickshell.Io
 
 RowLayout {
   Layout.alignment: Qt.AlignLeft
   spacing: 12
 
-  Process {
-    id: hyprDispatcher
-  }
-
   function focusWorkspace(id) {
-    let cmd = "hl.dsp.focus({ workspace = \"" + id + "\" })"
-    hyprDispatcher.command = ["hyprctl", "dispatch", cmd]
-    hyprDispatcher.running = true
+    Hyprland.dispatch("hl.dsp.focus({ workspace = \"" + id + "\" })")
   }
 
   // Calcola dinamicamente la lista dei workspace aperti oltre il 5 (es. [6, 7...])
