@@ -1,31 +1,41 @@
 local module = {}
 
 function module.toggle_quickshell_bar(notification)
-    -- 1. Se Quickshell non è avviato nel sistema, lo avviamo per la prima volta
-    local is_running = io.popen("pidof quickshell 2>/dev/null"):read("*a"):match("%d+")
-    if not is_running then
-        hl.exec_cmd("quickshell > /dev/null 2>&1 &")
-        if notification == true then
-          -- hl.notification.create({text = "Bar on", duration = "2500", color = "rgb(31748f)"})
-          hl.exec_cmd('notify-send -a "Hyprland" "Quickshell" "Bar on"')
-        end
-        return
-    end
+    local notify_flag = notification and "1" or "0"
 
-    -- 2. Se è già avviato, facciamo il toggle istantaneo della visibilità via IPC
-    hl.exec_cmd("qs ipc call bar toggle 2>/dev/null || quickshell ipc call bar toggle 2>/dev/null")
+    -- Usiamo flock per gestire lo spam in modo nativo e sicuro
+    local bash_script = string.format([[
+        sh -c '
+            LOCK="/tmp/qs_toggle.lock"
+            exec 200>"$LOCK"
+            flock -n 200 || exit 0
 
-    -- 3. Notifica con stato reale (on/off)
-    if notification == true then
-        local check = io.popen("qs ipc call bar isVisible 2>/dev/null || quickshell ipc call bar isVisible 2>/dev/null")
-        local result = check and check:read("*a") or ""
-        if check then check:close() end
+            # 1. Se Quickshell non è avviato, lo avvia
+            if ! pgrep -x quickshell >/dev/null 2>&1; then
+                quickshell >/dev/null 2>&1 &
+                if [ "%s" = "1" ]; then
+                    notify-send -a "Hyprland" -r 9954 "Quickshell" "Bar on"
+                fi
+                exit 0
+            fi
 
-        local is_visible = result:match("true") ~= nil
-        local status_text = is_visible and "Bar on" or "Bar off"
-        -- hl.notification.create({text = status_text, duration = "2500", color = "rgb(31748f)"})
-        hl.exec_cmd('notify-send -a "Hyprland" "Quickshell" "' .. status_text .. '"')
-    end
+            # 2. Toggle via IPC
+            (qs ipc call bar toggle || quickshell ipc call bar toggle) >/dev/null 2>&1
+
+            # 3. Notifica con stato reale
+            if [ "%s" = "1" ]; then
+                sleep 0.05
+                STATE=$(qs ipc call bar isVisible 2>/dev/null || quickshell ipc call bar isVisible 2>/dev/null)
+                if echo "$STATE" | grep -q "true"; then
+                    notify-send -a "Hyprland" -r 9954 "Quickshell" "Bar on"
+                else
+                    notify-send -a "Hyprland" -r 9954 "Quickshell" "Bar off"
+                fi
+            fi
+        ' &
+    ]], notify_flag, notify_flag)
+
+    hl.exec_cmd(bash_script)
 end
 
 return module
