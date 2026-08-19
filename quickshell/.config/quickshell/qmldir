@@ -5,6 +5,7 @@ singleton BatteryState BatteryState.qml
 singleton AudioState AudioState.qml
 singleton PowerMenuState PowerMenuState.qml
 singleton BrightnessState BrightnessState.qml
+singleton LauncherState LauncherState.qml
 LeftSection LeftSection.qml
 CenterSection CenterSection.qml
 RightSection RightSection.qml
@@ -24,3 +25,4 @@ OsdPopup OsdPopup.qml
 Lockscreen Lockscreen.qml
 Wallpaper Wallpaper.qml
 NotificationPopup NotificationPopup.qml
+AppLauncher AppLauncher.qml

@@ -37,22 +37,25 @@ PanelWindow {
   exclusiveZone: 0
 
   // -------------------------------------------------------------
-  // LOGICA BATTERIA, TEMPO E WATT (Lettura Sensori Diretta Sysfs)
+  // LOGICA BATTERIA, TEMPO E WATT (Istantanea via sysfs + fallback UPower)
   // -------------------------------------------------------------
   property var displayDevice: UPower.displayDevice
   property int batteryLevel: displayDevice ? Math.round(displayDevice.percentage * 100) : 0
   property bool isCharging: displayDevice ? displayDevice.state === UPowerDeviceState.Charging : false
-  property real wattageValue: 0.0
-  // Scala completa delle icone a 10 livelli (uguale alla barra)
-  property var iconsCharging: "󰂄"
 
+  // Legge da UPower changeRate come valore iniziale, aggiornato poi da sysfs
+  property real wattageValue: displayDevice && displayDevice.changeRate ? Math.abs(displayDevice.changeRate) : 0.0
+
+  // Scala completa delle icone a 10 livelli
+  property var iconsCharging: "󰂄"
   property var iconsDefault:  ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
 
   property string batIcon: {
     let idx = Math.max(0, Math.min(Math.floor(batteryLevel / 10), 9))
     return isCharging ? iconsCharging : iconsDefault[idx]
   }
-  // Lettura istantanea dei Watt reali (uguale a Waybar)
+
+  // Lettura diretta da sysfs (eseguita SOLO a popup aperto)
   Process {
     id: wattQueryProc
     command: ["sh", "-c", "if [ -f /sys/class/power_supply/BAT*/power_now ]; then awk '{printf \"%.1f\", $1 / 1000000}' /sys/class/power_supply/BAT*/power_now 2>/dev/null | head -n1; elif [ -f /sys/class/power_supply/BAT*/current_now ] && [ -f /sys/class/power_supply/BAT*/voltage_now ]; then c=$(cat /sys/class/power_supply/BAT*/current_now 2>/dev/null | head -n1); v=$(cat /sys/class/power_supply/BAT*/voltage_now 2>/dev/null | head -n1); awk \"BEGIN {printf \\\"%.1f\\\", ($c * $v) / 1000000000000}\"; fi"]
@@ -61,8 +64,8 @@ PanelWindow {
         let val = parseFloat(this.text.trim())
         if (!isNaN(val) && val > 0) {
           root.wattageValue = val
-        } else if (displayDevice && displayDevice.energyRate > 0) {
-          root.wattageValue = displayDevice.energyRate
+        } else if (displayDevice && displayDevice.changeRate) {
+          root.wattageValue = Math.abs(displayDevice.changeRate)
         }
       }
     }
@@ -94,7 +97,7 @@ PanelWindow {
   // -------------------------------------------------------------
   // LOGICA PROFILI ENERGETICI (Supporto Diretto Tuned-adm / Fedora)
   // -------------------------------------------------------------
-  property string currentProfile: "balanced" // "performance", "balanced", "power-saver"
+  property string currentProfile: "" // "performance", "balanced", "power-saver"
 
   Process {
     id: profileQueryProc

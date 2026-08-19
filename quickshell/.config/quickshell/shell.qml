@@ -64,4 +64,5 @@ Scope {
   Lockscreen {}
   Wallpaper {}
   NotificationPopup {}
+  AppLauncher {}
 }
