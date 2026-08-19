@@ -115,7 +115,7 @@ PanelWindow {
     anchors.fill: parent
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
-    sourceSize.width: Screen.width
-    sourceSize.height: Screen.height
+    // sourceSize.width: Screen.width
+    // sourceSize.height: Screen.height
   }
 }
