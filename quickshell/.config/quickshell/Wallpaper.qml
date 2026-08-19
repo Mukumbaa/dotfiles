@@ -126,8 +126,8 @@ PanelWindow {
     anchors.fill: parent
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
-    sourceSize.width: root.width
-    sourceSize.height: root.height
+    // sourceSize.width: root.width
+    // sourceSize.height: root.height
     opacity: root.isImg1Active ? 1.0 : 0.0
 
     Behavior on opacity {
@@ -148,8 +148,8 @@ PanelWindow {
     anchors.fill: parent
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
-    sourceSize.width: root.width
-    sourceSize.height: root.height
+    // sourceSize.width: root.width
+    // sourceSize.height: root.height
     opacity: root.isImg1Active ? 0.0 : 1.0
 
     Behavior on opacity {
