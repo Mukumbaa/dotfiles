@@ -18,16 +18,15 @@ PanelWindow {
   color: "black"
 
   // -------------------------------------------------------------
-  // LOGICA SFONDI, IPC E MONITOR AUTOMATICO CARTELLA
+  // LOGICA SFONDI E IPC
   // -------------------------------------------------------------
   property var wallpaperList: []
   property int currentIndex: 0
-  property bool isImg1Active: true
 
   // Percorso della cartella sfondi
   property string wallpaperDir: (Quickshell.env("HOME") || "/home/user") + "/.config/hypr/wallpaper"
 
-  // Scansiona la cartella e ordina numericamente i file
+  // Scansiona la cartella e ordina i file
   Process {
     id: scanWallpapersProc
     command: ["sh", "-c", "find \"" + root.wallpaperDir + "\" -maxdepth 1 -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) | sort -V"]
@@ -35,34 +34,33 @@ PanelWindow {
       onStreamFinished: {
         let lines = this.text.trim().split("\n")
         let list = []
-        for (let line of lines) {
-          let path = line.trim()
+        for (let l of lines) {
+          let path = l.trim()
           if (path.length > 0) list.push(path)
         }
         root.wallpaperList = list
 
         if (list.length === 0) return
 
-        // Primo avvio assoluto: imposta il primo sfondo
-        if (!img1.source.toString() && !img2.source.toString()) {
-          img1.source = list[0]
+        // Primo avvio: imposta lo sfondo iniziale
+        if (!bgImage.source.toString()) {
+          bgImage.source = list[0]
           root.currentIndex = 0
         } else {
-          // Se la cartella è cambiata dinamicamente, risincronizza l'indice corrente
-          let activeSource = (root.isImg1Active ? img1.source.toString() : img2.source.toString())
-          let cleanSource = activeSource.replace(/^file:\/\//, "")
+          // Risincronizza l'indice se la cartella cambia
+          let cleanSource = bgImage.source.toString().replace(/^file:\/\//, "")
           let foundIdx = list.indexOf(cleanSource)
           if (foundIdx !== -1) {
             root.currentIndex = foundIdx
           } else {
             root.currentIndex = Math.max(0, Math.min(root.currentIndex, list.length - 1))
+            bgImage.source = list[root.currentIndex]
           }
         }
       }
     }
   }
 
-  // Timer di debounce per aspettare che lo script Lua finisca di rinominare i file
   Timer {
     id: scanDebounceTimer
     interval: 150
@@ -72,7 +70,7 @@ PanelWindow {
     }
   }
 
-  // Monitoraggio in tempo reale della cartella sfondi (creazioni, eliminazioni, spostamenti)
+  // Monitoraggio modifiche nella cartella sfondi
   Process {
     id: wallpaperDirWatcher
     running: true
@@ -102,66 +100,22 @@ PanelWindow {
     }
   }
 
+  // Cambio sfondo istantaneo
   function changeWallpaper(step) {
     if (root.wallpaperList.length === 0) return
-
     root.currentIndex = (root.currentIndex + step + root.wallpaperList.length) % root.wallpaperList.length
-    let nextPath = root.wallpaperList[root.currentIndex]
-
-    // Alterna tra img1 e img2 per creare la dissolvenza incrociata (Cross-fade)
-    if (root.isImg1Active) {
-      img2.source = nextPath
-      root.isImg1Active = false
-    } else {
-      img1.source = nextPath
-      root.isImg1Active = true
-    }
+    bgImage.source = root.wallpaperList[root.currentIndex]
   }
 
   // -------------------------------------------------------------
-  // DOPPIO LAYER PER TRANSIZIONE MORBIDA (CON RILASCIO MEMORIA RAM)
+  // SINGOLA IMMAGINE OTTIMIZZATA (Caricamento diretto e leggero)
   // -------------------------------------------------------------
   Image {
-    id: img1
+    id: bgImage
     anchors.fill: parent
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
-    // sourceSize.width: root.width
-    // sourceSize.height: root.height
-    opacity: root.isImg1Active ? 1.0 : 0.0
-
-    Behavior on opacity {
-      NumberAnimation {
-        duration: 400
-        easing.type: Easing.InOutQuad
-        onRunningChanged: {
-          if (!running && !root.isImg1Active) {
-            img1.source = "" // Scarica l'immagine dalla RAM quando invisibile
-          }
-        }
-      }
-    }
-  }
-
-  Image {
-    id: img2
-    anchors.fill: parent
-    fillMode: Image.PreserveAspectCrop
-    asynchronous: true
-    sourceSize.width: root.width
-    sourceSize.height: root.height
-    opacity: root.isImg1Active ? 0.0 : 1.0
-
-    Behavior on opacity {
-      NumberAnimation {
-        duration: 400
-        easing.type: Easing.InOutQuad
-        onRunningChanged: {
-          if (!running && root.isImg1Active) {
-            img2.source = "" // Scarica l'immagine dalla RAM quando invisibile
-          }
-        }
-      }
-    }
+    sourceSize.width: Screen.width
+    sourceSize.height: Screen.height
   }
 }
