@@ -85,6 +85,11 @@ PanelWindow {
     return apps
   }
 
+  onFilteredAppsChanged: {
+    appListView.currentIndex = 0
+    appListView.positionViewAtBeginning()
+  }
+
   function launchApp(app) {
     if (!app) return
     LauncherState.close()
@@ -258,6 +263,14 @@ PanelWindow {
           clip: true
           model: root.filteredApps
           spacing: 3
+          currentIndex: 0
+
+          onCountChanged: {
+            if (count > 0) {
+              currentIndex = 0
+              positionViewAtBeginning()
+            }
+          }
 
           delegate: Rectangle {
             id: appItem
