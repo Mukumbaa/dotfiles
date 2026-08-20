@@ -72,7 +72,7 @@ PanelWindow {
       }
     }
   }
-// Timer che attende la fine dell'animazione prima di avviare la scansione CPU-heavy
+  // Timer che attende la fine dell'animazione prima di avviare la scansione CPU-heavy
   Timer {
     id: openScanDelay
     interval: Theme.animationDuration + 50 // Parte solo quando la finestra è ferma a schermo
@@ -315,7 +315,7 @@ PanelWindow {
 
   Process {
     id: btScanProc
-    command: ["sh", "-c", "bluetoothctl devices 2>/dev/null | sed -r 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' | while read -r tag mac name; do if [ \"$tag\" = \"Device\" ] && [ -n \"$mac\" ]; then if bluetoothctl info \"$mac\" 2>/dev/null | grep -q 'Connected: yes'; then echo \"$mac|yes|$name\"; else echo \"$mac|no|$name\"; fi; fi; done"]
+    command: ["sh", "-c", "bluetoothctl devices 2>/dev/null | sed -r 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' | while read -r tag mac name; do if [ \"$tag\" = \"Device\" ] && [ -n \"$mac\" ]; then info=$(bluetoothctl info \"$mac\" 2>/dev/null); if echo \"$info\" | grep -q 'Connected: yes'; then bat=$(echo \"$info\" | grep -i 'Battery Percentage:' | head -n1); echo \"$mac|yes|$bat|$name\"; else echo \"$mac|no||$name\"; fi; fi; done"]
     stdout: StdioCollector {
       onStreamFinished: {
         let lines = this.text.trim().split("\n")
@@ -324,19 +324,27 @@ PanelWindow {
           let cleanLine = line.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "").trim()
           if (!cleanLine) continue
           let parts = cleanLine.split("|")
-          if (parts.length >= 3) {
+          if (parts.length >= 4) {
             let mac = parts[0].trim()
             let isConnected = parts[1].trim() === "yes"
-            let name = parts.slice(2).join("|").trim()
+            let batRaw = parts[2].trim()
+            let name = parts.slice(3).join("|").trim()
             let isMac = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(mac)
 
+            // Estrae il numero della batteria (es. 85) se presente
+            let battery = -1
+            if (batRaw.length > 0) {
+              let match = batRaw.match(/\((\d+)\)/) || batRaw.match(/(\d+)%/) || batRaw.match(/:\s*(\d+)/)
+              if (match && match[1]) battery = parseInt(match[1])
+            }
+
             if (isMac && name.length > 0) {
-              list.push({ mac: mac, connected: isConnected, name: name })
+              list.push({ mac: mac, connected: isConnected, battery: battery, name: name })
             }
           }
         }
         root.btDevices = list
-        root.btActionMac = "" // Azzera lo spinner
+        root.btActionMac = ""
         btActionTimeoutTimer.stop()
       }
     }
@@ -897,7 +905,7 @@ PanelWindow {
             delegate: Rectangle {
               id: devItem
               width: ListView.view.width
-              implicitHeight: 36
+              implicitHeight: 34
               radius: 5
               color: modelData.connected ? Theme.overlay : (devMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.05) : "transparent")
               property bool isBusy: root.btActionMac === modelData.mac
@@ -918,24 +926,69 @@ PanelWindow {
                 anchors.rightMargin: 6
                 spacing: 8
 
+                // 1. Icona Bluetooth / Spinner
                 Text {
+                  Layout.alignment: Qt.AlignVCenter
                   text: devItem.isBusy ? "󰑐" : (modelData.connected ? "󰂱" : "󰂲")
                   color: devItem.isBusy ? Theme.gold : (modelData.connected ? Theme.iris : Theme.subtle)
                   font.pixelSize: 14
                   RotationAnimation on rotation { running: devItem.isBusy; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
                 }
 
-                Text {
-                  text: modelData.name
-                  color: modelData.connected ? Theme.iris : Theme.text
-                  font.family: Theme.fontFamily
-                  font.pixelSize: 11
-                  font.bold: modelData.connected
+                // 2. Gruppo Nome Dispositivo + Batteria affiancata
+                RowLayout {
                   Layout.fillWidth: true
-                  elide: Text.ElideRight
+                  Layout.alignment: Qt.AlignVCenter
+                  spacing: 6
+
+                  Text {
+                    text: modelData.name
+                    color: modelData.connected ? Theme.iris : Theme.text
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 11
+                    font.bold: modelData.connected
+                    elide: Text.ElideRight
+                    Layout.maximumWidth: parent.width - (batBadge.visible ? batBadge.implicitWidth + 6 : 0)
+                  }
+
+                  // Badge Batteria subito accanto al nome
+                  RowLayout {
+                    id: batBadge
+                    visible: modelData.connected && modelData.battery >= 0 && !devItem.isBusy
+                    Layout.alignment: Qt.AlignVCenter
+                    spacing: 2
+
+
+                    Text {
+                      text: modelData.battery + "%"
+                      color: modelData.battery <= 20 ? Theme.love : Theme.foam
+                      font.family: Theme.fontFamily
+                      font.pixelSize: 10
+                      font.bold: true
+                      verticalAlignment: Text.AlignVCenter
+                    }
+                    Text {
+                      text: {
+                        let b = modelData.battery
+                        if (b >= 90) return "󰁹"
+                        if (b >= 70) return "󰂀"
+                        if (b >= 50) return "󰁾"
+                        if (b >= 30) return "󰁼"
+                        if (b >= 10) return "󰁺"
+                        return "󰂎"
+                      }
+                      color: modelData.battery <= 20 ? Theme.love : Theme.foam
+                      font.pixelSize: 12
+                      verticalAlignment: Text.AlignVCenter
+                    }
+                  }
+
+                  Item { Layout.fillWidth: true }
                 }
 
+                // 3. Stato Connessione (allineato a destra)
                 Text {
+                  Layout.alignment: Qt.AlignVCenter
                   text: {
                     if (devItem.isBusy) return modelData.connected ? "Disconnecting..." : "Connecting..."
                     return modelData.connected ? "Connected" : ""
@@ -945,6 +998,7 @@ PanelWindow {
                   font.pixelSize: 10
                 }
 
+                // 4. Bottone Dimentica Dispositivo (Cestino)
                 Rectangle {
                   id: forgetBtBtn
                   z: 2
@@ -953,6 +1007,7 @@ PanelWindow {
                   implicitHeight: 22
                   radius: 4
                   color: forgetBtMouse.containsMouse ? Theme.love : "transparent"
+                  Layout.alignment: Qt.AlignVCenter
 
                   Text {
                     anchors.centerIn: parent
