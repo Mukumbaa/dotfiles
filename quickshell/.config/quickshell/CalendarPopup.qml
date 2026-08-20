@@ -11,7 +11,6 @@ PanelWindow {
   property real animProgress: isOpen ? 1.0 : 0.0
   visible: isOpen || animProgress > 0.001
 
-  // Stessa identica curva di animazione ultra-fluida del Control Center
   Behavior on animProgress {
     NumberAnimation {
       duration: Theme.animationDuration
