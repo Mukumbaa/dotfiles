@@ -15,7 +15,7 @@ PanelWindow {
   Behavior on animProgress {
     NumberAnimation {
       duration: Theme.animationDuration
-      easing.type: Easing.InOutQuad
+      easing.type: Easing.OutCubic
     }
   }
 
@@ -72,18 +72,38 @@ PanelWindow {
       }
     }
   }
+// Timer che attende la fine dell'animazione prima di avviare la scansione CPU-heavy
+  Timer {
+    id: openScanDelay
+    interval: Theme.animationDuration + 50 // Parte solo quando la finestra è ferma a schermo
+    onTriggered: {
+      if (ControlCenterState.currentTab === "wifi") root.scanWifi()
+      if (ControlCenterState.currentTab === "bluetooth") root.scanBt()
+    }
+  }
 
   onIsOpenChanged: {
     if (isOpen) {
       inactivityTimer.restart()
-      if (ControlCenterState.currentTab === "wifi") scanWifi()
-      if (ControlCenterState.currentTab === "bluetooth") scanBt()
+      openScanDelay.restart() //  Avvia il ritardo invece di scansionare subito
     } else {
       isPasswordPromptOpen = false
       autoCloseTimer.stop()
       inactivityTimer.stop()
+      openScanDelay.stop()    //  Ferma il timer se chiudi prima che scada
     }
   }
+  // onIsOpenChanged: {
+  //   if (isOpen) {
+  //     inactivityTimer.restart()
+  //     if (ControlCenterState.currentTab === "wifi") scanWifi()
+  //     if (ControlCenterState.currentTab === "bluetooth") scanBt()
+  //   } else {
+  //     isPasswordPromptOpen = false
+  //     autoCloseTimer.stop()
+  //     inactivityTimer.stop()
+  //   }
+  // }
 
   // =============================================================
   // 1. LOGICA WI-FI COMPLETA
@@ -466,9 +486,13 @@ PanelWindow {
       width: parent.width
       height: parent.height
 
-      y: (root.animProgress - 1.0) * height
-      opacity: root.animProgress
+      // y: (root.animProgress - 1.0) * height
+      // opacity: root.animProgress
 
+      opacity: root.animProgress
+      transform: Translate {
+        y: (1.0 - root.animProgress) * -3 // scorrimento leggero di 15px verso il basso
+      }
       color: Theme.base
       radius: Theme.radius
       border.color: Theme.overlay

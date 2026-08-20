@@ -14,7 +14,7 @@ PanelWindow {
   Behavior on animProgress {
     NumberAnimation {
       duration: Theme.animationDuration
-      easing.type: Easing.InOutQuad
+      easing.type: Easing.OutCubic
     }
   }
 
@@ -141,9 +141,13 @@ PanelWindow {
       // Cache GPU per fluidità assoluta durante lo scorrimento
       layer.enabled: root.isOpen || root.animProgress > 0.001
 
-      y: (root.animProgress - 1.0) * height
-      opacity: root.animProgress
+      // y: (root.animProgress - 1.0) * height
+      // opacity: root.animProgress
 
+      opacity: root.animProgress
+      transform: Translate {
+        y: (1.0 - root.animProgress) * -3 // scorrimento leggero di 15px verso il basso
+      }
       color: Theme.base
       radius: Theme.radius
       // topLeftRadius: 0

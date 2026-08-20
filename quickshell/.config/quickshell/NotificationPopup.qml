@@ -40,7 +40,6 @@ Scope {
     exclusiveZone: 0
 
     mask: Region.fromItem(notifCol)
-
     visible: notifServer.trackedNotifications.values.length > 0
 
     Column {
@@ -67,7 +66,6 @@ Scope {
             border.width: Theme.borderWidth
 
             property bool isClosing: false
-
             opacity: 0.0
 
             transform: Translate {
@@ -77,33 +75,33 @@ Scope {
 
             Component.onCompleted: introAnim.start()
 
-            // 1. ENTRATA FLUIDA
+            // 1. ENTRATA FLUIDA (OutCubic snella)
             ParallelAnimation {
               id: introAnim
-              NumberAnimation { target: notifCard; property: "opacity"; from: 0.0; to: 1.0; duration: 220; easing.type: Easing.OutCubic }
-              NumberAnimation { target: cardTrans; property: "x"; from: 30; to: 0; duration: 220; easing.type: Easing.OutCubic }
+              NumberAnimation { target: notifCard; property: "opacity"; from: 0.0; to: 1.0; duration: 180; easing.type: Easing.OutCubic }
+              NumberAnimation { target: cardTrans; property: "x"; from: 30; to: 0; duration: 180; easing.type: Easing.OutCubic }
             }
 
-            // 2. USCITA E RISALITA MORBIDA
-            SequentialAnimation {
+            // 2. USCITA MORBIDA E REATTIVA (Transizione e risalita parzialmente sovrapposte)
+            ParallelAnimation {
               id: exitSequence
 
-              ParallelAnimation {
-                NumberAnimation { target: notifCard; property: "opacity"; to: 0.0; duration: 140; easing.type: Easing.InQuad }
-                NumberAnimation { target: cardTrans; property: "x"; to: 40; duration: 140; easing.type: Easing.InQuad }
+              NumberAnimation { target: notifCard; property: "opacity"; to: 0.0; duration: 140; easing.type: Easing.OutQuad }
+              NumberAnimation { target: cardTrans; property: "x"; to: 40; duration: 140; easing.type: Easing.OutQuad }
+              
+              // Fa scorrere verso l'alto le altre notifiche subito con un leggero ritardo (40ms) invece di attendere 140ms
+              SequentialAnimation {
+                PauseAnimation { duration: 40 }
+                NumberAnimation {
+                  target: delegateRoot
+                  property: "height"
+                  to: 0
+                  duration: 140
+                  easing.type: Easing.OutCubic
+                }
               }
 
-              NumberAnimation {
-                target: delegateRoot
-                property: "height"
-                to: 0
-                duration: 180
-                easing.type: Easing.OutCubic
-              }
-
-              ScriptAction {
-                script: modelData.dismiss()
-              }
+              onFinished: modelData.dismiss()
             }
 
             function closeNotification() {
@@ -114,7 +112,6 @@ Scope {
               }
             }
 
-            // Timer auto-chiusura (5 secondi)
             Timer {
               id: expireTimer
               interval: (modelData.expireTimeout && modelData.expireTimeout > 0) ? (modelData.expireTimeout * 1000) : 5000
@@ -140,9 +137,12 @@ Scope {
                 Layout.fillWidth: true
                 spacing: 6
 
+                // Icona App Ottimizzata (Asincrona e SourceSize vincolata)
                 Image {
                   visible: modelData.appIcon !== ""
                   source: modelData.appIcon
+                  sourceSize: Qt.size(24, 24)
+                  asynchronous: true
                   Layout.preferredWidth: 14
                   Layout.preferredHeight: 14
                   fillMode: Image.PreserveAspectFit
@@ -165,7 +165,7 @@ Scope {
                   elide: Text.ElideRight
                 }
 
-                // TASTO COPIA NEGLI APPUNTI (󰅍)
+                // Tasto Copia
                 Rectangle {
                   id: copyBtn
                   implicitWidth: 18
@@ -195,15 +195,14 @@ Scope {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                       let msg = modelData.body || ""
-                      let textToCopy =  msg
-                      Quickshell.execDetached(["wl-copy", textToCopy])
+                      Quickshell.execDetached(["wl-copy", msg])
                       copyBtn.isCopied = true
                       copyTimer.restart()
                     }
                   }
                 }
 
-                // TASTO CHIUDI (X)
+                // Tasto Chiudi
                 Text {
                   text: "󰅖"
                   color: closeMouse.containsMouse ? Theme.love : Theme.subtle
@@ -229,6 +228,7 @@ Scope {
                 Image {
                   visible: modelData.image !== ""
                   source: modelData.image
+                  sourceSize: Qt.size(84, 84)
                   Layout.preferredWidth: 42
                   Layout.preferredHeight: 42
                   fillMode: Image.PreserveAspectCrop
@@ -303,7 +303,6 @@ Scope {
               }
             }
 
-            // Click sull'intera scheda per chiudere
             MouseArea {
               anchors.fill: parent
               z: -1
