@@ -159,7 +159,7 @@ Scope {
                   text: modelData.appName || "Notifica"
                   color: Theme.subtle
                   font.family: Theme.fontFamily
-                  font.pixelSize: 10
+                  font.pixelSize: 12
                   font.bold: true
                   Layout.fillWidth: true
                   elide: Text.ElideRight
@@ -244,7 +244,7 @@ Scope {
                     text: modelData.summary || ""
                     color: Theme.text
                     font.family: Theme.fontFamily
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                     font.bold: true
                     wrapMode: Text.Wrap
                     elide: Text.ElideRight
@@ -256,7 +256,7 @@ Scope {
                     text: modelData.body || ""
                     color: Theme.subtle
                     font.family: Theme.fontFamily
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     wrapMode: Text.Wrap
                     elide: Text.ElideRight
                     maximumLineCount: 3
