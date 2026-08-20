@@ -294,6 +294,7 @@ PanelWindow {
               Image {
                 id: appIcon
                 source: Quickshell.iconPath(modelData.icon || "", true)
+                sourceSize: Qt.size(48, 48)
                 Layout.preferredWidth: 24
                 Layout.preferredHeight: 24
                 fillMode: Image.PreserveAspectFit
@@ -303,9 +304,9 @@ PanelWindow {
 
               Text {
                 visible: !appIcon.visible
-                text: "󰀻"
+                text: " 󰀻 "
                 color: appItem.isSelected ? Theme.foam : Theme.subtle
-                font.pixelSize: 20
+                font.pixelSize: 21
               }
 
               // Nome e Descrizione

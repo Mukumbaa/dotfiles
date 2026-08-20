@@ -30,7 +30,7 @@ PanelWindow {
   Behavior on animProgress {
     NumberAnimation {
       duration: 180
-      easing.type: Easing.OutQuad
+      easing.type: Easing.OutCubic
     }
   }
 
@@ -61,7 +61,7 @@ PanelWindow {
   Rectangle {
     id: backdrop
     anchors.fill: parent
-    color: Qt.rgba(0.05, 0.04, 0.08, 0.75 * root.animProgress)
+    color: Qt.rgba(0.05, 0.04, 0.08, 0.75)
     opacity: root.animProgress
 
     // Chiudi cliccando ovunque sullo sfondo
