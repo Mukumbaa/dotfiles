@@ -195,7 +195,7 @@ PanelWindow {
 
   Timer {
     id: wattDelayTimer
-    interval: 400
+    interval: 1000
     onTriggered: {
       if (root.isOpen) {
         wattQueryProc.running = false
