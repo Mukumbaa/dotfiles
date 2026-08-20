@@ -6,7 +6,6 @@ QtObject {
     readonly property int marginTop: 8
     readonly property int borderWidth: 4
     readonly property int radius: 12
-    readonly property int animationDurationCalendar: 250
     readonly property int animationDuration: 250
     readonly property int marginRight: 16
     // Rosé Pine Base
