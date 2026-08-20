@@ -1,5 +1,5 @@
 
-Terminal = "alacritty"
+Terminal = "kitty"
 Terminal2 = "foot"
 FileManager = "kitty --single-instance yazi"
 Browser = "google-chrome"
