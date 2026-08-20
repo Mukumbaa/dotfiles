@@ -44,7 +44,8 @@ local dnf_packages = {
     "rustup",
     "grim",
     "slurp",
-    "wl-clipboard"
+    "wl-clipboard",
+    "brave-browser-nightly"
 }
 
 -- Pacchetti Go da installare
@@ -111,6 +112,10 @@ os.execute("sudo dnf remove libreoffice* -y")
 print_step("Abilitazione Repository COPR")
 os.execute("sudo dnf copr enable lionheartp/Hyprland -y")
 os.execute("sudo dnf copr enable lihaohong/yazi -y")
+
+os.execute("sudo dnf install dnf-plugins-core")
+os.execute("sudo dnf config-manager addrepo --from-repofile=https://brave-browser-rpm-nightly.s3.brave.com/brave-browser-nightly.repo")
+-- os.execute("sudo dnf install brave-browser-nightly")
 
 print_step("Installazione Pacchetti DNF")
 -- Uniamo tutta la tabella in una singola stringa separata da spazi
