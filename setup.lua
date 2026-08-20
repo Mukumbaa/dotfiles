@@ -121,9 +121,9 @@ os.execute(dnf_cmd)
 -- FASE 2: Installazioni Esterne
 ---------------------------------------------------------
 print_step("Installazione NMGUI (WiFi) e Starship")
-os.execute("sudo curl -L https://github.com/s-adi-dev/nmgui/releases/download/v1.0.0/main.bin -o /usr/bin/nmgui")
-os.execute("sudo chmod +x /usr/bin/nmgui")
-os.execute("curl -sL https://raw.githubusercontent.com/s-adi-dev/nmgui/main/nmgui.desktop -o ~/.local/share/applications/nmgui.desktop")
+-- os.execute("sudo curl -L https://github.com/s-adi-dev/nmgui/releases/download/v1.0.0/main.bin -o /usr/bin/nmgui")
+-- os.execute("sudo chmod +x /usr/bin/nmgui")
+-- os.execute("curl -sL https://raw.githubusercontent.com/s-adi-dev/nmgui/main/nmgui.desktop -o ~/.local/share/applications/nmgui.desktop")
 
 -- Starship
 os.execute("curl -sS https://starship.rs/install.sh | sh -s -- -y")
@@ -185,28 +185,25 @@ for _, conf in ipairs(stow_configs) do
 end
 
 
----------------------------------------------------------
--- FASE 5: Installazione di Algo da GitHub
----------------------------------------------------------
-print_step("Installazione di Algo")
-
-local algo_repo = "https://github.com/Mukumbaa/algo"
-local algo_dir = home .. "/algo"
-
--- Controllo se la cartella ~/algo esiste già
--- [ -d ... ] verifica se è una directory valida
-if os.execute('[ -d "' .. algo_dir .. '" ]') then
-    print_info("La cartella ~/algo esiste già. Scarico gli ultimi aggiornamenti (git pull)...")
-    os.execute("cd " .. algo_dir .. " && git pull")
-else
-    print_info("Clonazione della repository Algo...")
-    os.execute("git clone " .. algo_repo .. " " .. algo_dir)
-end
-
-print_info("Esecuzione di install.sh di Algo...")
--- Usiamo && per assicurarci di entrare nella cartella PRIMA di eseguire lo script.
--- Aggiungiamo anche un chmod +x preventivo per sicurezza!
-os.execute("cd " .. algo_dir .. " && chmod +x install.sh && ./install.sh")
+-- print_step("Installazione di Algo")
+--
+-- local algo_repo = "https://github.com/Mukumbaa/algo"
+-- local algo_dir = home .. "/algo"
+--
+-- -- Controllo se la cartella ~/algo esiste già
+-- -- [ -d ... ] verifica se è una directory valida
+-- if os.execute('[ -d "' .. algo_dir .. '" ]') then
+--     print_info("La cartella ~/algo esiste già. Scarico gli ultimi aggiornamenti (git pull)...")
+--     os.execute("cd " .. algo_dir .. " && git pull")
+-- else
+--     print_info("Clonazione della repository Algo...")
+--     os.execute("git clone " .. algo_repo .. " " .. algo_dir)
+-- end
+--
+-- print_info("Esecuzione di install.sh di Algo...")
+-- -- Usiamo && per assicurarci di entrare nella cartella PRIMA di eseguire lo script.
+-- -- Aggiungiamo anche un chmod +x preventivo per sicurezza!
+-- os.execute("cd " .. algo_dir .. " && chmod +x install.sh && ./install.sh")
 
 
 print_step("Setup Completato con Successo! Riavvia la sessione.")
