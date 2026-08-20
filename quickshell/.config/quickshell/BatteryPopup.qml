@@ -13,6 +13,7 @@ PanelWindow {
   property real animProgress: isOpen ? 1.0 : 0.0
   visible: isOpen || animProgress > 0.001
 
+  // Stessa identica curva super-fluida del Calendario e dell'Audio
   Behavior on animProgress {
     NumberAnimation {
       duration: Theme.animationDuration
@@ -37,16 +38,13 @@ PanelWindow {
   exclusiveZone: 0
 
   // -------------------------------------------------------------
-  // LOGICA BATTERIA, TEMPO E WATT (Istantanea via sysfs + fallback UPower)
+  // LOGICA BATTERIA, TEMPO E WATT (Calcolo Matematico Esatto)
   // -------------------------------------------------------------
   property var displayDevice: UPower.displayDevice
   property int batteryLevel: displayDevice ? Math.round(displayDevice.percentage * 100) : 0
   property bool isCharging: displayDevice ? displayDevice.state === UPowerDeviceState.Charging : false
-
-  // Legge da UPower changeRate come valore iniziale, aggiornato poi da sysfs
   property real wattageValue: displayDevice && displayDevice.changeRate ? Math.abs(displayDevice.changeRate) : 0.0
 
-  // Scala completa delle icone a 10 livelli
   property var iconsCharging: "󰂄"
   property var iconsDefault:  ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
 
@@ -55,28 +53,33 @@ PanelWindow {
     return isCharging ? iconsCharging : iconsDefault[idx]
   }
 
-  // Lettura diretta da sysfs (eseguita SOLO a popup aperto)
+  // Lettura precisa: se c'è power_now legge solo quello, altrimenti fa corrente x tensione
   Process {
     id: wattQueryProc
-    command: ["sh", "-c", "if [ -f /sys/class/power_supply/BAT*/power_now ]; then awk '{printf \"%.1f\", $1 / 1000000}' /sys/class/power_supply/BAT*/power_now 2>/dev/null | head -n1; elif [ -f /sys/class/power_supply/BAT*/current_now ] && [ -f /sys/class/power_supply/BAT*/voltage_now ]; then c=$(cat /sys/class/power_supply/BAT*/current_now 2>/dev/null | head -n1); v=$(cat /sys/class/power_supply/BAT*/voltage_now 2>/dev/null | head -n1); awk \"BEGIN {printf \\\"%.1f\\\", ($c * $v) / 1000000000000}\"; fi"]
+    command: ["sh", "-c", "if [ -f /sys/class/power_supply/BAT*/power_now ]; then cat /sys/class/power_supply/BAT*/power_now 2>/dev/null | head -n1; elif [ -f /sys/class/power_supply/BAT*/current_now ] && [ -f /sys/class/power_supply/BAT*/voltage_now ]; then c=$(cat /sys/class/power_supply/BAT*/current_now 2>/dev/null | head -n1); v=$(cat /sys/class/power_supply/BAT*/voltage_now 2>/dev/null | head -n1); echo \"$c $v\"; fi"]
     stdout: StdioCollector {
       onStreamFinished: {
-        let val = parseFloat(this.text.trim())
-        if (!isNaN(val) && val > 0) {
-          root.wattageValue = val
-        } else if (displayDevice && displayDevice.changeRate) {
-          root.wattageValue = Math.abs(displayDevice.changeRate)
+        let parts = this.text.trim().split(/\s+/)
+        if (parts.length === 1 && parts[0].length > 0) {
+          let p = parseFloat(parts[0])
+          if (!isNaN(p) && p > 0) root.wattageValue = p / 1000000
+        } else if (parts.length >= 2) {
+          let c = parseFloat(parts[0])
+          let v = parseFloat(parts[1])
+          if (!isNaN(c) && !isNaN(v) && c > 0 && v > 0) {
+            root.wattageValue = (c * v) / 1000000000000
+          }
         }
       }
     }
   }
 
+  // Poll periodico: parte solo a popup fermo e aperto, senza bloccare l'animazione iniziale
   Timer {
     id: wattPollTimer
     interval: 2000
     repeat: true
     running: root.isOpen
-    triggeredOnStart: true
     onTriggered: {
       wattQueryProc.running = false
       wattQueryProc.running = true
@@ -95,17 +98,17 @@ PanelWindow {
   }
 
   // -------------------------------------------------------------
-  // LOGICA PROFILI ENERGETICI (Supporto Diretto Tuned-adm / Fedora)
+  // PROFILI ENERGETICI (Zero conflitti e zero delay)
   // -------------------------------------------------------------
-  property string currentProfile: "" // "performance", "balanced", "power-saver"
+  property string currentProfile: "balanced"
 
   Process {
     id: profileQueryProc
-    command: ["sh", "-c", "tuned-adm active 2>/dev/null | grep 'Current active profile:' | cut -d: -f2 | tr -d ' ' || powerprofilesctl get 2>/dev/null"]
+    command: ["sh", "-c", "cat /etc/tuned/active_profile 2>/dev/null || powerprofilesctl get 2>/dev/null"]
     stdout: StdioCollector {
       onStreamFinished: {
         let raw = this.text.trim().toLowerCase()
-        if (raw.includes("performance")) {
+        if (raw.includes("performance") || raw.includes("throughput")) {
           root.currentProfile = "performance"
         } else if (raw.includes("powersave") || raw.includes("power-saver")) {
           root.currentProfile = "power-saver"
@@ -117,26 +120,29 @@ PanelWindow {
   }
 
   function setProfile(profile) {
+    // Imposta subito la selezione grafica permanente
     root.currentProfile = profile
 
-    // Traduzione nei profili nativi di tuned-adm
     let tunedTarget = "balanced"
     if (profile === "performance") tunedTarget = "throughput-performance"
     else if (profile === "power-saver") tunedTarget = "powersave"
 
-    // Applica direttamente con tuned-adm
     Quickshell.execDetached(["sh", "-c", "tuned-adm profile " + tunedTarget + " 2>/dev/null || powerprofilesctl set " + profile])
     profileCheckTimer.restart()
   }
 
+  // Timer di verifica allungato a 1.5 secondi per dare tempo a tuned di salvare
   Timer {
     id: profileCheckTimer
-    interval: 400
+    interval: 1500
     onTriggered: {
       profileQueryProc.running = false
       profileQueryProc.running = true
     }
   }
+
+  // Legge il profilo 1 sola volta all'avvio del sistema
+  Component.onCompleted: profileQueryProc.running = true
 
   // -------------------------------------------------------------
   // AUTO-CHIUSURA AL MOUSE LEAVE
@@ -173,16 +179,28 @@ PanelWindow {
     }
   }
 
+  // ZERO PROCESSI AL CLICK: apertura istantanea e fluida a 144 FPS
   onIsOpenChanged: {
     if (isOpen) {
       inactivityTimer.restart()
-      wattQueryProc.running = false
-      wattQueryProc.running = true
-      profileQueryProc.running = false
-      profileQueryProc.running = true
+      // Avvia la prima lettura precisa dei Watt dopo 400ms (quando la finestra è già ferma)
+      wattDelayTimer.restart()
     } else {
       autoCloseTimer.stop()
       inactivityTimer.stop()
+      wattDelayTimer.stop()
+      wattQueryProc.running = false
+    }
+  }
+
+  Timer {
+    id: wattDelayTimer
+    interval: 400
+    onTriggered: {
+      if (root.isOpen) {
+        wattQueryProc.running = false
+        wattQueryProc.running = true
+      }
     }
   }
 
@@ -203,10 +221,6 @@ PanelWindow {
 
       color: Theme.base
       radius: Theme.radius
-      // topLeftRadius: 0
-      // topRightRadius: 0
-      // bottomLeftRadius: 12
-      // bottomRightRadius: 12
       border.color: Theme.overlay
       border.width: Theme.borderWidth
 
@@ -220,7 +234,6 @@ PanelWindow {
           Layout.fillWidth: true
           spacing: 8
 
-          // Icona Dinamica Graduata
           Text {
             text: root.batIcon
             color: root.batteryLevel <= 20 && !root.isCharging ? Theme.love : Theme.foam
@@ -244,7 +257,7 @@ PanelWindow {
 
               Item { Layout.fillWidth: true }
 
-              // Badge Watt (in tempo reale da sysfs)
+              // Badge Watt
               Rectangle {
                 visible: root.wattageValue > 0
                 implicitWidth: wattText.implicitWidth + 8
@@ -264,7 +277,6 @@ PanelWindow {
               }
             }
 
-            // Descrizione stato e tempo rimanente stimato
             Text {
               text: {
                 let base = root.isCharging ? "Charging" : "Discharging"
@@ -310,7 +322,6 @@ PanelWindow {
           Layout.fillWidth: true
           spacing: 4
 
-          // PRESTAZIONI
           ProfileItem {
             icon: "󰓅"
             title: "Performance"
@@ -320,7 +331,6 @@ PanelWindow {
             onSelected: root.setProfile("performance")
           }
 
-          // BILANCIATO
           ProfileItem {
             icon: "󰾅"
             title: "Balanced"
@@ -330,7 +340,6 @@ PanelWindow {
             onSelected: root.setProfile("balanced")
           }
 
-          // RISPARMIO ENERGETICO
           ProfileItem {
             icon: "󰾆"
             title: "Power Saver"
@@ -344,7 +353,6 @@ PanelWindow {
     }
   }
 
-  // Componente per le righe dei profili
   component ProfileItem: Rectangle {
     id: pItem
     property string icon: ""
