@@ -1,7 +1,7 @@
 local module = {}
 
 function module.lid_up()
-    hl.exec_cmd("hyprctl reload")
+    -- hl.exec_cmd("hyprctl reload")
     local monitors = hl.get_monitors()
 
     if #monitors == 1 then
