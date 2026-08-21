@@ -20,7 +20,7 @@ Item {
 
   Timer {
     id: collapseTimer
-    interval: 800
+    interval: 300
     onTriggered: {
       if (!sliderMouse.containsMouse && !textMouse.containsMouse && !sliderMouse.pressed) {
         brightGroup.isExpanded = false
