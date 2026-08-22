@@ -3,33 +3,18 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
-PanelWindow {
-  id: root
+Scope {
+  id: wallpaperScope
 
-  anchors {
-    top: true
-    bottom: true
-    left: true
-    right: true
-  }
-
-  WlrLayershell.layer: WlrLayer.Background
-  exclusiveZone: -1
-  color: "black"
-
-  // -------------------------------------------------------------
-  // LOGICA SFONDI E IPC
-  // -------------------------------------------------------------
   property var wallpaperList: []
   property int currentIndex: 0
+  property string currentWallpaperPath: ""
 
-  // Percorso della cartella sfondi
   property string wallpaperDir: (Quickshell.env("HOME") || "/home/user") + "/.config/hypr/wallpaper"
 
-  // Scansiona la cartella e ordina i file
   Process {
     id: scanWallpapersProc
-    command: ["sh", "-c", "find \"" + root.wallpaperDir + "\" -maxdepth 1 -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) | sort -V"]
+    command: ["sh", "-c", "find \"" + wallpaperScope.wallpaperDir + "\" -maxdepth 1 -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) | sort -V"]
     stdout: StdioCollector {
       onStreamFinished: {
         let lines = this.text.trim().split("\n")
@@ -38,23 +23,21 @@ PanelWindow {
           let path = l.trim()
           if (path.length > 0) list.push(path)
         }
-        root.wallpaperList = list
+        wallpaperScope.wallpaperList = list
 
         if (list.length === 0) return
 
-        // Primo avvio: imposta lo sfondo iniziale
-        if (!bgImage.source.toString()) {
-          bgImage.source = list[0]
-          root.currentIndex = 0
+        if (!wallpaperScope.currentWallpaperPath) {
+          wallpaperScope.currentIndex = 0
+          wallpaperScope.currentWallpaperPath = list[0]
         } else {
-          // Risincronizza l'indice se la cartella cambia
-          let cleanSource = bgImage.source.toString().replace(/^file:\/\//, "")
-          let foundIdx = list.indexOf(cleanSource)
-          if (foundIdx !== -1) {
-            root.currentIndex = foundIdx
+          let clean = wallpaperScope.currentWallpaperPath.replace(/^file:\/\//, "")
+          let idx = list.indexOf(clean)
+          if (idx !== -1) {
+            wallpaperScope.currentIndex = idx
           } else {
-            root.currentIndex = Math.max(0, Math.min(root.currentIndex, list.length - 1))
-            bgImage.source = list[root.currentIndex]
+            wallpaperScope.currentIndex = Math.max(0, Math.min(wallpaperScope.currentIndex, list.length - 1))
+            wallpaperScope.currentWallpaperPath = list[wallpaperScope.currentIndex]
           }
         }
       }
@@ -70,11 +53,10 @@ PanelWindow {
     }
   }
 
-  // Monitoraggio modifiche nella cartella sfondi
   Process {
     id: wallpaperDirWatcher
     running: true
-    command: ["sh", "-c", "stdbuf -oL -eL inotifywait -m -e create -e delete -e moved_to -e moved_from \"" + root.wallpaperDir + "\" 2>/dev/null"]
+    command: ["sh", "-c", "stdbuf -oL -eL inotifywait -m -e create -e delete -e moved_to -e moved_from \"" + wallpaperScope.wallpaperDir + "\" 2>/dev/null"]
     stdout: SplitParser {
       onRead: scanDebounceTimer.restart()
     }
@@ -82,16 +64,15 @@ PanelWindow {
 
   Component.onCompleted: scanWallpapersProc.running = true
 
-  // Ricevitore comandi IPC per il cambio sfondo
   IpcHandler {
     target: "wallpaper"
 
     function next(): void {
-      root.changeWallpaper(1)
+      wallpaperScope.changeWallpaper(1)
     }
 
     function prev(): void {
-      root.changeWallpaper(-1)
+      wallpaperScope.changeWallpaper(-1)
     }
 
     function reload(): void {
@@ -100,22 +81,42 @@ PanelWindow {
     }
   }
 
-  // Cambio sfondo istantaneo
   function changeWallpaper(step) {
-    if (root.wallpaperList.length === 0) return
-    root.currentIndex = (root.currentIndex + step + root.wallpaperList.length) % root.wallpaperList.length
-    bgImage.source = root.wallpaperList[root.currentIndex]
+    if (wallpaperScope.wallpaperList.length === 0) return
+    wallpaperScope.currentIndex = (wallpaperScope.currentIndex + step + wallpaperScope.wallpaperList.length) % wallpaperScope.wallpaperList.length
+    wallpaperScope.currentWallpaperPath = wallpaperScope.wallpaperList[wallpaperScope.currentIndex]
   }
 
   // -------------------------------------------------------------
-  // SINGOLA IMMAGINE OTTIMIZZATA (Caricamento diretto e leggero)
+  // SFONDI DISTRIBUITI CORRETTAMENTE SU OGNI MONITOR
   // -------------------------------------------------------------
-  Image {
-    id: bgImage
-    anchors.fill: parent
-    fillMode: Image.PreserveAspectCrop
-    asynchronous: true
-    // sourceSize.width: Screen.width
-    // sourceSize.height: Screen.height
+  Variants {
+    model: Quickshell.screens
+
+    delegate: Component {
+      PanelWindow {
+        id: bgWindow
+        required property var modelData
+        screen: modelData
+
+        anchors {
+          top: true
+          bottom: true
+          left: true
+          right: true
+        }
+
+        WlrLayershell.layer: WlrLayer.Background
+        exclusiveZone: -1
+        color: "black"
+
+        Image {
+          anchors.fill: parent
+          fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          source: wallpaperScope.currentWallpaperPath
+        }
+      }
+    }
   }
 }

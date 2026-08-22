@@ -39,7 +39,8 @@ Scope {
     WlrLayershell.layer: WlrLayer.Overlay
     exclusiveZone: 0
 
-    mask: Region.fromItem(notifCol)
+    // mask: Region.fromItem(notifCol)
+    mask: Region {item: notifCol}
     visible: notifServer.trackedNotifications.values.length > 0
 
     Column {

@@ -176,65 +176,58 @@ PanelWindow {
               font.pixelSize: 16
             }
 
-            TextInput {
-              id: searchInput
+            Item {
               Layout.fillWidth: true
-              verticalAlignment: TextInput.AlignVCenter
-              color: Theme.text
-              font.family: Theme.fontFamily
-              font.pixelSize: 13
-              focus: root.isOpen
+              Layout.fillHeight: true
 
-              onTextEdited: {
-                root.searchFilter = text
-                appListView.currentIndex = 0
-              }
+              TextInput {
+                id: searchInput
+                anchors.fill: parent
+                verticalAlignment: TextInput.AlignVCenter
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: 13
+                focus: root.isOpen
 
-              // Gestione completa tastiera (ESC, Frecce, Invio)
-              Keys.onPressed: event => {
-                // 1. ESC -> Chiude il Launcher
-                if (event.key === Qt.Key_Escape) {
-                  LauncherState.close()
-                  event.accepted = true
-                } 
-                // 2. GIÙ o TAB -> Scorri in avanti
-                else if (event.key === Qt.Key_Down || (event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier))) {
-                  if (appListView.count > 0) {
-                    // Scorre alla successiva o ricomincia dall'inizio (loop)
-                    appListView.currentIndex = (appListView.currentIndex + 1) % appListView.count
-                    appListView.positionViewAtIndex(appListView.currentIndex, ListView.Contain)
+                onTextEdited: {
+                  root.searchFilter = text
+                  appListView.currentIndex = 0
+                }
+
+                Keys.onPressed: event => {
+                  if (event.key === Qt.Key_Escape) {
+                    LauncherState.close()
+                    event.accepted = true
+                  } else if (event.key === Qt.Key_Down || (event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier))) {
+                    if (appListView.count > 0) {
+                      appListView.currentIndex = (appListView.currentIndex + 1) % appListView.count
+                      appListView.positionViewAtIndex(appListView.currentIndex, ListView.Contain)
+                    }
+                    event.accepted = true
+                  } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || (event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier))) {
+                    if (appListView.count > 0) {
+                      appListView.currentIndex = (appListView.currentIndex - 1 + appListView.count) % appListView.count
+                      appListView.positionViewAtIndex(appListView.currentIndex, ListView.Contain)
+                    }
+                    event.accepted = true
+                  } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    root.launchSelected()
+                    event.accepted = true
                   }
-                  event.accepted = true
-                } 
-                // 3. SU o SHIFT+TAB (Backtab) -> Scorri all'indietro
-                else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || (event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier))) {
-                  if (appListView.count > 0) {
-                    // Scorre alla precedente o va all'ultima (loop)
-                    appListView.currentIndex = (appListView.currentIndex - 1 + appListView.count) % appListView.count
-                    appListView.positionViewAtIndex(appListView.currentIndex, ListView.Contain)
-                  }
-                  event.accepted = true
-                } 
-                // 4. INVIO -> Esegue l'app selezionata
-                else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                  root.launchSelected()
-                  event.accepted = true
                 }
               }
+
+              Text {
+                visible: !searchInput.text.length
+                text: "Search"
+                color: Theme.subtle
+                font.family: Theme.fontFamily
+                font.pixelSize: 12
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+              }
             }
 
-            Text {
-              visible: !searchInput.text.length
-              text: "Search"
-              color: Theme.subtle
-              font.family: Theme.fontFamily
-              font.pixelSize: 12
-              anchors.left: parent.left
-              anchors.leftMargin: 22
-              anchors.verticalCenter: parent.verticalCenter
-            }
-
-            // Tasto rapido ESC visualizzato
             Rectangle {
               implicitWidth: 32
               implicitHeight: 20

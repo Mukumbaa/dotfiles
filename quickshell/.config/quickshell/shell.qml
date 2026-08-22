@@ -6,7 +6,7 @@ import Quickshell.Io
 Scope {
   id: rootScope
 
-  // Stato visibilità della sola barra
+  // Stato visibilità della barra
   property bool showBar: true
 
   // Ricevitore comandi IPC per la barra
@@ -21,44 +21,51 @@ Scope {
     }
   }
 
-  // 1. Barra di Stato
-  PanelWindow {
-    id: barWindow
-    visible: rootScope.showBar
+  // 1. Barra di Stato Multi-Monitor  
+  Variants {
+    model: Quickshell.screens
 
-    anchors {
-      top: true
-      left: true
-      right: true
-    }
-    implicitHeight: 26
+    delegate: Component {
+      PanelWindow {
+        id: barWindow
+        required property var modelData
+        screen: modelData
 
-    Rectangle {
-      id: bar
-      anchors.fill: parent
-      color: Theme.base
+        visible: rootScope.showBar
 
-      RowLayout {
-        anchors.fill: parent
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
+        anchors {
+          top: true
+          left: true
+          right: true
+        }
+        implicitHeight: 26
 
-        LeftSection {}
-        Item { Layout.fillWidth: true }
-        RightSection {}
+        Rectangle {
+          id: bar
+          anchors.fill: parent
+          color: Theme.base
+
+          RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 16
+            anchors.rightMargin: 16
+
+            LeftSection {}
+            Item { Layout.fillWidth: true }
+            RightSection {}
+          }
+
+          CenterSection {}
+        }
       }
-
-      CenterSection {}
     }
-
   }
-  ConnectionsPopup {}
 
-  // 2. Calendario
+  // Popup e Widget globali
+  ConnectionsPopup {}
   CalendarPopup {}
   BatteryPopup {}
   AudioPopup {}
-  // 3. PowerMenu (Rimane sempre attivo in memoria)
   PowerMenu {}
   OsdPopup {}
   Lockscreen {}
