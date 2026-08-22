@@ -54,7 +54,7 @@ PanelWindow {
 
   Timer {
     id: hideTimer
-    interval: 1500
+    interval: Theme.inactivityTimer
     onTriggered: root.isOsdVisible = false
   }
 

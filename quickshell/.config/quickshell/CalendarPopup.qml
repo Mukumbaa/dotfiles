@@ -95,10 +95,9 @@ PanelWindow {
     }
   }
 
-  // Timer di chiusura rapido quando esci dal calendario (600ms)
   Timer {
     id: autoCloseTimer
-    interval: 600
+    interval: Theme.autoCloseTimer
     onTriggered: {
       if (!panelHover.hovered) {
         CalendarState.close()
@@ -106,10 +105,9 @@ PanelWindow {
     }
   }
 
-  // Timer di sicurezza se apri il calendario ma non ci sposti mai il cursore sopra (3 sec)
   Timer {
     id: inactivityTimer
-    interval: 3000
+    interval: Theme.inactivityTimer
     onTriggered: {
       if (!panelHover.hovered) {
         CalendarState.close()

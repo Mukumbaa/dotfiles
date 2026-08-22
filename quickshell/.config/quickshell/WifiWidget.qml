@@ -55,6 +55,6 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: ControlCenterState.toggle("wifi")
+    onClicked: ConnectionsState.toggle("wifi")
   }
 }

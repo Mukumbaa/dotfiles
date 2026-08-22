@@ -8,7 +8,7 @@ import Quickshell.Wayland
 PanelWindow {
   id: root
 
-  property bool isOpen: ControlCenterState.visible
+  property bool isOpen: ConnectionsState.visible
   property real animProgress: isOpen ? 1.0 : 0.0
   visible: isOpen || animProgress > 0.001
 
@@ -55,20 +55,20 @@ PanelWindow {
 
   Timer {
     id: autoCloseTimer
-    interval: 600
+    interval: Theme.autoCloseTimer
     onTriggered: {
       if (!panelHover.hovered && !isPasswordPromptOpen) {
-        ControlCenterState.visible = false
+        ConnectionsState.visible = false
       }
     }
   }
 
   Timer {
     id: inactivityTimer
-    interval: 3500
+    interval: Theme.inactivityTimer
     onTriggered: {
       if (!panelHover.hovered && !isPasswordPromptOpen) {
-        ControlCenterState.visible = false
+        ConnectionsState.visible = false
       }
     }
   }
@@ -77,8 +77,8 @@ PanelWindow {
     id: openScanDelay
     interval: Theme.animationDuration + 50 // Parte solo quando la finestra è ferma a schermo
     onTriggered: {
-      if (ControlCenterState.currentTab === "wifi") root.scanWifi()
-      if (ControlCenterState.currentTab === "bluetooth") root.scanBt()
+      if (ConnectionsState.currentTab === "wifi") root.scanWifi()
+      if (ConnectionsState.currentTab === "bluetooth") root.scanBt()
     }
   }
 
@@ -96,8 +96,8 @@ PanelWindow {
   // onIsOpenChanged: {
   //   if (isOpen) {
   //     inactivityTimer.restart()
-  //     if (ControlCenterState.currentTab === "wifi") scanWifi()
-  //     if (ControlCenterState.currentTab === "bluetooth") scanBt()
+  //     if (ConnectionsState.currentTab === "wifi") scanWifi()
+  //     if (ConnectionsState.currentTab === "bluetooth") scanBt()
   //   } else {
   //     isPasswordPromptOpen = false
   //     autoCloseTimer.stop()
@@ -525,17 +525,17 @@ PanelWindow {
             Layout.fillWidth: true
             implicitHeight: 28
             radius: 6
-            color: ControlCenterState.currentTab === "wifi" ? Theme.overlay : "transparent"
+            color: ConnectionsState.currentTab === "wifi" ? Theme.overlay : "transparent"
             RowLayout {
               anchors.centerIn: parent
               spacing: 6
-              Text { text: "󰤨"; color: ControlCenterState.currentTab === "wifi" ? Theme.foam : Theme.subtle; font.pixelSize: 13 }
-              Text { text: "Wi-Fi"; color: ControlCenterState.currentTab === "wifi" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+              Text { text: "󰤨"; color: ConnectionsState.currentTab === "wifi" ? Theme.foam : Theme.subtle; font.pixelSize: 13 }
+              Text { text: "Wi-Fi"; color: ConnectionsState.currentTab === "wifi" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
             }
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
-              onClicked: { ControlCenterState.currentTab = "wifi"; root.scanWifi(false) }
+              onClicked: { ConnectionsState.currentTab = "wifi"; root.scanWifi(false) }
             }
           }
 
@@ -543,17 +543,17 @@ PanelWindow {
             Layout.fillWidth: true
             implicitHeight: 28
             radius: 6
-            color: ControlCenterState.currentTab === "bluetooth" ? Theme.overlay : "transparent"
+            color: ConnectionsState.currentTab === "bluetooth" ? Theme.overlay : "transparent"
             RowLayout {
               anchors.centerIn: parent
               spacing: 6
-              Text { text: "󰂯"; color: ControlCenterState.currentTab === "bluetooth" ? Theme.iris : Theme.subtle; font.pixelSize: 13 }
-              Text { text: "Bluetooth"; color: ControlCenterState.currentTab === "bluetooth" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+              Text { text: "󰂯"; color: ConnectionsState.currentTab === "bluetooth" ? Theme.iris : Theme.subtle; font.pixelSize: 13 }
+              Text { text: "Bluetooth"; color: ConnectionsState.currentTab === "bluetooth" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
             }
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
-              onClicked: { ControlCenterState.currentTab = "bluetooth"; root.scanBt(false) }
+              onClicked: { ConnectionsState.currentTab = "bluetooth"; root.scanBt(false) }
             }
           }
         }
@@ -566,7 +566,7 @@ PanelWindow {
           spacing: 6
 
           Text {
-            text: ControlCenterState.currentTab === "wifi" ? "Wi-Fi" : "Bluetooth"
+            text: ConnectionsState.currentTab === "wifi" ? "Wi-Fi" : "Bluetooth"
             color: Theme.text
             font.family: Theme.fontFamily
             font.pixelSize: 12
@@ -586,14 +586,14 @@ PanelWindow {
               anchors.centerIn: parent
               text: "󰑐"
               color: {
-                let isScanning = ControlCenterState.currentTab === "wifi" ? wifiScanProc.running : btScanProc.running
-                if (isScanning) return (ControlCenterState.currentTab === "wifi" ? Theme.foam : Theme.iris)
+                let isScanning = ConnectionsState.currentTab === "wifi" ? wifiScanProc.running : btScanProc.running
+                if (isScanning) return (ConnectionsState.currentTab === "wifi" ? Theme.foam : Theme.iris)
                 return Theme.subtle
               }
               font.pixelSize: 13
 
               RotationAnimation on rotation {
-                running: ControlCenterState.currentTab === "wifi" ? wifiScanProc.running : btScanProc.running
+                running: ConnectionsState.currentTab === "wifi" ? wifiScanProc.running : btScanProc.running
                 loops: Animation.Infinite
                 from: 0
                 to: 360
@@ -606,9 +606,9 @@ PanelWindow {
               anchors.fill: parent
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
-              enabled: ControlCenterState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
+              enabled: ConnectionsState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
               onClicked: {
-                if (ControlCenterState.currentTab === "wifi") root.scanWifi(true)
+                if (ConnectionsState.currentTab === "wifi") root.scanWifi(true)
                 else root.scanBt(true)
               }
             }
@@ -616,8 +616,8 @@ PanelWindow {
 
           // Switch On/Off
           Rectangle {
-            property bool isTabEnabled: ControlCenterState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
-            property color accentColor: ControlCenterState.currentTab === "wifi" ? Theme.foam : Theme.iris
+            property bool isTabEnabled: ConnectionsState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
+            property color accentColor: ConnectionsState.currentTab === "wifi" ? Theme.foam : Theme.iris
 
             implicitWidth: 36
             implicitHeight: 18
@@ -637,9 +637,9 @@ PanelWindow {
             MouseArea {
               anchors.fill: parent
               cursorShape: Qt.PointingHandCursor
-              enabled: !(ControlCenterState.currentTab === "bluetooth" && (btPowerOnProc.running || btPowerOffProc.running))
+              enabled: !(ConnectionsState.currentTab === "bluetooth" && (btPowerOnProc.running || btPowerOffProc.running))
               onClicked: {
-                if (ControlCenterState.currentTab === "wifi") {
+                if (ConnectionsState.currentTab === "wifi") {
                   if (root.wifiEnabled) {
                     root.wifiEnabled = false
                     root.wifiNetworks = []
@@ -671,7 +671,7 @@ PanelWindow {
         // 4. VISTA WI-FI
         // =========================================================
         Item {
-          visible: ControlCenterState.currentTab === "wifi"
+          visible: ConnectionsState.currentTab === "wifi"
           Layout.fillWidth: true
           Layout.fillHeight: true
 
@@ -891,7 +891,7 @@ PanelWindow {
         // 5. VISTA BLUETOOTH
         // =========================================================
         ColumnLayout {
-          visible: ControlCenterState.currentTab === "bluetooth"
+          visible: ConnectionsState.currentTab === "bluetooth"
           Layout.fillWidth: true
           Layout.fillHeight: true
           spacing: 6

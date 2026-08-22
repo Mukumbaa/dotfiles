@@ -8,6 +8,8 @@ QtObject {
     readonly property int radius: 12
     readonly property int animationDuration: 180
     readonly property int marginRight: 16
+    readonly property int autoCloseTimer: 600 
+    readonly property int inactivityTimer: 1500 
     // Rosé Pine Base
     readonly property color base: "#191724"
     readonly property color surface: "#1f1d2e"

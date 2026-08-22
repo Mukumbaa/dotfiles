@@ -161,7 +161,7 @@ PanelWindow {
 
   Timer {
     id: autoCloseTimer
-    interval: 600
+    interval: Theme.autoCloseTimer
     onTriggered: {
       if (!panelHover.hovered) {
         BatteryState.close()
@@ -171,7 +171,7 @@ PanelWindow {
 
   Timer {
     id: inactivityTimer
-    interval: 3000
+    interval: Theme.inactivityTimer
     onTriggered: {
       if (!panelHover.hovered) {
         BatteryState.close()

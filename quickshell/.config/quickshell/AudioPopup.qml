@@ -90,7 +90,7 @@ PanelWindow {
 
   Timer {
     id: autoCloseTimer
-    interval: 600
+    interval: Theme.autoCloseTimer
     onTriggered: {
       if (!panelHover.hovered) {
         AudioState.close()
@@ -100,7 +100,7 @@ PanelWindow {
 
   Timer {
     id: inactivityTimer
-    interval: 3500
+    interval: Theme.inactivityTimer
     onTriggered: {
       if (!panelHover.hovered) {
         AudioState.close()

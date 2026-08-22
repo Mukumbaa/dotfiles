@@ -55,6 +55,6 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: ControlCenterState.toggle("bluetooth")
+    onClicked: ConnectionsState.toggle("bluetooth")
   }
 }

@@ -1,5 +1,5 @@
 singleton Theme Theme.qml
-singleton ControlCenterState ControlCenterState.qml
+singleton ConnectionsState ConnectionsState.qml
 singleton CalendarState CalendarState.qml
 singleton BatteryState BatteryState.qml
 singleton AudioState AudioState.qml
@@ -16,7 +16,7 @@ WifiWidget WifiWidget.qml
 BrightnessWidget BrightnessWidget.qml
 VolumeWidget VolumeWidget.qml
 BatteryWidget BatteryWidget.qml
-ControlCenter ControlCenter.qml
+ConnectionsPopup ConnectionsPopup.qml
 CalendarPopup CalendarPopup.qml
 BatteryPopup BatteryPopup.qml
 AudioPopup AudioPopup.qml

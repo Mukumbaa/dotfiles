@@ -52,7 +52,7 @@ Scope {
     }
 
   }
-  ControlCenter {}
+  ConnectionsPopup {}
 
   // 2. Calendario
   CalendarPopup {}
