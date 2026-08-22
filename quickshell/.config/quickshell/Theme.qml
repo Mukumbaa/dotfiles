@@ -11,7 +11,8 @@ QtObject {
     readonly property int autoCloseTimer: 600 
     readonly property int inactivityTimer: 1500 
     // Rosé Pine Base
-    readonly property color base: "#191724"
+    // readonly property color base: "#191724"
+    readonly property color base: "#110F1F"
     readonly property color surface: "#1f1d2e"
     readonly property color overlay: "#26233a"
     readonly property color text: "#e0def4"

@@ -160,17 +160,29 @@ PanelWindow {
         anchors.margins: 10
         spacing: 8
 
-        // Header Mese / Anno / Controlli
-        RowLayout {
+        // =========================================================
+        // HEADER MESE / ANNO / CONTROLLI (Centrato al 100%)
+        // =========================================================
+        Item {
           Layout.fillWidth: true
-          spacing: 4
+          implicitHeight: 24
 
+          // 1. Tasto Mese Precedente (a sinistra)
           Rectangle {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
             implicitWidth: 24
             implicitHeight: 24
             radius: 5
             color: prevMouse.containsMouse ? Theme.overlay : "transparent"
-            Text { anchors.centerIn: parent; text: "󰅁"; color: Theme.text; font.pixelSize: 13 }
+
+            Text {
+              anchors.centerIn: parent
+              text: "󰅁"
+              color: Theme.text
+              font.pixelSize: 13
+            }
+
             MouseArea {
               id: prevMouse
               anchors.fill: parent
@@ -180,9 +192,9 @@ PanelWindow {
             }
           }
 
+          // 2. Testo MESE ANNO
           Text {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
+            anchors.centerIn: parent
             text: Qt.formatDateTime(root.displayDate, "MMMM yyyy").toUpperCase()
             color: Theme.text
             font.family: Theme.fontFamily
@@ -190,33 +202,56 @@ PanelWindow {
             font.bold: true
           }
 
-          Rectangle {
-            implicitWidth: 36
-            implicitHeight: 20
-            radius: 4
-            color: todayMouse.containsMouse ? Theme.overlay : Theme.base
-            Text { anchors.centerIn: parent; text: "Today"; color: Theme.foam; font.family: Theme.fontFamily; font.pixelSize: 10; font.bold: true }
-            MouseArea {
-              id: todayMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.resetToday()
-            }
-          }
+          // 3. Gruppo Controlli Destri (Today + Mese Successivo)
+          RowLayout {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 4
 
-          Rectangle {
-            implicitWidth: 24
-            implicitHeight: 24
-            radius: 5
-            color: nextMouse.containsMouse ? Theme.overlay : "transparent"
-            Text { anchors.centerIn: parent; text: "󰅂"; color: Theme.text; font.pixelSize: 13 }
-            MouseArea {
-              id: nextMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.nextMonth()
+            Rectangle {
+              implicitWidth: 38
+              implicitHeight: 20
+              radius: 4
+              color: todayMouse.containsMouse ? Theme.overlay : Theme.base
+
+              Text {
+                anchors.centerIn: parent
+                text: "Today"
+                color: Theme.foam
+                font.family: Theme.fontFamily
+                font.pixelSize: 10
+                font.bold: true
+              }
+
+              MouseArea {
+                id: todayMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.resetToday()
+              }
+            }
+
+            Rectangle {
+              implicitWidth: 24
+              implicitHeight: 24
+              radius: 5
+              color: nextMouse.containsMouse ? Theme.overlay : "transparent"
+
+              Text {
+                anchors.centerIn: parent
+                text: "󰅂"
+                color: Theme.text
+                font.pixelSize: 13
+              }
+
+              MouseArea {
+                id: nextMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.nextMonth()
+              }
             }
           }
         }
