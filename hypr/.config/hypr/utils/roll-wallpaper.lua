@@ -53,7 +53,7 @@ function module.roll_wallpaper()
 
     -- Notifica Hyprland
     -- hl.notification.create({text = "Wallpaper changed", duration = "2500", color = "rgb(31748f)"})
-    hl.exec_cmd('notify-send -a "Hyprland" "Wallpaper" "Wallpaper changed"')
+    hl.exec_cmd('notify-send -a "Hyprland" "roll-wallpaper.lua" "Wallpaper changed"')
 end
 
 return module

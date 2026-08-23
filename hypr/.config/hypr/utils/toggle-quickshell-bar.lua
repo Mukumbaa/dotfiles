@@ -14,7 +14,7 @@ function module.toggle_quickshell_bar(notification)
             if ! pgrep -x quickshell >/dev/null 2>&1; then
                 quickshell >/dev/null 2>&1 &
                 if [ "%s" = "1" ]; then
-                    notify-send -a "Hyprland" -r 9954 "Quickshell" "Bar on"
+                    notify-send -a "Hyprland" -r 9954 "toggle-quickshell-bar.lua" "Bar on"
                 fi
                 exit 0
             fi
@@ -27,9 +27,9 @@ function module.toggle_quickshell_bar(notification)
                 sleep 0.05
                 STATE=$(qs ipc call bar isVisible 2>/dev/null || quickshell ipc call bar isVisible 2>/dev/null)
                 if echo "$STATE" | grep -q "true"; then
-                    notify-send -a "Hyprland" -r 9954 "Quickshell" "Bar on"
+                    notify-send -a "Hyprland" -r 9954 "toggle-quickshell-bar.lua" "Bar on"
                 else
-                    notify-send -a "Hyprland" -r 9954 "Quickshell" "Bar off"
+                    notify-send -a "Hyprland" -r 9954 "toggle-quickshell-bar.lua" "Bar off"
                 fi
             fi
         ' &

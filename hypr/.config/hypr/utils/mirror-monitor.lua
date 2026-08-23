@@ -10,7 +10,7 @@ function module.mirror_monitor()
             if m.name and m.name:sub(1,3) ~= "eDP" and not m.is_mirror then
                 ext_monitor_name = m.name
                 -- hl.notification.create({text = m.name .. " mirroring eDP-1", duration = 2500, color = "rgb(31748f)"})
-                hl.exec_cmd('notify-send -a "Hyprland" "Monitors" "' .. m.name .. ' mirroring eDP-1"')
+                hl.exec_cmd('notify-send -a "Hyprland" "mirror-monitor.lua" "' .. m.name .. ' mirroring eDP-1"')
                 hl.monitor({ output = m.name, mode = "preferred", position = "auto", scale = "1", mirror = "eDP-1" })
                 is_mirroring = true
             end
@@ -18,7 +18,7 @@ function module.mirror_monitor()
     else
         if ext_monitor_name ~= "" then
             -- hl.notification.create({text = "Disabling mirror for " .. ext_monitor_name, duration = 2500, color = "rgb(31748f)"})
-            hl.exec_cmd('notify-send -a "Hyprland" "Monitors" "Disabling mirror for ' .. ext_monitor_name .. '"')
+            hl.exec_cmd('notify-send -a "Hyprland" "mirror-monitor.lua" "Disabling mirror for ' .. ext_monitor_name .. '"')
             hl.exec_cmd("hyprctl reload")
             is_mirroring = false
             ext_monitor_name = ""

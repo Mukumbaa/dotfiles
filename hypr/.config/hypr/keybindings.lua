@@ -140,7 +140,7 @@ hl.bind("SUPER + F", hl.dsp.window.fullscreen())
 hl.bind("SUPER + R", function()
   hl.exec_cmd("hyprctl reload")
   -- hl.notification.create({ text = "Reloaded config", duration = "2500", color = "rgb(31748f)" })
-  hl.exec_cmd('notify-send -a "Hyprland" "Config" "Reloaded config"')
+  hl.exec_cmd('notify-send -a "Hyprland" "keybindings.lua" "Reloaded config"')
 end)
 
 hl.bind("SUPER + Control_L", hl.dsp.exec_cmd("hyprctl switchxkblayout all next; pkill -RTMIN+8 waybar"))
