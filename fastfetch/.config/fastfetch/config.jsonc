@@ -31,7 +31,7 @@
         },
         {
             "type": "packages",
-            "format": "{}",
+            "format": "{all}",
             "key": "pkgs  ", 
         },
         {   "type": "shell",
