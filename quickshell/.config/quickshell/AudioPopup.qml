@@ -37,39 +37,32 @@ PanelWindow {
   exclusiveZone: 0
 
   // -------------------------------------------------------------
-  // TRACCIAMENTO NODI PIPEWIRE (Output, Input, Volumi)
+  // TRACCIAMENTO TOTALE E SICURO DEI DISPOSITIVI PIPEWIRE
   // -------------------------------------------------------------
   PwObjectTracker {
-    objects: root.isOpen ? Pipewire.nodes.values : []
+    objects: [
+      ...(Pipewire.defaultAudioSink ? [Pipewire.defaultAudioSink] : []),
+      ...(Pipewire.defaultAudioSource ? [Pipewire.defaultAudioSource] : []),
+      ...(Pipewire.nodes && Pipewire.nodes.values ? Pipewire.nodes.values : [])
+    ]
   }
 
   property var defaultSink: Pipewire.defaultAudioSink
   property var defaultSource: Pipewire.defaultAudioSource
 
-  property var outputNodes: []
-  property var inputNodes: []
+  // Liste reattive: se stacchi un dispositivo si aggiornano all'istante a costo zero
+  readonly property var outputNodes: {
+    if (!Pipewire.nodes || !Pipewire.nodes.values) return []
+    return Pipewire.nodes.values.filter(n => n && !n.isStream && n.audio && n.isSink)
+  }
 
-  function refreshNodes() {
-    if (!root.isOpen) return
-    let outs = []
-    let ins = []
-    for (let node of Pipewire.nodes.values) {
-      if (!node || node.isStream || !node.audio) continue
-      if (node.isSink) outs.push(node)
-      else ins.push(node)
-    }
-    outputNodes = outs
-    inputNodes = ins
+  readonly property var inputNodes: {
+    if (!Pipewire.nodes || !Pipewire.nodes.values) return []
+    return Pipewire.nodes.values.filter(n => n && !n.isStream && n.audio && !n.isSink)
   }
-  // Aggiorna la lista se colleghi/scolleghi dispositivi mentre il popup è aperto
-  Connections {
-    target: Pipewire.nodes
-    function onValuesChanged() {
-      if (root.isOpen) root.refreshNodes()
-    }
-  }
+
   function setDefaultDevice(node) {
-    if (!node) return
+    if (!node || node.id === undefined) return
     Quickshell.execDetached(["wpctl", "set-default", node.id.toString()])
   }
 
@@ -90,7 +83,7 @@ PanelWindow {
 
   Timer {
     id: autoCloseTimer
-    interval: Theme.autoCloseTimer
+    interval: 600
     onTriggered: {
       if (!panelHover.hovered) {
         AudioState.close()
@@ -100,7 +93,7 @@ PanelWindow {
 
   Timer {
     id: inactivityTimer
-    interval: Theme.inactivityTimer
+    interval: 3500
     onTriggered: {
       if (!panelHover.hovered) {
         AudioState.close()
@@ -110,7 +103,6 @@ PanelWindow {
 
   onIsOpenChanged: {
     if (isOpen) {
-      refreshNodes()
       inactivityTimer.restart()
     } else {
       autoCloseTimer.stop()
@@ -130,13 +122,11 @@ PanelWindow {
       width: parent.width
       height: parent.height
 
-      // y: (root.animProgress - 1.0) * height
-      // opacity: root.animProgress
-
       opacity: root.animProgress
       transform: Translate {
         y: (1.0 - root.animProgress) * -3 // scorrimento leggero di 15px verso il basso
       }
+
       color: Theme.base
       radius: Theme.radius
       border.color: Theme.overlay
@@ -199,9 +189,9 @@ PanelWindow {
           radius: 8
           color: Theme.overlay
 
-          property var activeNode: AudioState.currentTab === "output" ? root.defaultSink : root.defaultSource
-          property real currentVol: (activeNode && activeNode.audio) ? activeNode.audio.volume : 0.0
-          property bool isMuted: (activeNode && activeNode.audio) ? activeNode.audio.muted : false
+          property var activeNode: AudioState.currentTab === "output" ? Pipewire.defaultAudioSink : Pipewire.defaultAudioSource
+          property real currentVol: (activeNode && activeNode.audio && typeof activeNode.audio.volume === "number") ? activeNode.audio.volume : 0.0
+          property bool isMuted: (activeNode && activeNode.audio && typeof activeNode.audio.muted === "boolean") ? activeNode.audio.muted : false
           property color accentCol: AudioState.currentTab === "output" ? Theme.foam : Theme.iris
 
           RowLayout {
@@ -302,13 +292,18 @@ PanelWindow {
 
           delegate: Rectangle {
             id: devRow
+            required property var modelData
             width: ListView.view.width
             implicitHeight: 34
             radius: 6
 
+            // Protezione totale contro nodi non validi o distrutti
+            visible: modelData !== null && modelData !== undefined && modelData.id !== undefined
+
             property bool isDefault: {
-              if (AudioState.currentTab === "output") return root.defaultSink && root.defaultSink.id === modelData.id
-              return root.defaultSource && root.defaultSource.id === modelData.id
+              if (!modelData || modelData.id === undefined) return false
+              let target = AudioState.currentTab === "output" ? Pipewire.defaultAudioSink : Pipewire.defaultAudioSource
+              return !!target && target.id !== undefined && target.id === modelData.id
             }
 
             color: isDefault ? Theme.overlay : (devRowMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.04) : "transparent")
@@ -326,7 +321,10 @@ PanelWindow {
               }
 
               Text {
-                text: modelData.description || modelData.nickname || modelData.name || ("Device " + modelData.id)
+                text: {
+                  if (!modelData) return ""
+                  return modelData.description || modelData.nickname || modelData.name || ("Device " + (modelData.id || ""))
+                }
                 color: devRow.isDefault ? Theme.text : Theme.subtle
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
