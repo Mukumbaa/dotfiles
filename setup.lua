@@ -12,7 +12,7 @@ local dnf_packages = {
     "hyprland-guiutils",
     -- "hyprshot",
     -- "swaylock",
-    "quickshell",
+    -- "quickshell", -- i install it localy
     "wlogout",
     "waybar",
     "alacritty",
