@@ -25,24 +25,24 @@ RowLayout {
     return ""
   }
 
-  Timer {
-    id: volHoverTimer
-    interval: 150
-    onTriggered: {
-      if (!sliderMouse.pressed) {
-        volGroup.isHovered = sliderMouse.containsMouse || textMouse.containsMouse
-      }
-    }
-  }
-
-  function checkHover() {
-    if (sliderMouse.containsMouse || textMouse.containsMouse || sliderMouse.pressed) {
-      volHoverTimer.stop()
-      volGroup.isHovered = true
-    } else {
-      volHoverTimer.restart()
-    }
-  }
+  // Timer {
+  //   id: volHoverTimer
+  //   interval: 150
+  //   onTriggered: {
+  //     if (!sliderMouse.pressed) {
+  //       volGroup.isHovered = sliderMouse.containsMouse || textMouse.containsMouse
+  //     }
+  //   }
+  // }
+  //
+  // function checkHover() {
+  //   if (sliderMouse.containsMouse || textMouse.containsMouse || sliderMouse.pressed) {
+  //     volHoverTimer.stop()
+  //     volGroup.isHovered = true
+  //   } else {
+  //     volHoverTimer.restart()
+  //   }
+  // }
 
   // Icona + Testo (Click apre l'Audio Mixer Popup)
   MouseArea {
@@ -52,8 +52,8 @@ RowLayout {
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
 
-    onEntered: volGroup.checkHover()
-    onExited: volGroup.checkHover()
+    // onEntered: volGroup.checkHover()
+    // onExited: volGroup.checkHover()
 
     onClicked: AudioState.toggle("output")
 
