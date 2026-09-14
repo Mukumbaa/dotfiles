@@ -17,7 +17,7 @@ local dnf_packages = {
     "waybar",
     "alacritty",
     "kitty",
-    "yazi",
+    -- "yazi",
     "helix",
     "nvim",
     "btop",
@@ -30,6 +30,7 @@ local dnf_packages = {
     "qalculate",
     "gnome-tweaks",
     "gnome-themes-extra",
+    "adw-gtk3-theme",
     "dbus-devel",
     "pkgconf-pkg-config",
     "gh",
@@ -111,7 +112,7 @@ os.execute("sudo dnf remove libreoffice* -y")
 
 print_step("Abilitazione Repository COPR")
 os.execute("sudo dnf copr enable lionheartp/Hyprland -y")
-os.execute("sudo dnf copr enable lihaohong/yazi -y")
+-- os.execute("sudo dnf copr enable lihaohong/yazi -y")
 
 os.execute("sudo dnf install dnf-plugins-core")
 os.execute("sudo dnf config-manager addrepo --from-repofile=https://brave-browser-rpm-nightly.s3.brave.com/brave-browser-nightly.repo")

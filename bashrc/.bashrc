@@ -5,3 +5,4 @@
 source ~/.config/bash-config/rc
 
 export PATH="$PATH:/home/mukumba/.config/.foundry/bin"
+. "$HOME/.cargo/env"
