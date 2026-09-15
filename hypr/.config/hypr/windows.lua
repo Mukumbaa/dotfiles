@@ -68,3 +68,12 @@ hl.layer_rule({
     match = { class = "selector" },
     no_anim = true
 })
+
+hl.window_rule({
+  match = {
+    class = "^(xdg-desktop-portal-gtk)$",
+  },
+  float = true,
+  size = {800, 500},
+  center = true,
+})
