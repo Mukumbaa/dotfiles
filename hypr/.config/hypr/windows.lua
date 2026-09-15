@@ -74,6 +74,6 @@ hl.window_rule({
     class = "^(xdg-desktop-portal-gtk)$",
   },
   float = true,
-  size = {1600, 500},
+  size = {800, 500},
   center = true,
 })
