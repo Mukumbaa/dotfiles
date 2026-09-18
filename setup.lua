@@ -17,7 +17,7 @@ local dnf_packages = {
     "waybar",
     "alacritty",
     "kitty",
-    -- "yazi",
+    -- "yazi", -- i install it localy
     "helix",
     "nvim",
     "btop",
