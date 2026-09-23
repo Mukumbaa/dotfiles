@@ -1,29 +1,29 @@
 -- ==============================================================================
--- 1. CONFIGURAZIONE DEI DATI (Data-Driven Design)
+-- 1. CONFIGURAZIONE DEI DATI 
 -- ==============================================================================
 local home = os.getenv("HOME")
 
 -- Pacchetti da installare con DNF
 local dnf_packages = {
+  -- from https://github.com/Mukumbaa/Hyprland-RPM
+  -- "quickshell", -- i install it localy
+  -- "yazi", -- i install it localy
+  -- "superfile", -- i install it localy
+  -- "caskaydia-mono-nerd-fonts", -- i install it localy
     "stow",
     "hyprland",
     "hyprpaper",
     "hyprlock",
     "hyprland-guiutils",
-    -- "hyprshot",
-    -- "swaylock",
-    -- "quickshell", -- i install it localy
     "wlogout",
     "waybar",
     "alacritty",
     "kitty",
-    -- "yazi", -- i install it localy
     "helix",
     "nvim",
     "btop",
     "fastfetch",
     "wiremix",
-    -- "kanshi",
     "google-chrome-stable",
     "lsd",
     "fd-find",
@@ -36,9 +36,7 @@ local dnf_packages = {
     "gh",
     "blueman",
     "nmtui",
-    -- "flameshot",
     "pipx",
-    "cascadia-mono-nf-fonts",
     "gcc",
     "clangd",
     "golang",
@@ -83,7 +81,7 @@ local stow_configs = {
 
 
 -- ==============================================================================
--- 2. FUNZIONI DI SUPPORTO (UI e Logica)
+-- 2. FUNZIONI DI SUPPORTO 
 -- ==============================================================================
 local colors = {
     blue = "\27[34m", green = "\27[32m", yellow = "\27[33m", red = "\27[31m", reset = "\27[0m", bold = "\27[1m"
@@ -104,7 +102,7 @@ end
 print_step("Inizio Setup del Sistema")
 
 ---------------------------------------------------------
--- FASE 1: Gestione Pacchetti di Sistema (Sudo richiesto)
+-- FASE 1: Gestione Pacchetti di Sistema 
 ---------------------------------------------------------
 print_step("Rimozione Bloatware")
 os.execute("sudo dnf group remove libreoffice -y")
@@ -112,7 +110,6 @@ os.execute("sudo dnf remove libreoffice* -y")
 
 print_step("Abilitazione Repository COPR")
 os.execute("sudo dnf copr enable lionheartp/Hyprland -y")
--- os.execute("sudo dnf copr enable lihaohong/yazi -y")
 
 os.execute("sudo dnf install dnf-plugins-core")
 os.execute("sudo dnf config-manager addrepo --from-repofile=https://brave-browser-rpm-nightly.s3.brave.com/brave-browser-nightly.repo")
@@ -189,27 +186,5 @@ for _, conf in ipairs(stow_configs) do
     print_info("Stowing " .. pkg)
     os.execute("stow " .. pkg)
 end
-
-
--- print_step("Installazione di Algo")
---
--- local algo_repo = "https://github.com/Mukumbaa/algo"
--- local algo_dir = home .. "/algo"
---
--- -- Controllo se la cartella ~/algo esiste già
--- -- [ -d ... ] verifica se è una directory valida
--- if os.execute('[ -d "' .. algo_dir .. '" ]') then
---     print_info("La cartella ~/algo esiste già. Scarico gli ultimi aggiornamenti (git pull)...")
---     os.execute("cd " .. algo_dir .. " && git pull")
--- else
---     print_info("Clonazione della repository Algo...")
---     os.execute("git clone " .. algo_repo .. " " .. algo_dir)
--- end
---
--- print_info("Esecuzione di install.sh di Algo...")
--- -- Usiamo && per assicurarci di entrare nella cartella PRIMA di eseguire lo script.
--- -- Aggiungiamo anche un chmod +x preventivo per sicurezza!
--- os.execute("cd " .. algo_dir .. " && chmod +x install.sh && ./install.sh")
-
 
 print_step("Setup Completato con Successo! Riavvia la sessione.")
