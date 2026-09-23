@@ -3,10 +3,10 @@
 theme = 'rose-pine'
 # 
 # The editor files will be opened with. (Leave blank to use the EDITOR environment variable).
-editor = ''
+editor = 'nvim'
 # 
 # The editor directories will be opened with. (Leave blank to use the default editors).
-dir_editor = ''
+dir_editor = 'nvim'
 # 
 # Auto check for update
 auto_check_update = true
