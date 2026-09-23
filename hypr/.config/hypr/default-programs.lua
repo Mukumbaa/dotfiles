@@ -1,7 +1,8 @@
 
 Terminal = "alacritty"
 Terminal2 = "foot"
-FileManager = "kitty --single-instance yazi"
+-- FileManager = "kitty --single-instance yazi"
+FileManager = "alacritty -e spf"
 Browser = "google-chrome"
 Browser2 = "brave-browser"
 
