@@ -10,6 +10,7 @@ local dnf_packages = {
   -- "yazi", -- i install it localy
   -- "superfile", -- i install it localy
   -- "caskaydia-mono-nerd-fonts", -- i install it localy
+  -- "starship", -- i install it localy
     "stow",
     "hyprland",
     "hyprpaper",
@@ -123,13 +124,13 @@ os.execute(dnf_cmd)
 ---------------------------------------------------------
 -- FASE 2: Installazioni Esterne
 ---------------------------------------------------------
-print_step("Installazione NMGUI (WiFi) e Starship")
+-- print_step("Installazione NMGUI (WiFi) e Starship")
 -- os.execute("sudo curl -L https://github.com/s-adi-dev/nmgui/releases/download/v1.0.0/main.bin -o /usr/bin/nmgui")
 -- os.execute("sudo chmod +x /usr/bin/nmgui")
 -- os.execute("curl -sL https://raw.githubusercontent.com/s-adi-dev/nmgui/main/nmgui.desktop -o ~/.local/share/applications/nmgui.desktop")
 
 -- Starship
-os.execute("curl -sS https://starship.rs/install.sh | sh -s -- -y")
+-- os.execute("curl -sS https://starship.rs/install.sh | sh -s -- -y")
 
 -- Pipx path
 os.execute("pipx install ensurepath")
