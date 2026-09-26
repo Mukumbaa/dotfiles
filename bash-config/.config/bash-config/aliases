@@ -11,7 +11,7 @@ alias enva='source venv/bin/activate; pip install ruff basedpyright'
 alias envd='deactivate'
 gg() {
   if [[ -z $(git status -s) ]]; then
-    echo "Nothing to commit"
+    echo "Nothing to commit.\n"
     return 1
   fi
 
