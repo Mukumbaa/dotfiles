@@ -122,6 +122,12 @@ print_step("Installazione Pacchetti DNF")
 local dnf_cmd = "sudo dnf install -y --skip-unavailable " .. table.concat(dnf_packages, " ")
 os.execute(dnf_cmd)
 
+os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/quickshell-0.3.1-1.202609251512_base.fc44.x86_64.rpm")
+os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/superfile-1.6.0.rc1-1.202609251516_base.fc44.x86_64.rpm")
+os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/yazi-26.9.1-1.202609241239_base.fc44.x86_64.rpm")
+os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/caskaydia-mono-nerd-fonts-3.3.0-1.202609232024_base.fc44.noarch.rpm")
+os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/starship-1.26.0-1.202609242001_base.fc44.x86_64.rpm")
+
 -- Pipx path
 os.execute("pipx install ensurepath")
 
