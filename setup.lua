@@ -11,74 +11,74 @@ local dnf_packages = {
   -- "superfile", -- i install it localy
   -- "caskaydia-mono-nerd-fonts", -- i install it localy
   -- "starship", -- i install it localy
-    "stow",
-    "hyprland",
-    "hyprpaper",
-    "hyprlock",
-    "hyprland-guiutils",
-    "wlogout",
-    "waybar",
-    "alacritty",
-    "kitty",
-    "helix",
-    "nvim",
-    "btop",
-    "fastfetch",
-    "wiremix",
-    "google-chrome-stable",
-    "lsd",
-    "fd-find",
-    "qalculate",
-    "gnome-tweaks",
-    "gnome-themes-extra",
-    "adw-gtk3-theme",
-    "dbus-devel",
-    "pkgconf-pkg-config",
-    "gh",
-    "blueman",
-    "nmtui",
-    "pipx",
-    "gcc",
-    "clangd",
-    "golang",
-    "rustup",
-    "grim",
-    "slurp",
-    "wl-clipboard",
-    "brave-browser-nightly"
+  "stow",
+  "hyprland",
+  "hyprpaper",
+  "hyprlock",
+  "hyprland-guiutils",
+  "wlogout",
+  "waybar",
+  "alacritty",
+  "kitty",
+  "helix",
+  "nvim",
+  "btop",
+  "fastfetch",
+  "wiremix",
+  "google-chrome-stable",
+  "lsd",
+  "fd-find",
+  "qalculate",
+  "gnome-tweaks",
+  "gnome-themes-extra",
+  "adw-gtk3-theme",
+  "dbus-devel",
+  "pkgconf-pkg-config",
+  "gh",
+  "blueman",
+  "nmtui",
+  "pipx",
+  "gcc",
+  "clangd",
+  "golang",
+  "rustup",
+  "grim",
+  "slurp",
+  "wl-clipboard",
+  "brave-browser-nightly"
 }
 
 -- Pacchetti Go da installare
 local go_packages = {
-    "golang.org/x/tools/gopls@latest",
-    "github.com/nametake/golangci-lint-langserver@latest",
-    "github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
-    "golang.org/x/tools/cmd/goimports@latest",
-    "github.com/go-delve/delve/cmd/dlv@latest"
+  "golang.org/x/tools/gopls@latest",
+  "github.com/nametake/golangci-lint-langserver@latest",
+  "github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+  "golang.org/x/tools/cmd/goimports@latest",
+  "github.com/go-delve/delve/cmd/dlv@latest"
 }
 
 -- Configurazione Stow: Mappatura "Pacchetto -> Destinazione"
 local stow_configs = {
-    -- Gruppo A (Cartelle in .config)
-    { pkg = "alacritty",   target = home .. "/.config/alacritty" },
-    { pkg = "bash-config", target = home .. "/.config/bash-config" },
-    { pkg = "btop",        target = home .. "/.config/btop" },
-    { pkg = "fastfetch",   target = home .. "/.config/fastfetch" },
-    { pkg = "helix",       target = home .. "/.config/helix" },
-    { pkg = "nvim",        target = home .. "/.config/nvim" },
-    { pkg = "hypr",        target = home .. "/.config/hypr" },
-    { pkg = "quickshell",  target = home .. "/.config/quickshell" },
-    { pkg = "scripts",     target = home .. "/.config/scripts" },
-    { pkg = "waybar",      target = home .. "/.config/waybar" },
-    { pkg = "wlogout",     target = home .. "/.config/wlogout" },
-    { pkg = "kanshi",      target = home .. "/.config/kanshi" },
-    { pkg = "algo",        target = home .. "/.config/algo" },
-    { pkg = "yazi",        target = home .. "/.config/yazi" },
-    { pkg = "kitty",       target = home .. "/.config/kitty" },
-    { pkg = "superfile",       target = home .. "/.config/superfile" },
-    -- Gruppo B (File speciali)
-    { pkg = "bashrc",      target = home .. "/.bashrc" },
-    { pkg = "starship",    target = home .. "/.config/starship.toml" },
+  -- Gruppo A (Cartelle in .config)
+  { pkg = "alacritty",   target = home .. "/.config/alacritty" },
+  { pkg = "bash-config", target = home .. "/.config/bash-config" },
+  { pkg = "btop",        target = home .. "/.config/btop" },
+  { pkg = "fastfetch",   target = home .. "/.config/fastfetch" },
+  { pkg = "helix",       target = home .. "/.config/helix" },
+  { pkg = "nvim",        target = home .. "/.config/nvim" },
+  { pkg = "hypr",        target = home .. "/.config/hypr" },
+  { pkg = "quickshell",  target = home .. "/.config/quickshell" },
+  { pkg = "scripts",     target = home .. "/.config/scripts" },
+  { pkg = "waybar",      target = home .. "/.config/waybar" },
+  { pkg = "wlogout",     target = home .. "/.config/wlogout" },
+  { pkg = "kanshi",      target = home .. "/.config/kanshi" },
+  { pkg = "algo",        target = home .. "/.config/algo" },
+  { pkg = "yazi",        target = home .. "/.config/yazi" },
+  { pkg = "kitty",       target = home .. "/.config/kitty" },
+  { pkg = "superfile",       target = home .. "/.config/superfile" },
+  -- Gruppo B (File speciali)
+  { pkg = "bashrc",      target = home .. "/.bashrc" },
+  { pkg = "starship",    target = home .. "/.config/starship.toml" },
 }
 
 
@@ -86,15 +86,15 @@ local stow_configs = {
 -- 2. FUNZIONI DI SUPPORTO 
 -- ==============================================================================
 local colors = {
-    blue = "\27[34m", green = "\27[32m", yellow = "\27[33m", red = "\27[31m", reset = "\27[0m", bold = "\27[1m"
+  blue = "\27[34m", green = "\27[32m", yellow = "\27[33m", red = "\27[31m", reset = "\27[0m", bold = "\27[1m"
 }
 
 local function print_step(msg)
-    print("\n" .. colors.bold .. colors.blue .. "==> " .. colors.reset .. colors.bold .. msg .. colors.reset)
+  print("\n" .. colors.bold .. colors.blue .. "==> " .. colors.reset .. colors.bold .. msg .. colors.reset)
 end
 
 local function print_info(msg)
-    print("  " .. colors.green .. "-> " .. colors.reset .. msg)
+  print("  " .. colors.green .. "-> " .. colors.reset .. msg)
 end
 
 -- ==============================================================================
@@ -139,7 +139,7 @@ os.execute(cargo_bin .. " install --git https://github.com/Myriad-Dreamin/tinymi
 -- Go packages (Ciclo elegante sull'array)
 print_info("Installazione Strumenti Go")
 for _, pkg in ipairs(go_packages) do
-    os.execute("go install " .. pkg)
+  os.execute("go install " .. pkg)
 end
 
 ---------------------------------------------------------
@@ -153,29 +153,29 @@ os.execute('mkdir -p "' .. backup_dir .. '"')
 print_info("Eventuali conflitti verranno salvati in: " .. backup_dir)
 
 for _, conf in ipairs(stow_configs) do
-    local target = conf.target
-    local pkg = conf.pkg
+  local target = conf.target
+  local pkg = conf.pkg
 
-    -- Controllo: Se esiste (-e) E NON è un symlink (! -L)
-    -- os.execute restituisce 'true' se il comando Bash ha successo (exit code 0)
-    local check_cmd = string.format('[ -e "%s" ] && [ ! -L "%s" ]', target, target)
+  -- Controllo: Se esiste (-e) E NON è un symlink (! -L)
+  -- os.execute restituisce 'true' se il comando Bash ha successo (exit code 0)
+  local check_cmd = string.format('[ -e "%s" ] && [ ! -L "%s" ]', target, target)
 
-    if os.execute(check_cmd) then
-        print(colors.yellow .. "  !! Trovato file/cartella reale: " .. target .. colors.reset)
+  if os.execute(check_cmd) then
+    print(colors.yellow .. "  !! Trovato file/cartella reale: " .. target .. colors.reset)
 
-        -- Calcoliamo il percorso relativo per mantenere la struttura nel backup
-        -- gsub elimina il percorso della home stringa. Es: "/home/user/.bashrc" diventa ".bashrc"
-        local rel_path = target:gsub(home .. "/", "")
-        local dest = backup_dir .. "/" .. rel_path
+    -- Calcoliamo il percorso relativo per mantenere la struttura nel backup
+    -- gsub elimina il percorso della home stringa. Es: "/home/user/.bashrc" diventa ".bashrc"
+    local rel_path = target:gsub(home .. "/", "")
+    local dest = backup_dir .. "/" .. rel_path
 
-        -- Ricreiamo la cartella genitore nel backup e spostiamo il file
-        os.execute('mkdir -p "$(dirname "' .. dest .. '")"')
-        os.execute('mv "' .. target .. '" "' .. dest .. '"')
-        print_info("Spostato in backup: " .. dest)
-    end
+    -- Ricreiamo la cartella genitore nel backup e spostiamo il file
+    os.execute('mkdir -p "$(dirname "' .. dest .. '")"')
+    os.execute('mv "' .. target .. '" "' .. dest .. '"')
+    print_info("Spostato in backup: " .. dest)
+  end
 
-    print_info("Stowing " .. pkg)
-    os.execute("stow " .. pkg)
+  print_info("Stowing " .. pkg)
+  os.execute("stow " .. pkg)
 end
 
 print_step("Setup Completato con Successo! Riavvia la sessione.")
