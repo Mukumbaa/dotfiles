@@ -75,7 +75,7 @@ local stow_configs = {
   { pkg = "algo",        target = home .. "/.config/algo" },
   { pkg = "yazi",        target = home .. "/.config/yazi" },
   { pkg = "kitty",       target = home .. "/.config/kitty" },
-  { pkg = "superfile",       target = home .. "/.config/superfile" },
+  { pkg = "superfile",   target = home .. "/.config/superfile" },
   -- Gruppo B (File speciali)
   { pkg = "bashrc",      target = home .. "/.bashrc" },
   { pkg = "starship",    target = home .. "/.config/starship.toml" },
