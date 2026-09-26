@@ -10,6 +10,11 @@ alias envc='python -m venv venv'
 alias enva='source venv/bin/activate; pip install ruff basedpyright'
 alias envd='deactivate'
 gg() {
+  if [[ -z $(git status -s) ]]; then
+    echo "Nothing to commit"
+    return 1
+  fi
+
   local msg="${1:-updates}"
   git add .
   git commit -m "$msg"
