@@ -75,6 +75,7 @@ local stow_configs = {
     { pkg = "algo",        target = home .. "/.config/algo" },
     { pkg = "yazi",        target = home .. "/.config/yazi" },
     { pkg = "kitty",       target = home .. "/.config/kitty" },
+    { pkg = "superfile",       target = home .. "/.config/superfile" },
     -- Gruppo B (File speciali)
     { pkg = "bashrc",      target = home .. "/.bashrc" },
     { pkg = "starship",    target = home .. "/.config/starship.toml" },
@@ -120,17 +121,6 @@ print_step("Installazione Pacchetti DNF")
 -- Uniamo tutta la tabella in una singola stringa separata da spazi
 local dnf_cmd = "sudo dnf install -y --skip-unavailable " .. table.concat(dnf_packages, " ")
 os.execute(dnf_cmd)
-
----------------------------------------------------------
--- FASE 2: Installazioni Esterne
----------------------------------------------------------
--- print_step("Installazione NMGUI (WiFi) e Starship")
--- os.execute("sudo curl -L https://github.com/s-adi-dev/nmgui/releases/download/v1.0.0/main.bin -o /usr/bin/nmgui")
--- os.execute("sudo chmod +x /usr/bin/nmgui")
--- os.execute("curl -sL https://raw.githubusercontent.com/s-adi-dev/nmgui/main/nmgui.desktop -o ~/.local/share/applications/nmgui.desktop")
-
--- Starship
--- os.execute("curl -sS https://starship.rs/install.sh | sh -s -- -y")
 
 -- Pipx path
 os.execute("pipx install ensurepath")
