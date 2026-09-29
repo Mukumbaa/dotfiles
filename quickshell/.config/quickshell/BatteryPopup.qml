@@ -123,7 +123,7 @@ PanelWindow {
     // Imposta subito la selezione grafica permanente
     root.currentProfile = profile
 
-    let tunedTarget = "balanced"
+    let tunedTarget = "balanced-battery"
     if (profile === "performance") tunedTarget = "throughput-performance"
     else if (profile === "power-saver") tunedTarget = "powersave"
 
@@ -339,7 +339,7 @@ PanelWindow {
             profileKey: "balanced"
             accentColor: Theme.foam
             isActive: root.currentProfile === "balanced"
-            onSelected: root.setProfile("balanced")
+            onSelected: root.setProfile("balanced-battery")
           }
 
           ProfileItem {
