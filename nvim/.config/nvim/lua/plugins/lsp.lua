@@ -81,9 +81,14 @@ vim.lsp.config("tinymist", {
     vim.keymap.set("n", "<leader>tp", function()
       local current_buf = vim.api.nvim_get_current_buf()
       local current_file = vim.api.nvim_buf_get_name(current_buf)
+      
       client:request("workspace/executeCommand", {
         command = "tinymist.startDefaultPreview",
-        arguments = { current_file },
+        -- Passiamo sia il file sia il flag esplicito
+        arguments = { 
+          current_file, 
+          "--invert-colors=never" 
+        },
       }, function(err)
         if err then
           vim.notify("Errore anteprima Tinymist: " .. err.message, vim.log.levels.ERROR)
@@ -96,8 +101,10 @@ vim.lsp.config("tinymist", {
 
   cmd = { "tinymist" },
 
+  -- Configurazione ad albero nativa richiesta dall'LSP di Tinymist
   settings = {
     preview = {
+      invertColors = "never",
       browsing = {
         args = {
           "--data-plane-host=127.0.0.1:0",
@@ -105,11 +112,11 @@ vim.lsp.config("tinymist", {
           "--open",
         },
       },
-    },
-
-    tinymist = {
-      preview = {
-        invertColors = "never",
+      background = {
+        args = {
+          "--data-plane-host=127.0.0.1:23635",
+          "--invert-colors=never",
+        },
       },
     },
   },
