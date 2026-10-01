@@ -16,11 +16,6 @@ return {
       end,
     }
 
-    -- local diff = {
-    --   "diff",
-    --   colored = true,
-    --   symbols = { added = " ", modified = " ", removed = " " },
-    -- }
 
     local mode = {
       "mode",
@@ -44,6 +39,41 @@ return {
       return math.floor(line_ratio * 100) .. "%%"
     end
 
+
+    local lsp_status = function()
+      local buf_clients = vim.lsp.get_clients({ bufnr = 0 })
+      if #buf_clients == 0 then
+        return "󰅛 No LSP"
+      end
+
+      local client_names = {}
+      local is_loading = false
+
+      for _, client in ipairs(buf_clients) do
+        table.insert(client_names, client.name)
+
+        if vim.lsp.status then
+          local progress_msgs = vim.lsp.status()
+          if progress_msgs and progress_msgs ~= "" then
+            is_loading = true
+          end
+        end
+      end
+      local names_str = table.concat(client_names, ", ")
+
+      if is_loading then
+        return "󰔟 " .. names_str .. " (Loading...)"
+      else
+        return " " .. names_str
+      end
+    end
+
+
+
+
+
+
+
     return {
       options = {
         icons_enabled = true,
@@ -57,8 +87,12 @@ return {
         lualine_a = { branch },
         lualine_b = { mode },
         lualine_c = { diagnostics, "filename" },
-        -- lualine_x = { diff, "fileformat", "filetype" },
-        -- lualine_x = { "location" },
+        lualine_x = {
+          lsp_status,
+          "encoding",
+          "fileformat",
+          "filetype",
+        },
         lualine_y = { progress },
         lualine_z = {{"datetime", style = "%H:%M"}}
       },

@@ -36,14 +36,25 @@ return {
           --   vim.diagnostic.open_float(nil, {focusable = false, scope = "line", max_width = 80, border = "single"})
           -- end, opts)
         end
-
+--[[
         vim.lsp.config("clangd", {
           capabilities = capabilities,
           on_attach = lsp_keymaps,
           -- cmd = { "clangd", "--compile-commands-dir=build" },
           -- root_dir = require("lspconfig.util").root_pattern("compile_commands.json", ".git"),
         })
-
+]]
+        vim.lsp.config("clangd", {
+          capabilities = capabilities,
+          on_attach = lsp_keymaps,
+          cmd = {
+            "clangd",
+            "--background-index",          -- Indicizza il codice in background
+            "--clang-tidy",                -- Abilita il linter integrato di Clang
+            "--completion-style=detailed", -- Dettagli chiari nel completamento
+            "--header-insertion=never",    -- Evita che inserisca automaticamente include non voluti
+          },
+        })
         vim.lsp.config("gopls", {
           capabilities = capabilities,
           on_attach = lsp_keymaps,
