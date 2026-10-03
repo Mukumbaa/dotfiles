@@ -72,6 +72,7 @@ hl.config({
         initial_workspace_tracking = 0
     },
     cursor = {
-        hide_on_key_press = true
+        hide_on_key_press = true,
+        no_hardware_cursors = true
     }
 })
