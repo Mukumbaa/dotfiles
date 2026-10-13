@@ -85,25 +85,15 @@ PanelWindow {
   onIsOpenChanged: {
     if (isOpen) {
       inactivityTimer.restart()
-      openScanDelay.restart() //  Avvia il ritardo invece di scansionare subito
+      openScanDelay.restart()
     } else {
       isPasswordPromptOpen = false
+      showPassword = false
       autoCloseTimer.stop()
       inactivityTimer.stop()
-      openScanDelay.stop()    //  Ferma il timer se chiudi prima che scada
+      openScanDelay.stop()
     }
   }
-  // onIsOpenChanged: {
-  //   if (isOpen) {
-  //     inactivityTimer.restart()
-  //     if (ConnectionsState.currentTab === "wifi") scanWifi()
-  //     if (ConnectionsState.currentTab === "bluetooth") scanBt()
-  //   } else {
-  //     isPasswordPromptOpen = false
-  //     autoCloseTimer.stop()
-  //     inactivityTimer.stop()
-  //   }
-  // }
 
   // =============================================================
   // 1. LOGICA WI-FI COMPLETA
@@ -114,6 +104,7 @@ PanelWindow {
   property string wifiActionSsid: ""
 
   property bool isPasswordPromptOpen: false
+  property bool showPassword: false
   property string targetSsid: ""
   property string targetSecurity: ""
   property string passwordInput: ""
@@ -237,6 +228,7 @@ PanelWindow {
         if (this.text.includes("successfully activated") || this.text.includes("attivata con successo") || this.text.includes("successfully")) {
           root.isPasswordPromptOpen = false
           root.passwordInput = ""
+          root.showPassword = false
           wifiPostConnectTimer.restart()
         } else {
           root.wifiErrorMsg = "Wrong password or failed connection"
@@ -279,6 +271,7 @@ PanelWindow {
       root.targetSecurity = net.security
       root.passwordInput = ""
       root.wifiErrorMsg = ""
+      root.showPassword = false
       root.isPasswordPromptOpen = true
     }
   }
@@ -331,7 +324,6 @@ PanelWindow {
             let name = parts.slice(3).join("|").trim()
             let isMac = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(mac)
 
-            // Estrae il numero della batteria (es. 85) se presente
             let battery = -1
             if (batRaw.length > 0) {
               let match = batRaw.match(/\((\d+)\)/) || batRaw.match(/(\d+)%/) || batRaw.match(/:\s*(\d+)/)
@@ -381,7 +373,7 @@ PanelWindow {
   Timer {
     id: btSyncDelayTimer
     interval: 500
-    onTriggered: root.scanBt(true) // <-- Passa true per bypassare il cooldown!
+    onTriggered: root.scanBt(true)
   }
 
   // Timer di sicurezza anti-blocco (se il bluetooth ci mette troppo)
@@ -494,12 +486,9 @@ PanelWindow {
       width: parent.width
       height: parent.height
 
-      // y: (root.animProgress - 1.0) * height
-      // opacity: root.animProgress
-
       opacity: root.animProgress
       transform: Translate {
-        y: (1.0 - root.animProgress) * -3 // scorrimento leggero di 15px verso il basso
+        y: (1.0 - root.animProgress) * -3
       }
       color: Theme.base
       radius: Theme.radius
@@ -689,6 +678,7 @@ PanelWindow {
               font.bold: true
             }
 
+            // Box Input con toggle mostra/nascondi password
             Rectangle {
               Layout.fillWidth: true
               implicitHeight: 32
@@ -701,12 +691,12 @@ PanelWindow {
                 id: passInput
                 anchors.fill: parent
                 anchors.leftMargin: 8
-                anchors.rightMargin: 8
+                anchors.rightMargin: 30
                 verticalAlignment: TextInput.AlignVCenter
                 color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: 12
-                echoMode: TextInput.Password
+                echoMode: root.showPassword ? TextInput.Normal : TextInput.Password
                 focus: root.isPasswordPromptOpen
                 onTextEdited: root.passwordInput = text
                 onAccepted: root.submitWifiPassword()
@@ -721,6 +711,32 @@ PanelWindow {
                 color: Theme.subtle
                 font.family: Theme.fontFamily
                 font.pixelSize: 11
+              }
+
+              // Pulsante Occhio Mostra/Nascondi Password
+              Rectangle {
+                anchors.right: parent.right
+                anchors.rightMargin: 4
+                anchors.verticalCenter: parent.verticalCenter
+                implicitWidth: 24
+                implicitHeight: 24
+                radius: 4
+                color: eyeMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+
+                Text {
+                  anchors.centerIn: parent
+                  text: root.showPassword ? "󰈉" : "󰈈"
+                  color: root.showPassword ? Theme.foam : Theme.subtle
+                  font.pixelSize: 13
+                }
+
+                MouseArea {
+                  id: eyeMouse
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.showPassword = !root.showPassword
+                }
               }
             }
 
@@ -745,7 +761,10 @@ PanelWindow {
                 MouseArea {
                   anchors.fill: parent
                   cursorShape: Qt.PointingHandCursor
-                  onClicked: root.isPasswordPromptOpen = false
+                  onClicked: {
+                    root.isPasswordPromptOpen = false
+                    root.showPassword = false
+                  }
                 }
               }
 
@@ -957,7 +976,6 @@ PanelWindow {
                     visible: modelData.connected && modelData.battery >= 0 && !devItem.isBusy
                     Layout.alignment: Qt.AlignVCenter
                     spacing: 2
-
 
                     Text {
                       text: modelData.battery + "%"

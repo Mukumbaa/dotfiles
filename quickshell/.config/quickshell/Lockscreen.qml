@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Pam
+import Quickshell.Services.UPower
 
 Scope {
   id: lockScope
@@ -98,6 +99,50 @@ Scope {
       }
 
       // -------------------------------------------------------------
+      // 1. BATTERIA IN ALTO A DESTRA
+      // -------------------------------------------------------------
+      RowLayout {
+        id: batIndicator
+        anchors {
+          top: parent.top
+          right: parent.right
+          // margins: 8
+          topMargin: 3
+          rightMargin: 16
+        }
+        spacing: 4
+        opacity: contentCol.opacity
+
+        property var displayDevice: UPower.displayDevice
+        property int batteryLevel: displayDevice ? Math.round(displayDevice.percentage * 100) : 0
+        property bool isCharging: displayDevice ? displayDevice.state === UPowerDeviceState.Charging : false
+
+        property var iconsCharging: "󰂄"
+        property var iconsDefault:  ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+
+        property string batIcon: {
+          let idx = Math.max(0, Math.min(Math.floor(batteryLevel / 10), 9))
+          return isCharging ? iconsCharging : iconsDefault[idx]
+        }
+
+        visible: displayDevice !== null
+
+        Text {
+          text: batIndicator.batteryLevel + "%"
+          color: (batIndicator.batteryLevel <= 20 && !batIndicator.isCharging) ? Theme.love : Theme.text
+          font.family: Theme.fontFamily
+          font.pixelSize: 12
+        }
+
+        Text {
+          text: batIndicator.batIcon
+          color: (batIndicator.batteryLevel <= 20 && !batIndicator.isCharging) ? Theme.love : (batIndicator.isCharging ? Theme.foam : Theme.text)
+          font.family: Theme.fontFamily
+          font.pixelSize: 18
+        }
+      }
+
+      // -------------------------------------------------------------
       // CONTENUTO CENTRALE
       // -------------------------------------------------------------
       ColumnLayout {
@@ -106,8 +151,11 @@ Scope {
         spacing: 16
         opacity: 0.0 // Parte invisibile per far risaltare l'animazione di entrata
 
-        // Orologio
-        SystemClock { id: lockClock; precision: SystemClock.Minutes }
+        // 3. Orologio istantaneo al risveglio (precision: Seconds)
+        SystemClock { 
+          id: lockClock
+          precision: SystemClock.Seconds 
+        }
 
         Text {
           Layout.alignment: Qt.AlignHCenter
@@ -129,7 +177,7 @@ Scope {
 
         Item { implicitHeight: 12 }
 
-// Box Password (Autocentrato Dinamicamente)
+        // Box Password (Autocentrato Dinamicamente)
         Rectangle {
           id: inputCard
           Layout.alignment: Qt.AlignHCenter
@@ -153,7 +201,7 @@ Scope {
           }
 
           // Input Password centrato in tempo reale
-TextInput {
+          TextInput {
             id: pwdInput
             anchors.fill: parent
             anchors.leftMargin: 36
