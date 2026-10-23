@@ -1,6 +1,7 @@
 alias sbrc='source ~/.bashrc'
 alias ..='cd ..'
 alias py='python'
+alias cat='bat'
 alias dot='cd ~/dotfiles'
 alias proj='cd ~/Documents/projects'
 alias git-conf='~/.config/scripts/git-setup.lua'

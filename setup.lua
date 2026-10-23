@@ -45,7 +45,8 @@ local dnf_packages = {
   "grim",
   "slurp",
   "wl-clipboard",
-  "brave-browser-nightly"
+  "brave-browser-nightly",
+  "bat",
 }
 
 -- Pacchetti Go da installare
