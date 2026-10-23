@@ -47,6 +47,7 @@ local dnf_packages = {
   "wl-clipboard",
   "brave-browser-nightly",
   "bat",
+  "trash-cli",
 }
 
 -- Pacchetti Go da installare

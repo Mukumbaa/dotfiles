@@ -61,3 +61,60 @@ vim.keymap.set('v', '<Tab>', '>gv', { noremap = true, silent = true })
 
 -- Subs tab on all selected line
 vim.keymap.set('v', '<S-Tab>', '<gv', { noremap = true, silent = true })
+
+-- Allinea un carattere a scelta nella selezione visuale usando 'column'
+vim.keymap.set('v', '<leader>t', function()
+  -- 1. Salva i numeri di riga della selezione visuale
+  local line_start = vim.fn.line("v")
+  local line_end = vim.fn.line(".")
+
+  if line_start > line_end then
+    line_start, line_end = line_end, line_start
+  end
+
+  -- Esce dalla modalità visuale
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
+
+  vim.schedule(function()
+    vim.cmd('redraw')
+    local char = vim.fn.input('Carattere da allineare: ')
+    if not char or char == '' then return end
+
+    -- Recupera le righe selezionate
+    local lines = vim.api.nvim_buf_get_lines(0, line_start - 1, line_end, false)
+    
+    -- Calcola la lunghezza massima del testo prima del carattere di separazione
+    local max_len = 0
+    local parsed = {}
+
+    for _, line in ipairs(lines) do
+      -- Trova l'ultima occorrenza del carattere (utilissimo per i backslash a fine riga)
+      local idx = line:match(".*()" .. vim.pesc(char))
+      if idx then
+        local left = line:sub(1, idx - 1):gsub("%s+$", "") -- Rimuove gli spazi finali prima del carattere
+        local right = line:sub(idx)
+        if #left > max_len then
+          max_len = #left
+        end
+        table.insert(parsed, { left = left, right = right })
+      else
+        table.insert(parsed, { raw = line })
+      end
+    end
+
+    -- Ricostruisce le righe allineate con la spaziatura minima necessaria
+    local new_lines = {}
+    for _, item in ipairs(parsed) do
+      if item.raw then
+        table.insert(new_lines, item.raw)
+      else
+        -- Aggiunge il carattere di separazione separato da uno spazio dopo la parte sinistra
+        local padding = string.rep(" ", max_len - #item.left + 1)
+        table.insert(new_lines, item.left .. padding .. item.right)
+      end
+    end
+
+    -- Aggiorna il buffer
+    vim.api.nvim_buf_set_lines(0, line_start - 1, line_end, false, new_lines)
+  end)
+end, { desc = "Align selected text by chosen character" })
