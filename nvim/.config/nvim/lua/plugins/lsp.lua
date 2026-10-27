@@ -44,16 +44,21 @@ return {
           -- root_dir = require("lspconfig.util").root_pattern("compile_commands.json", ".git"),
         })
 ]]
-        vim.lsp.config("clangd", {
-          capabilities = capabilities,
-          on_attach = lsp_keymaps,
-          cmd = {
-            "clangd",
-            "--background-index",          -- Indicizza il codice in background
-            "--clang-tidy",                -- Abilita il linter integrato di Clang
-            "--completion-style=detailed", -- Dettagli chiari nel completamento
-            "--header-insertion=never",    -- Evita che inserisca automaticamente include non voluti
-          },
+vim.lsp.config("clangd", {
+  capabilities = capabilities,
+  on_attach = lsp_keymaps,
+  cmd = {
+    "clangd",
+    "--background-index",          -- Indicizza il codice in background
+    "--clang-tidy",                -- Abilita il linter integrato di Clang
+    "--completion-style=detailed", -- Dettagli chiari nel completamento
+    "--header-insertion=never",    -- Evita che inserisca automaticamente include non voluti
+    "--query-driver=/usr/bin/gcc",
+
+  },
+  init_options = {
+    fallbackFlags = { "-fblocks", "-Wall" },
+  },
         })
         vim.lsp.config("gopls", {
           capabilities = capabilities,
@@ -73,10 +78,22 @@ return {
 
         })
 
-        -- vim.lsp.config("pyright", {
-          --     capabilities = capabilities,
-          --     on_attach = lsp_keymaps,
-          -- })
+        vim.lsp.config("basedpyright", {
+          capabilities = capabilities,
+          on_attach = lsp_keymaps,
+          cmd = { "basedpyright-langserver", "--stdio" },
+          root_markers = {
+            "pyproject.toml",
+            "setup.py",
+            "setup.cfg",
+            "requirements.txt",
+            "Pipfile",
+            "pyrightconfig.json",
+            ".git",
+            "venv",
+            ".venv",
+          },
+        })
 
           vim.lsp.config("lua_ls", {
             capabilities = capabilities,
@@ -92,13 +109,13 @@ vim.lsp.config("tinymist", {
     vim.keymap.set("n", "<leader>tp", function()
       local current_buf = vim.api.nvim_get_current_buf()
       local current_file = vim.api.nvim_buf_get_name(current_buf)
-      
+
       client:request("workspace/executeCommand", {
         command = "tinymist.startDefaultPreview",
         -- Passiamo sia il file sia il flag esplicito
-        arguments = { 
-          current_file, 
-          "--invert-colors=never" 
+        arguments = {
+          current_file,
+          "--invert-colors=never"
         },
       }, function(err)
         if err then
@@ -136,7 +153,7 @@ vim.lsp.config("tinymist", {
             "lua_ls",
             "clangd",
             "gopls",
-            "pyright",
+            "basedpyright",
             "tinymist",
             "zls",
             "qmlls"
