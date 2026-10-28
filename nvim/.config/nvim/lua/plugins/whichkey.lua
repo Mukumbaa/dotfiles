@@ -7,7 +7,7 @@ return {
         preset = "helix",
 
         win = {
-            border = "single",
+            border = vim.g.border,
             no_overlap = false
         },
 

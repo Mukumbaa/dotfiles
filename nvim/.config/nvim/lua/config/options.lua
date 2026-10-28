@@ -4,7 +4,8 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     vim.hl.on_yank()
   end,
 })
-
+-- ("rounded", "single", "double", "solid", "none")
+vim.g.border = "single"
 
 local options = {
   laststatus = 3,
@@ -18,19 +19,24 @@ local options = {
   backup = false,
   undofile = true, --undos are saved to file
   cursorline = true, --highlight line
-  ttyfast = true, --faster scrolling
+  -- ttyfast = true, --faster scrolling
   smoothscroll = true,
   scrolloff = 8,
   sidescrolloff = 8,
   title = true, --automatic window titlebar
   numberwidth = 4,
 
-  cindent = true,
-  autoindent = false,
+  -- cindent = true,
+  -- autoindent = false,
+  -- smartindent = true,
+  autoindent = true,
+  smartindent = false,
+  cindent = false,
 
   foldmethod = "expr",
   foldlevel = 99, --disable folding, lower #s enable
-  foldexpr = "nvim_treesitter#foldexpr()",
+  -- foldexpr = "nvim_treesitter#foldexpr()",
+  foldexpr = "v:lua.vim.treesitter.foldexpr()",
 
   ignorecase = true, --ignore case while searching
   smartcase = true, --but do not ignore if caps are used
@@ -48,7 +54,6 @@ local options = {
   relativenumber = true,
   hlsearch = true,
   incsearch = true,
-  smartindent = true,
   smarttab = true, --indentation stuff
   expandtab = true,
   shiftwidth = 2,
@@ -67,42 +72,42 @@ local options = {
 
 }
 vim.opt.undodir = vim.fn.stdpath("data") .. "/undodir"
-vim.opt.undofile = true
 vim.g.netrw_banner = 0
 vim.g.netrw_winsize = -30
 vim.g.netrw_liststyle = 3
 vim.g.netrw_browse_split = 4
+vim.opt.whichwrap:append({ ['<'] = true, ['>'] = true, ['h'] = true, ['l'] = true, ['['] = true, [']'] = true })
 
 for k, v in pairs(options) do
   vim.opt[k] = v
 end
 
-vim.diagnostic.config({
-  -- Disattiva i simboli nella barra laterale (mantenendo la tua preferenza attuale)
-  signs = false,
-
-  -- Abilita il testo fantasma (Virtual Text)
-  virtual_text = {
-    spacing = 4,          -- Distanza in spazi tra la fine del codice e il testo fantasma
-    source = "if_many",   -- Mostra la sorgente (es. pyright, lua_ls) se ci sono più diagnostiche
-    prefix = "■",         -- Simbolo che precede il messaggio d'errore (puoi usare "●", " ", "󰅚 ")
-    severity = nil,       -- Mostra tutte le gravità (Error, Warn, Info, Hint)
-  },
-
-  -- Mostra le diagnostiche anche mentre stai digitando in Insert Mode (opzionale)
-  update_in_insert = false,
-})
+-- vim.diagnostic.config({
+--   -- Disattiva i simboli nella barra laterale (mantenendo la tua preferenza attuale)
+--   signs = false,
+--
+--   -- Abilita il testo fantasma (Virtual Text)
+--   virtual_text = {
+--     spacing = 4,          -- Distanza in spazi tra la fine del codice e il testo fantasma
+--     source = "if_many",   -- Mostra la sorgente (es. pyright, lua_ls) se ci sono più diagnostiche
+--     prefix = "■",         -- Simbolo che precede il messaggio d'errore (puoi usare "●", " ", "󰅚 ")
+--     severity = nil,       -- Mostra tutte le gravità (Error, Warn, Info, Hint)
+--   },
+--
+--   -- Mostra le diagnostiche anche mentre stai digitando in Insert Mode (opzionale)
+--   update_in_insert = false,
+-- })
 -- Disattiva la sorgente 'buffer' di cmp SOLO nei file Typst
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "typst",
-  callback = function()
-    local cmp = require("cmp")
-    cmp.setup.buffer {
-      sources = {
-        { name = "nvim_lsp" },
-        { name = "luasnip" },
-        { name = "path" },
-      },
-    }
-  end,
-})
+-- vim.api.nvim_create_autocmd("FileType", {
+--   pattern = "typst",
+--   callback = function()
+--     local cmp = require("cmp")
+--     cmp.setup.buffer {
+--       sources = {
+--         { name = "nvim_lsp" },
+--         { name = "luasnip" },
+--         { name = "path" },
+--       },
+--     }
+--   end,
+-- })

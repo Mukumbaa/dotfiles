@@ -1,17 +1,30 @@
 return {
-  'neovim/nvim-lspconfig',
+  "neovim/nvim-lspconfig",
   dependencies = {
-    "hrsh7th/cmp-nvim-lsp",
+    "saghen/blink.cmp", -- Collegheremo blink.cmp al posto di cmp-nvim-lsp al punto 3
   },
   config = function()
     vim.lsp.log.set_level("error")
 
+    -- Tutte le configurazioni delle diagnostiche centralizzate qui
     vim.diagnostic.config({
-      float = { border = "rounded" },
+      signs = false, -- Disattiva i simboli nella gutter laterale
+      update_in_insert = false, -- Non aggiornare gli errori mentre scrivi
+      float = {
+        border = vim.g.border,
+        source = "if_many",
+      },
+      virtual_text = {
+        spacing = 4,
+        source = "if_many",
+        prefix = "■",
+        severity = nil,
+      },
     })
 
-    local capabilities = require('cmp_nvim_lsp').default_capabilities()
-    vim.lsp.config('*', {
+    -- Ottiene le capabilities dal nuovo blink.cmp
+    local capabilities = require("blink.cmp").get_lsp_capabilities()
+    vim.lsp.config("*", {
       capabilities = capabilities,
     })
 
@@ -21,7 +34,7 @@ return {
         local opts = { buffer = event.buf }
 
         vim.keymap.set("n", "K", function()
-          vim.lsp.buf.hover({ border = "rounded" })
+          vim.lsp.buf.hover({ border = vim.g.border })
         end, opts)
         vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
         vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)

@@ -13,18 +13,29 @@ vim.keymap.set({ "n", "v" }, "gh", "^") -- go to start of line
 vim.keymap.set("n", "ge", "G") -- go to end of file
 vim.keymap.set("n", "<leader>a", "ggVG") -- select all file
 vim.keymap.set("n", "<C-c>", "gcc", { remap = true, silent = true }) -- comment line under cursor
-vim.keymap.set("v", "<C-c>", "gcc", { remap = true, silent = true }) -- comment block of line in V mode
+vim.keymap.set("v", "<C-c>", "gc", { remap = true, silent = true }) -- comment block of line in V mode
 vim.keymap.set("n", "<leader>w", "<cmd>update<CR>") -- save file
-vim.keymap.set("n", "<leader>f", ":lua require('fzf-lua').files()<CR>") --search cwd
-vim.keymap.set("n", "<leader>D", ":lua require('fzf-lua').diagnostics_document()<CR>") --diagnostics_document
-vim.keymap.set("n", "<leader>Fh", ":lua require('fzf-lua').files({ cwd = '~/' })<CR>") --search home
-vim.keymap.set("n", "<leader>Fc", ":lua require('fzf-lua').files({ cwd = '~/.config/nvim' })<CR>") --search .config
-vim.keymap.set("n", "<leader>Fl", ":lua require('fzf-lua').files({ cwd = '~/.local/src' })<CR>") --search .local/src
-vim.keymap.set("n", "<leader>Ff", ":lua require('fzf-lua').files({ cwd = '..' })<CR>") --search above
-vim.keymap.set("n", "<leader>Fr", ":lua require('fzf-lua').resume()<CR>") --last search
-vim.keymap.set("n", "<leader>g", ":lua require('fzf-lua').grep()<CR>") --grep
-vim.keymap.set("n", "<leader>G", ":lua require('fzf-lua').grep_cword()<CR>") --grep word under cursor
-vim.keymap.set("n", "<leader>FF", ":lua require('fzf-lua').files({ cwd = vim.fn.expand('%:p:h') })<CR>", { silent = true, desc = "Fzf search in file directory" })
+
+local fzf = function(fn, opts)
+  return function()
+    require("fzf-lua")[fn](opts)
+  end
+end
+
+vim.keymap.set("n", "<leader>f",  fzf("files"), { desc = "FZF Cerca file (CWD)" })
+vim.keymap.set("n", "<leader>D",  fzf("diagnostics_document"), { desc = "FZF Diagnostiche documento" })
+vim.keymap.set("n", "<leader>Fh", fzf("files", { cwd = "~/" }), { desc = "FZF Cerca in ~/" })
+vim.keymap.set("n", "<leader>Fc", fzf("files", { cwd = "~/.config/nvim" }), { desc = "FZF Cerca in ~/.config/nvim" })
+vim.keymap.set("n", "<leader>Fl", fzf("files", { cwd = "~/.local/src" }), { desc = "FZF Cerca in ~/.local/src" })
+vim.keymap.set("n", "<leader>Ff", fzf("files", { cwd = ".." }), { desc = "FZF Cerca nella cartella superiore" })
+vim.keymap.set("n", "<leader>Fr", fzf("resume"), { desc = "FZF Riprendi ultima ricerca" })
+vim.keymap.set("n", "<leader>g",  fzf("grep"), { desc = "FZF Live Grep" })
+vim.keymap.set("n", "<leader>G",  fzf("grep_cword"), { desc = "FZF Cerca parola sotto cursore" })
+
+vim.keymap.set("n", "<leader>FF", function()
+  require("fzf-lua").files({ cwd = vim.fn.expand("%:p:h") })
+end, { desc = "FZF Cerca nella cartella del file corrente" })
+
 
 vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" }) -- delete without yanking
 vim.keymap.set("n", "<leader>x", ":nohl<CR>", { desc = "Clear search highlighting", silent = true }) -- clear search highlighting
@@ -52,7 +63,6 @@ vim.keymap.set("v", "<A-K>", ":t '<-1<CR>'[V']", { desc = "copy block of line up
 
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
-vim.opt.whichwrap:append({ ['<'] = true, ['>'] = true, ['h'] = true, ['l'] = true, ['['] = true, [']'] = true })
 -- local tp = require("config.teleport")
 vim.keymap.set("n", "<CR>", require("config.teleport").teleport)
 
@@ -82,7 +92,7 @@ vim.keymap.set('v', '<leader>t', function()
 
     -- Recupera le righe selezionate
     local lines = vim.api.nvim_buf_get_lines(0, line_start - 1, line_end, false)
-    
+
     -- Calcola la lunghezza massima del testo prima del carattere di separazione
     local max_len = 0
     local parsed = {}
