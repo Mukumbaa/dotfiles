@@ -1,8 +1,3 @@
--- return {
-  --   "saghen/blink.cmp",
-  --   -- Usa una release precompilata (scarica automaticamente i binari Rust)
-  --   version = "*",
-  --   event = "InsertEnter",
   return {
     "saghen/blink.cmp",
     -- Scarica i binari precompilati per la tua piattaforma

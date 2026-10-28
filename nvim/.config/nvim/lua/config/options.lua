@@ -26,9 +26,6 @@ local options = {
   title = true, --automatic window titlebar
   numberwidth = 4,
 
-  -- cindent = true,
-  -- autoindent = false,
-  -- smartindent = true,
   autoindent = true,
   smartindent = false,
   cindent = false,
@@ -81,33 +78,3 @@ vim.opt.whichwrap:append({ ['<'] = true, ['>'] = true, ['h'] = true, ['l'] = tru
 for k, v in pairs(options) do
   vim.opt[k] = v
 end
-
--- vim.diagnostic.config({
---   -- Disattiva i simboli nella barra laterale (mantenendo la tua preferenza attuale)
---   signs = false,
---
---   -- Abilita il testo fantasma (Virtual Text)
---   virtual_text = {
---     spacing = 4,          -- Distanza in spazi tra la fine del codice e il testo fantasma
---     source = "if_many",   -- Mostra la sorgente (es. pyright, lua_ls) se ci sono più diagnostiche
---     prefix = "■",         -- Simbolo che precede il messaggio d'errore (puoi usare "●", " ", "󰅚 ")
---     severity = nil,       -- Mostra tutte le gravità (Error, Warn, Info, Hint)
---   },
---
---   -- Mostra le diagnostiche anche mentre stai digitando in Insert Mode (opzionale)
---   update_in_insert = false,
--- })
--- Disattiva la sorgente 'buffer' di cmp SOLO nei file Typst
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = "typst",
---   callback = function()
---     local cmp = require("cmp")
---     cmp.setup.buffer {
---       sources = {
---         { name = "nvim_lsp" },
---         { name = "luasnip" },
---         { name = "path" },
---       },
---     }
---   end,
--- })
