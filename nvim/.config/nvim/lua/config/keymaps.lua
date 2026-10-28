@@ -128,3 +128,15 @@ vim.keymap.set('v', '<leader>t', function()
     vim.api.nvim_buf_set_lines(0, line_start - 1, line_end, false, new_lines)
   end)
 end, { desc = "Align selected text by chosen character" })
+-- Chiudi le finestre fluttuanti (hover LSP, diagnostiche, ecc.) e rimuovi l'evidenziazione della ricerca premendo Esc
+vim.keymap.set("n", "<Esc>", function()
+  -- Chiude eventuali finestre fluttuanti aperte
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    local config = vim.api.nvim_win_get_config(win)
+    if config.relative ~= "" then -- è una finestra fluttuante
+      vim.api.nvim_win_close(win, true)
+    end
+  end
+  -- Pulisce anche l'highlight della ricerca (sostituisce :nohl)
+  vim.cmd("nohlsearch")
+end, { desc = "Chiudi finestre fluttuanti e rimuovi highlight ricerca" })
