@@ -59,7 +59,6 @@
       },
 
       -- Completamento per la command line (: e /)
-      -- Completamento per la command line (: e /)
       cmdline = {
         enabled = true,
         keymap = {
