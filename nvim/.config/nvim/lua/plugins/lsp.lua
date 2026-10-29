@@ -1,15 +1,14 @@
 return {
   "neovim/nvim-lspconfig",
   dependencies = {
-    "saghen/blink.cmp", -- Collegheremo blink.cmp al posto di cmp-nvim-lsp al punto 3
+    "saghen/blink.cmp",
   },
   config = function()
     vim.lsp.log.set_level("error")
 
-    -- Tutte le configurazioni delle diagnostiche centralizzate qui
     vim.diagnostic.config({
-      signs = false, -- Disattiva i simboli nella gutter laterale
-      update_in_insert = false, -- Non aggiornare gli errori mentre scrivi
+      signs = false,
+      update_in_insert = false,
       float = {
         border = vim.g.border,
         source = "if_many",
@@ -22,7 +21,6 @@ return {
       },
     })
 
-    -- Ottiene le capabilities dal nuovo blink.cmp
     local capabilities = require("blink.cmp").get_lsp_capabilities()
     vim.lsp.config("*", {
       capabilities = capabilities,
@@ -31,22 +29,64 @@ return {
     vim.api.nvim_create_autocmd("LspAttach", {
       group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
       callback = function(event)
-        local opts = { buffer = event.buf }
+        local map = function(mode, lhs, rhs, desc)
+          vim.keymap.set(mode, lhs, rhs, { buffer = event.buf, desc = desc })
+        end
 
-        vim.keymap.set("n", "K", function()
+        map("n", "K", function()
           vim.lsp.buf.hover({ border = vim.g.border })
-        end, opts)
-        vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-        vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-        vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, opts)
-        vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-        vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+        end, "Hover documentation")
+        map("n", "gd", vim.lsp.buf.definition, "Goto definition")
+        map("n", "gD", vim.lsp.buf.declaration, "Goto declaration")
+        map("n", "gy", vim.lsp.buf.type_definition, "Goto type definition")
+        map("n", "gi", vim.lsp.buf.implementation, "Goto implementation")
+        map("n", "gr", vim.lsp.buf.references, "Goto references")
 
-        vim.keymap.set("n", "<leader>j", function() vim.diagnostic.jump({ count = 1 }) end, opts)
-        vim.keymap.set("n", "<leader>k", function() vim.diagnostic.jump({ count = -1 }) end, opts)
+        map("n", "<leader>j", function() vim.diagnostic.jump({ count = 1 }) end, "Next diagnostic")
+        map("n", "<leader>k", function() vim.diagnostic.jump({ count = -1 }) end, "Previous diagnostic")
 
-        vim.keymap.set("n", "<leader>R", vim.lsp.buf.rename, opts)
-        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+        map("n", "<leader>R", vim.lsp.buf.rename, "Rename symbol")
+        map("n", "<leader>ca", vim.lsp.buf.code_action, "Code action")
+
+        map("n", "<leader>cd", function()
+          vim.diagnostic.open_float({ border = vim.g.border, focusable = true })
+        end, "Show line diagnostics")
+
+        map("n", "<leader>cy", function()
+          local line = vim.fn.line(".") - 1
+          local col = vim.fn.col(".") - 1
+          local diags = vim.diagnostic.get(0, { lnum = line })
+          if #diags == 0 then
+            return vim.notify("No diagnostic on this line", vim.log.levels.WARN)
+          end
+
+          local target = diags[1].message
+          for _, d in ipairs(diags) do
+            if col >= d.col and col <= (d.end_col or d.col) then
+              target = d.message
+              break
+            end
+          end
+
+          vim.fn.setreg("+", target)
+          vim.notify("Diagnostic copied to clipboard", vim.log.levels.INFO)
+        end, "Copy line diagnostic")
+
+        map("n", "<leader>cg", function()
+          local line = vim.fn.line(".") - 1
+          local diags = vim.diagnostic.get(0, { lnum = line })
+          if #diags == 0 then
+            return vim.notify("No diagnostic on this line", vim.log.levels.WARN)
+          end
+
+          local msg = diags[1].message:gsub("\n", " "):gsub("%s+", " ")
+          local query = (vim.bo.filetype or "") .. " " .. msg
+          local encoded = query:gsub("[^%w _~%.%-]", function(c)
+            return string.format("%%%02X", string.byte(c))
+          end):gsub(" ", "+")
+
+          vim.ui.open("https://www.google.com/search?q=" .. encoded)
+        end, "Search diagnostic on Google")
       end,
     })
 
@@ -99,12 +139,12 @@ return {
             arguments = { current_file, "--invert-colors=never" },
           }, function(err)
             if err then
-              vim.notify("Errore anteprima Tinymist: " .. err.message, vim.log.levels.ERROR)
+              vim.notify("Tinymist preview error: " .. err.message, vim.log.levels.ERROR)
             else
-              vim.notify("Preview avviata per " .. vim.fn.fnamemodify(current_file, ":t"), vim.log.levels.INFO)
+              vim.notify("Preview started for " .. vim.fn.fnamemodify(current_file, ":t"), vim.log.levels.INFO)
             end
           end, current_buf)
-        end, { buffer = bufnr })
+        end, { buffer = bufnr, desc = "Start Typst preview" })
       end,
       settings = {
         preview = {
