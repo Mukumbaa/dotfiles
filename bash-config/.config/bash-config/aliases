@@ -10,6 +10,7 @@ alias ffi='~/.config/scripts/install-fzf.lua'
 alias ffr='~/.config/scripts/remove-fzf.lua'
 alias envc='python -m venv venv'
 alias enva='source venv/bin/activate; pip install ruff basedpyright'
+alias angr='pip install angr'
 alias envd='deactivate'
 gg() {
   if [[ -z $(git status -s) ]]; then

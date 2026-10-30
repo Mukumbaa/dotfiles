@@ -36,7 +36,7 @@ end, { desc = "Find files in file directory" })
 
 -- Editing
 vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" })
-vim.keymap.set("n", "<leader>x", ":nohl<CR>", { silent = true, desc = "Clear search highlight" })
+vim.keymap.set("n", "<leader>x", ":bw<CR>", { silent = true, desc = "Close current buffer" })
 vim.keymap.set("v", "<", "<gv", { desc = "Unindent selection" })
 vim.keymap.set("v", ">", ">gv", { desc = "Indent selection" })
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
