@@ -123,3 +123,145 @@ vim.keymap.set("n", "<Esc>", function()
   end
   vim.cmd("nohlsearch")
 end, { desc = "Close floating windows and clear search highlight" })
+
+-- Seleziona il prossimo argomento/parametro tra parentesi in tutto il file (Zero plugin)
+local function select_param_file(direction)
+  local mode = vim.api.nvim_get_mode().mode
+  local buf = 0
+
+  -- Se siamo già in Visual Mode, usciamo per reimpostare la selezione pulita
+  if mode:match("^[vV\22]") then
+    vim.cmd("normal! \27")
+  end
+
+  local cur_pos = vim.api.nvim_win_get_cursor(0)
+  local cur_row, cur_col = cur_pos[1], cur_pos[2] + 1
+
+  -- Funzioni di conversione riga/colonna <-> offset continuo
+  local function pos_to_offset(r, c)
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, r - 1, false)
+    local off = 0
+    for _, l in ipairs(lines) do
+      off = off + #l + 1 -- +1 per il newline
+    end
+    return off + c
+  end
+
+  local function offset_to_pos(target_off)
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local acc = 0
+    for idx, l in ipairs(lines) do
+      local next_acc = acc + #l + 1
+      if target_off <= next_acc then
+        return idx, math.min(#l, math.max(1, target_off - acc))
+      end
+      acc = next_acc
+    end
+    return #lines, #lines[#lines]
+  end
+
+  local all_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+  local text = table.concat(all_lines, "\n")
+  local current_offset = pos_to_offset(cur_row, cur_col)
+
+  local all_params = {}
+  local p_stack = {}
+  local in_string = false
+  local str_char = ""
+  local escaped = false
+
+  -- Riconosce tutte le parentesi tonde e suddivide gli argomenti per virgola
+  for i = 1, #text do
+    local ch = text:sub(i, i)
+
+    if in_string then
+      if escaped then
+        escaped = false
+      elseif ch == "\\" then
+        escaped = true
+      elseif ch == str_char then
+        in_string = false
+      end
+    else
+      if ch == '"' or ch == "'" or ch == "`" then
+        in_string = true
+        str_char = ch
+      elseif ch == "(" then
+        table.insert(p_stack, { depth = 0, start_p = i + 1 })
+      elseif ch == "{" or ch == "[" then
+        if #p_stack > 0 then
+          p_stack[#p_stack].depth = p_stack[#p_stack].depth + 1
+        end
+      elseif ch == "}" or ch == "]" then
+        if #p_stack > 0 and p_stack[#p_stack].depth > 0 then
+          p_stack[#p_stack].depth = p_stack[#p_stack].depth - 1
+        end
+      elseif ch == "," and #p_stack > 0 then
+        local top = p_stack[#p_stack]
+        if top.depth == 0 then
+          table.insert(all_params, { s = top.start_p, e = i - 1 })
+          top.start_p = i + 1
+        end
+      elseif ch == ")" and #p_stack > 0 then
+        local top = table.remove(p_stack)
+        if top.depth == 0 then
+          table.insert(all_params, { s = top.start_p, e = i - 1 })
+        end
+      end
+    end
+  end
+
+  -- Pulisce spazi e a capo iniziali/finali di ogni elemento
+  local valid_params = {}
+  for _, p in ipairs(all_params) do
+    if p.s <= p.e then
+      local sub = text:sub(p.s, p.e)
+      local l_pad = sub:match("^%s*") or ""
+      local r_pad = sub:match("%s*$") or ""
+      local real_s = p.s + #l_pad
+      local real_e = p.e - #r_pad
+      if real_s <= real_e then
+        table.insert(valid_params, { s = real_s, e = real_e })
+      end
+    end
+  end
+
+  table.sort(valid_params, function(a, b) return a.s < b.s end)
+
+  if #valid_params == 0 then
+    return vim.notify("No parenthesized arguments found in buffer", vim.log.levels.WARN)
+  end
+
+  -- Trova l'argomento successivo o precedente
+  local target = nil
+  if direction == 1 then
+    for _, p in ipairs(valid_params) do
+      if p.s > current_offset then
+        target = p
+        break
+      end
+    end
+    target = target or valid_params[1] -- Ritorna all'inizio del file
+  else
+    for i = #valid_params, 1, -1 do
+      local p = valid_params[i]
+      if p.e < current_offset then
+        target = p
+        break
+      end
+    end
+    target = target or valid_params[#valid_params] -- Ritorna alla fine del file
+  end
+
+  local s_r, s_c = offset_to_pos(target.s)
+  local e_r, e_c = offset_to_pos(target.e)
+
+  -- Applica la selezione visiva pulita
+  vim.api.nvim_win_set_cursor(0, { s_r, s_c - 1 })
+  vim.cmd("normal! v")
+  vim.api.nvim_win_set_cursor(0, { e_r, e_c - 1 })
+end
+
+-- Keymap in Normal e Visual Mode
+vim.keymap.set({ "n", "v" }, "<leader>l", function() select_param_file(1) end, { desc = "Select next argument in file" })
+vim.keymap.set({ "n", "v" }, "<leader>h", function() select_param_file(-1) end, { desc = "Select previous argument in file" })

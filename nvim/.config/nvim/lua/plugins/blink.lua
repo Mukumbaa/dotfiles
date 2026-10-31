@@ -7,10 +7,10 @@
     ---@type blink.cmp.Config
     opts = {
       -- Keymap ispirate alla tua configurazione precedente (Tab / S-Tab per scorrere, Invio per confermare)
-      keymap = {
+    keymap = {
         preset = "none",
-        ["<Tab>"] = { "select_next", "fallback" },
-        ["<S-Tab>"] = { "select_prev", "fallback" },
+        ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+        ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
         ["<CR>"] = { "accept", "fallback" },
         ["<C-Space>"] = { "show", "show_documentation", "hide_documentation" },
         ["<C-e>"] = { "hide", "fallback" },
