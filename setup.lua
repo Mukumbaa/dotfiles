@@ -48,6 +48,8 @@ local dnf_packages = {
   "brave-browser-nightly",
   "bat",
   "trash-cli",
+  "binwalk",
+  "squashfs-tools",
 }
 
 -- Pacchetti Go da installare
