@@ -42,7 +42,7 @@ Item {
     Text {
       text: wifiLayout.ssid !== "Disconnected" && wifiLayout.ssid !== "" ? "󰤨" : "󰤮"
       color: wifiLayout.ssid !== "Disconnected" ? Theme.text : Theme.subtle
-      font { pixelSize: 18; family: Theme.fontFamily }
+      font { pixelSize: 12; family: Theme.fontFamily }
     }
 
     Text {

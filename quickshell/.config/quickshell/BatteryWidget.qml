@@ -68,7 +68,7 @@ Item {
     Text {
       text: batRow.batIcon
       color: (batRow.batteryLevel <= 20 && !batRow.isCharging) ? Theme.love : Theme.text
-      font { pixelSize: 18; family: Theme.fontFamily }
+      font { pixelSize: 12; family: Theme.fontFamily }
     }
   }
 

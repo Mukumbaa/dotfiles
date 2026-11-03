@@ -178,7 +178,7 @@ PanelWindow {
 
             Text {
               anchors.centerIn: parent
-              text: "󰅁"
+              text: ""
               color: Theme.text
               font.pixelSize: 13
             }
@@ -240,7 +240,7 @@ PanelWindow {
 
               Text {
                 anchors.centerIn: parent
-                text: "󰅂"
+                text: ""
                 color: Theme.text
                 font.pixelSize: 13
               }

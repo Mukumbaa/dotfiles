@@ -9,7 +9,7 @@ Item {
     id: cpuText
     text: "󰍛"
     color: Theme.text
-    font { pixelSize: 18; family: Theme.fontFamily }
+    font { pixelSize: 12; family: Theme.fontFamily }
   }
 
   MouseArea {

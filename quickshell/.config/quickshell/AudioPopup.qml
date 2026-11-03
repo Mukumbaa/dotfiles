@@ -335,7 +335,7 @@ PanelWindow {
 
               Text {
                 visible: devRow.isDefault
-                text: "󰄬"
+                text: ""
                 color: AudioState.currentTab === "output" ? Theme.foam : Theme.iris
                 font.pixelSize: 12
                 font.bold: true

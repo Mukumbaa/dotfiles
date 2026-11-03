@@ -12,7 +12,7 @@ Item {
 
     text: btState === "connected" ? "󰂱" : (btState === "on" ? "" : "󰂲")
     color: btState === "disabled" ? Theme.subtle : Theme.text
-    font { pixelSize: 18; family: Theme.fontFamily }
+    font { pixelSize: 12; family: Theme.fontFamily }
     // A COSÌ (molto più leggero per la CPU):
     Process {
       id: btCheckProc

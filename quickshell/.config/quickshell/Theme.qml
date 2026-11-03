@@ -2,10 +2,12 @@ pragma Singleton
 import QtQuick
 
 QtObject {
-    readonly property string fontFamily: "Cascadia Code NF"
+    readonly property string fontFamily: "CaskaydiaMono NF"
+    // readonly property string fontFamily: "Cascadia Code NF"
     readonly property int marginTop: 8
     readonly property int borderWidth: 4
     readonly property int radius: 12
+    readonly property int fontSize: 12
     readonly property int animationDuration: 180
     readonly property int marginRight: 16
     readonly property int autoCloseTimer: 600 

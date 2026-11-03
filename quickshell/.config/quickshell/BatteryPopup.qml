@@ -392,7 +392,7 @@ PanelWindow {
 
       Text {
         visible: pItem.isActive
-        text: "󰄬"
+        text: ""
         color: pItem.accentColor
         font.pixelSize: 12
         font.bold: true

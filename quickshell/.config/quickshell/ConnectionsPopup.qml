@@ -948,9 +948,10 @@ PanelWindow {
                 // 1. Icona Bluetooth / Spinner
                 Text {
                   Layout.alignment: Qt.AlignVCenter
+                  font.family: Theme.fontFamily
                   text: devItem.isBusy ? "󰑐" : (modelData.connected ? "󰂱" : "󰂲")
                   color: devItem.isBusy ? Theme.gold : (modelData.connected ? Theme.iris : Theme.subtle)
-                  font.pixelSize: 14
+                  font.pixelSize: 12
                   RotationAnimation on rotation { running: devItem.isBusy; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
                 }
 

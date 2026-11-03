@@ -77,7 +77,7 @@ RowLayout {
       Text {
         text: volGroup.volIcon
         color: volGroup.isMuted ? Theme.subtle : Theme.text
-        font { pixelSize: 18; family: Theme.fontFamily }
+        font { pixelSize: 12; family: Theme.fontFamily }
       }
     }
   }

@@ -45,7 +45,7 @@ Item {
     Text {
       text: BrightnessState.brightness >= 50 ? "" : ""
       color: Theme.text
-      font { pixelSize: 18; family: Theme.fontFamily }
+      font { pixelSize: 12; family: Theme.fontFamily }
       Layout.alignment: Qt.AlignVCenter
     }
   }

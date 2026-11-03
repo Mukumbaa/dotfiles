@@ -102,7 +102,7 @@ PanelWindow {
 
         // 2. SUSPEND
         PowerButton {
-          icon: "󰒲"
+          icon: ""
           label: "Suspend"
           keyHint: "S"
           accentColor: Theme.foam
