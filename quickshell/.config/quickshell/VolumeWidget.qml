@@ -19,7 +19,7 @@ RowLayout {
   property bool isHovered: false
 
   property string volIcon: {
-    if (isMuted || volumeLevel === 0) return "󰝟"
+    if (isMuted || volumeLevel === 0) return ""
     if (volumeLevel > 60) return ""
     if (volumeLevel > 20) return ""
     return ""

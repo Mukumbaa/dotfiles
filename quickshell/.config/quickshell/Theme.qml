@@ -8,6 +8,7 @@ QtObject {
     readonly property int borderWidth: 4
     readonly property int radius: 12
     readonly property int fontSize: 12
+    readonly property int fontSizePopup: 10
     readonly property int animationDuration: 180
     readonly property int marginRight: 16
     readonly property int autoCloseTimer: 600 

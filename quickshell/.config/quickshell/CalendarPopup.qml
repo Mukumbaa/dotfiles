@@ -178,9 +178,10 @@ PanelWindow {
 
             Text {
               anchors.centerIn: parent
+              font.family: Theme.fontFamily
               text: ""
               color: Theme.text
-              font.pixelSize: 13
+              font.pixelSize: Theme.fontSizePopup
             }
 
             MouseArea {
@@ -198,7 +199,7 @@ PanelWindow {
             text: Qt.formatDateTime(root.displayDate, "MMMM yyyy").toUpperCase()
             color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: 11
+            font.pixelSize: Theme.fontSize
             font.bold: true
           }
 
@@ -219,7 +220,7 @@ PanelWindow {
                 text: "Today"
                 color: Theme.foam
                 font.family: Theme.fontFamily
-                font.pixelSize: 10
+                font.pixelSize: Theme.fontSizePopup
                 font.bold: true
               }
 
@@ -240,9 +241,10 @@ PanelWindow {
 
               Text {
                 anchors.centerIn: parent
+                font.family: Theme.fontFamily
                 text: ""
                 color: Theme.text
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontSizePopup
               }
 
               MouseArea {
@@ -271,7 +273,7 @@ PanelWindow {
               text: modelData
               color: index >= 5 ? Theme.love : Theme.subtle
               font.family: Theme.fontFamily
-              font.pixelSize: 10
+              font.pixelSize: Theme.fontSizePopup
               font.bold: true
             }
           }
@@ -303,7 +305,7 @@ PanelWindow {
                   return Theme.text
                 }
                 font.family: Theme.fontFamily
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontSizePopup
                 font.bold: modelData.isToday
                 opacity: modelData.isCurrent ? 1.0 : 0.35
               }

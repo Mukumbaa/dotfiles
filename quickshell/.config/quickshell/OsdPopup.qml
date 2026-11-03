@@ -60,7 +60,7 @@ PanelWindow {
 
   onCurrentVolChanged: {
     if (sink && sink.audio) {
-      let icon = isMuted ? "󰝟" : (currentVol > 0.6 ? "" : (currentVol > 0.2 ? "" : ""))
+      let icon = isMuted ? "" : (currentVol > 0.6 ? "" : (currentVol > 0.2 ? "" : ""))
       triggerOsd("volume", isMuted ? 0 : currentVol * 100, icon)
     }
   }
@@ -123,7 +123,7 @@ PanelWindow {
           text: root.osdValue + "%"
           color: Theme.text
           font.family: Theme.fontFamily
-          font.pixelSize: 12
+          font.pixelSize: Theme.fontSize
           font.bold: true
         }
       }

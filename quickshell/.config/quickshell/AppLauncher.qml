@@ -222,7 +222,7 @@ PanelWindow {
                 text: "Search"
                 color: Theme.subtle
                 font.family: Theme.fontFamily
-                font.pixelSize: 12
+                font.pixelSize: Theme.fontSize
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
               }
@@ -239,7 +239,7 @@ PanelWindow {
                 text: "ESC"
                 color: Theme.subtle
                 font.family: Theme.fontFamily
-                font.pixelSize: 9
+                font.pixelSize: Theme.fontSizePopup
                 font.bold: true
               }
             }
@@ -311,7 +311,7 @@ PanelWindow {
                   text: modelData.name || ""
                   color: appItem.isSelected ? Theme.foam : Theme.text
                   font.family: Theme.fontFamily
-                  font.pixelSize: 12
+                  font.pixelSize: Theme.fontSize
                   font.bold: appItem.isSelected
                   Layout.fillWidth: true
                   elide: Text.ElideRight
@@ -322,7 +322,7 @@ PanelWindow {
                   text: modelData.genericName || modelData.comment || ""
                   color: Theme.subtle
                   font.family: Theme.fontFamily
-                  font.pixelSize: 9
+                  font.pixelSize: Theme.fontSizePopup
                   Layout.fillWidth: true
                   elide: Text.ElideRight
                 }
@@ -354,7 +354,7 @@ PanelWindow {
             text: "No app found"
             color: Theme.subtle
             font.family: Theme.fontFamily
-            font.pixelSize: 12
+            font.pixelSize: Theme.fontSize
           }
         }
       }

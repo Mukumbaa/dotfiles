@@ -151,8 +151,8 @@ PanelWindow {
             RowLayout {
               anchors.centerIn: parent
               spacing: 6
-              Text { text: "󰕾"; color: AudioState.currentTab === "output" ? Theme.foam : Theme.subtle; font.pixelSize: 13 }
-              Text { text: "Outputs"; color: AudioState.currentTab === "output" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+              Text { text: "󰕾"; color: AudioState.currentTab === "output" ? Theme.foam : Theme.subtle; font.pixelSize: Theme.fontSizePopup }
+              Text { text: "Outputs"; color: AudioState.currentTab === "output" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSize; font.bold: true }
             }
             MouseArea {
               anchors.fill: parent
@@ -169,8 +169,8 @@ PanelWindow {
             RowLayout {
               anchors.centerIn: parent
               spacing: 6
-              Text { text: "󰍬"; color: AudioState.currentTab === "input" ? Theme.iris : Theme.subtle; font.pixelSize: 13 }
-              Text { text: "Inputs"; color: AudioState.currentTab === "input" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+              Text { text: "󰍬"; color: AudioState.currentTab === "input" ? Theme.iris : Theme.subtle; font.pixelSize: Theme.fontSizePopup }
+              Text { text: "Inputs"; color: AudioState.currentTab === "input" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSize; font.bold: true }
             }
             MouseArea {
               anchors.fill: parent
@@ -208,7 +208,7 @@ PanelWindow {
                 return AudioState.currentTab === "output" ? "󰕾" : "󰍬"
               }
               color: parent.parent.isMuted ? Theme.subtle : parent.parent.accentCol
-              font.pixelSize: 16
+              font.pixelSize: Theme.fontSizePopup
 
               MouseArea {
                 anchors.fill: parent
@@ -265,7 +265,7 @@ PanelWindow {
               text: Math.round(parent.parent.currentVol * 100) + "%"
               color: Theme.text
               font.family: Theme.fontFamily
-              font.pixelSize: 11
+              font.pixelSize: Theme.fontSizePopup
               font.bold: true
             }
           }
@@ -280,7 +280,7 @@ PanelWindow {
           text: AudioState.currentTab === "output" ? "SELECT OUTPUT DEVICE" : "SELECT INPUT DEVICE"
           color: Theme.subtle
           font.family: Theme.fontFamily
-          font.pixelSize: 9
+          font.pixelSize: Theme.fontSizePopup
           font.bold: true
         }
 
@@ -317,7 +317,7 @@ PanelWindow {
               Text {
                 text: AudioState.currentTab === "output" ? "󰓃" : "󰍬"
                 color: devRow.isDefault ? (AudioState.currentTab === "output" ? Theme.foam : Theme.iris) : Theme.subtle
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontSizePopup
               }
 
               Text {
@@ -327,7 +327,7 @@ PanelWindow {
                 }
                 color: devRow.isDefault ? Theme.text : Theme.subtle
                 font.family: Theme.fontFamily
-                font.pixelSize: 11
+                font.pixelSize: Theme.fontSizePopup
                 font.bold: devRow.isDefault
                 Layout.fillWidth: true
                 elide: Text.ElideRight
@@ -337,7 +337,7 @@ PanelWindow {
                 visible: devRow.isDefault
                 text: ""
                 color: AudioState.currentTab === "output" ? Theme.foam : Theme.iris
-                font.pixelSize: 12
+                font.pixelSize: Theme.fontSizePopup
                 font.bold: true
               }
             }

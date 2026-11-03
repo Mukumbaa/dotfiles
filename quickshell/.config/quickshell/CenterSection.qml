@@ -16,7 +16,7 @@ RowLayout {
   Text {
     id: clockText
     color: Theme.text
-    font.pixelSize: 12
+    font.pixelSize: Theme.fontSize
     font.family: Theme.fontFamily
 
     property bool showFullDate: false

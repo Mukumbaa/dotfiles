@@ -48,7 +48,7 @@ RowLayout {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         color: wsSlot.isActive ? Theme.text : (wsSlot.occupied ? Theme.text : Theme.subtle)
-        font { pixelSize: wsSlot.isActive ? 9 : 12; family: Theme.fontFamily }
+        font { pixelSize: wsSlot.isActive ? 9 : Theme.fontSize; family: Theme.fontFamily }
         text: wsSlot.isActive ? "󱓻" : wsSlot.wsId.toString()
       }
 

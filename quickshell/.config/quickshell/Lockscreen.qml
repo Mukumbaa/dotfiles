@@ -131,7 +131,7 @@ Scope {
           text: batIndicator.batteryLevel + "%"
           color: (batIndicator.batteryLevel <= 20 && !batIndicator.isCharging) ? Theme.love : Theme.text
           font.family: Theme.fontFamily
-          font.pixelSize: 12
+          font.pixelSize: Theme.fontSize
         }
 
         Text {
@@ -196,7 +196,7 @@ Scope {
             text: "Password"
             color: Theme.subtle
             font.family: Theme.fontFamily
-            font.pixelSize: 12
+            font.pixelSize: Theme.fontSize
             visible: !pwdInput.text.length && !lockScope.isAuthenticating
           }
 
@@ -280,7 +280,7 @@ Scope {
           text: lockScope.errorMessage
           color: Theme.love
           font.family: Theme.fontFamily
-          font.pixelSize: 11
+          font.pixelSize: Theme.fontSizePopup
           font.bold: true
           visible: lockScope.errorMessage.length > 0
           opacity: visible ? 1.0 : 0.0

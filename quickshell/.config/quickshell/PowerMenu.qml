@@ -178,7 +178,7 @@ PanelWindow {
         text: btn.label
         color: Theme.text
         font.family: Theme.fontFamily
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontSize
         font.bold: true
       }
 
@@ -187,7 +187,7 @@ PanelWindow {
         text: "[" + btn.keyHint + "]"
         color: Theme.subtle
         font.family: Theme.fontFamily
-        font.pixelSize: 10
+        font.pixelSize: Theme.fontSizePopup
       }
     }
 

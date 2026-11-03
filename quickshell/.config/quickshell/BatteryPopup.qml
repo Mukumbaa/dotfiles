@@ -239,7 +239,7 @@ PanelWindow {
           Text {
             text: root.batIcon
             color: root.batteryLevel <= 20 && !root.isCharging ? Theme.love : Theme.foam
-            font.pixelSize: 22
+            font.pixelSize: Theme.fontSize * 2
           }
 
           ColumnLayout {
@@ -253,7 +253,7 @@ PanelWindow {
                 text: root.batteryLevel + "%"
                 color: root.batteryLevel <= 20 && !root.isCharging ? Theme.love : Theme.text
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontSize
                 font.bold: true
               }
 
@@ -273,7 +273,7 @@ PanelWindow {
                   text: (root.isCharging ? "+" : "-") + root.wattageValue.toFixed(1) + " W"
                   color: root.isCharging ? Theme.foam : (root.wattageValue > 25 ? Theme.love : Theme.gold)
                   font.family: Theme.fontFamily
-                  font.pixelSize: 10
+                  font.pixelSize: Theme.fontSizePopup
                   font.bold: true
                 }
               }
@@ -289,7 +289,7 @@ PanelWindow {
               }
               color: Theme.subtle
               font.family: Theme.fontFamily
-              font.pixelSize: 9
+              font.pixelSize: Theme.fontSizePopup
             }
           }
         }
@@ -316,7 +316,7 @@ PanelWindow {
           text: "POWER PROFILE"
           color: Theme.subtle
           font.family: Theme.fontFamily
-          font.pixelSize: 9
+          font.pixelSize: Theme.fontSizePopup
           font.bold: true
         }
 
@@ -378,14 +378,15 @@ PanelWindow {
       Text {
         text: pItem.icon
         color: pItem.isActive ? pItem.accentColor : Theme.subtle
-        font.pixelSize: 13
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSizePopup
       }
 
       Text {
         text: pItem.title
         color: pItem.isActive ? pItem.accentColor : Theme.text
         font.family: Theme.fontFamily
-        font.pixelSize: 11
+        font.pixelSize: Theme.fontSizePopup
         font.bold: pItem.isActive
         Layout.fillWidth: true
       }
@@ -394,7 +395,8 @@ PanelWindow {
         visible: pItem.isActive
         text: ""
         color: pItem.accentColor
-        font.pixelSize: 12
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSizePopup
         font.bold: true
       }
     }
