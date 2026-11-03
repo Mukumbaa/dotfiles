@@ -24,15 +24,22 @@ local function run(cmd, can_fail)
   return success
 end
 
--- profiles configuration
+-- Profiles configuration
 local profile_tags = {
-  ["cli"]  = { base = true, dev = true },
-  ["wsl"]  = { base = true, dev = true, wsl = true },
-  ["vm"]   = { base = true, dev = true, gui_base = true },
-  ["full"] = { base = true, dev = true, gui_base = true, hyprland = true }
+  ["minimal"] = { base = true, dev = true },
+  ["desktop"] = { base = true, dev = true, gui_base = true }, -- (ex "vm")
+  ["full"]    = { base = true, dev = true, gui_base = true, hyprland = true }
 }
 
--- default fallbak
+-- Aliases to make CLI input seamless
+local profile_aliases = {
+  ["cli"]      = "minimal",
+  ["headless"] = "minimal",
+  ["core"]     = "minimal",
+  ["vm"]       = "desktop",
+}
+
+-- Default fallback
 local selected_profile = "full"
 if arg and #arg > 0 then
   for _, a in ipairs(arg) do
@@ -47,9 +54,14 @@ if arg and #arg > 0 then
   end
 end
 
+-- Resolve alias if present
+if profile_aliases[selected_profile] then
+  selected_profile = profile_aliases[selected_profile]
+end
+
 local active_tags = profile_tags[selected_profile]
 if not active_tags then
-  local valid_list = table.concat({"cli", "wsl", "vm", "full"}, ", ")
+  local valid_list = table.concat({"minimal", "desktop", "full"}, ", ")
   error("Invalid profile: '" .. tostring(selected_profile) .. "'. Supported profiles are: " .. valid_list)
 end
 
