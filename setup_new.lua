@@ -236,9 +236,6 @@ end
 if has_tag("dev") then
   print_step("Setting Up Development Environments")
 
-  print_info("Ensuring pipx binary path")
-  run("pipx ensurepath")
-
   print_info("Configuring Rustup and Cargo tools")
   run("rustup-init -y")
   local cargo_bin = home .. "/.cargo/bin/cargo"
@@ -249,7 +246,7 @@ if has_tag("dev") then
   end
 
   print_info("Installing Go tools and language servers")
-  local go_env = "export PATH=$PATH:" .. home .. "/go/bin; "
+  local go_env = string.format("export PATH=$PATH:%s/go/bin; export GOTOOLCHAIN=auto; ", home)
   for _, pkg in ipairs(go_packages) do
     run(go_env .. "go install " .. pkg)
   end
