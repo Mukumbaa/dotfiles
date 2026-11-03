@@ -1,7 +1,7 @@
 local home = os.getenv("HOME")
 if not home then error("Environment variable $HOME was not found.") end
 
--- general position of dotfiles
+-- General position of dotfiles
 local dotfiles_dir = home .. "/dotfiles"
 
 local colors = {
@@ -27,7 +27,7 @@ end
 -- Profiles configuration
 local profile_tags = {
   ["minimal"] = { base = true, dev = true },
-  ["desktop"] = { base = true, dev = true, gui_base = true }, -- (ex "vm")
+  ["desktop"] = { base = true, dev = true, gui_base = true },
   ["full"]    = { base = true, dev = true, gui_base = true, hyprland = true }
 }
 
@@ -36,6 +36,7 @@ local profile_aliases = {
   ["cli"]      = "minimal",
   ["headless"] = "minimal",
   ["core"]     = "minimal",
+  ["wsl"]      = "minimal",
   ["vm"]       = "desktop",
 }
 
@@ -82,8 +83,8 @@ local all_dnf_packages = {
   { name = "binwalk",               tag = "base" },
   { name = "squashfs-tools",        tag = "base" },
   { name = "gh",                    tag = "base" },
-  -- { name = "helix",                 tag = "base" },
   { name = "nvim",                  tag = "base" },
+
   -- Dev tools
   { name = "pipx",                  tag = "dev" },
   { name = "gcc",                   tag = "dev" },
@@ -92,22 +93,18 @@ local all_dnf_packages = {
   { name = "rustup",                tag = "dev" },
   { name = "dbus-devel",            tag = "dev" },
   { name = "pkgconf-pkg-config",    tag = "dev" },
+
   -- GUI Base 
   { name = "alacritty",             tag = "gui_base" },
-  -- { name = "kitty",                 tag = "gui_base" },
   { name = "google-chrome-stable",  tag = "gui_base" },
   { name = "brave-browser-nightly", tag = "gui_base" },
   { name = "gnome-tweaks",          tag = "gui_base" },
   { name = "gnome-themes-extra",    tag = "gui_base" },
   { name = "adw-gtk3-theme",        tag = "gui_base" },
-  -- { name = "qalculate",             tag = "gui_base" },
+
   -- Hyprland / Physical desktop utilities
   { name = "hyprland",              tag = "hyprland" },
-  -- { name = "hyprpaper",             tag = "hyprland" },
-  -- { name = "hyprlock",              tag = "hyprland" },
   { name = "hyprland-guiutils",     tag = "hyprland" },
-  -- { name = "wlogout",               tag = "hyprland" },
-  -- { name = "waybar",                tag = "hyprland" },
   { name = "wiremix",               tag = "hyprland" },
   { name = "blueman",               tag = "hyprland" },
   { name = "NetworkManager-tui",    tag = "hyprland" },
@@ -122,7 +119,6 @@ local BASE_RPM_URL = "https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/ma
 local custom_packages = {
   { name = "caskaydia-mono-nerd-fonts", tag = "base" },
   { name = "starship",                 tag = "base" },
-  -- { name = "yazi",                     tag = "base" },
   { name = "superfile",                tag = "base" },
   { name = "quickshell",               tag = "hyprland" },
 }
@@ -133,20 +129,13 @@ local stow_configs = {
   { pkg = "starship",    target = home .. "/.config/starship.toml", tag = "base" },
   { pkg = "fastfetch",   target = home .. "/.config/fastfetch",     tag = "base" },
   { pkg = "btop",        target = home .. "/.config/btop",          tag = "base" },
-  -- { pkg = "helix",       target = home .. "/.config/helix",         tag = "base" },
   { pkg = "nvim",        target = home .. "/.config/nvim",          tag = "base" },
   { pkg = "scripts",     target = home .. "/.config/scripts",       tag = "base" },
-  -- { pkg = "algo",        target = home .. "/.config/algo",          tag = "base" },
-  -- { pkg = "yazi",        target = home .. "/.config/yazi",          tag = "base" },
   { pkg = "superfile",   target = home .. "/.config/superfile",     tag = "base" },
 
   { pkg = "alacritty",   target = home .. "/.config/alacritty",     tag = "gui_base" },
-  -- { pkg = "kitty",       target = home .. "/.config/kitty",         tag = "gui_base" },
 
   { pkg = "hypr",        target = home .. "/.config/hypr",          tag = "hyprland" },
-  -- { pkg = "waybar",      target = home .. "/.config/waybar",        tag = "hyprland" },
-  -- { pkg = "wlogout",     target = home .. "/.config/wlogout",       tag = "hyprland" },
-  -- { pkg = "kanshi",      target = home .. "/.config/kanshi",        tag = "hyprland" },
   { pkg = "quickshell",  target = home .. "/.config/quickshell",    tag = "hyprland" },
 }
 
@@ -159,14 +148,13 @@ local go_packages = {
 }
 
 local function load_remote_manifest(url)
-  local handle = io.popen("curl -sL --fail '" .. url .. "'")
+  local handle = io.popen("curl -sSL -H 'Cache-Control: no-cache' --fail '" .. url .. "'")
   if not handle then return nil end
   local content = handle:read("*a")
   handle:close()
 
   if not content or content == "" then return nil end
 
-  -- Semplice parser JSON per mappe chiave:valore stringa
   local manifest = {}
   for key, value in content:gmatch('"([^"]+)"%s*:%s*"([^"]+)"') do
     manifest[key] = value
@@ -174,8 +162,10 @@ local function load_remote_manifest(url)
   return manifest
 end
 
+
 print_step("Starting System Setup (Selected Profile: " .. selected_profile:upper() .. ")")
 
+-- STAGE 1: Repositories & Cleanup
 if has_tag("gui_base") or has_tag("hyprland") then
   print_step("Removing Bloatware (LibreOffice)")
   run("sudo dnf group remove -y libreoffice 2>/dev/null", true)
@@ -193,18 +183,14 @@ if has_tag("gui_base") then
   run("sudo dnf config-manager addrepo --from-repofile=https://brave-browser-rpm-nightly.s3.brave.com/brave-browser-nightly.repo --overwrite", true)
 end
 
-local filtered_dnf = {}
+-- packages
+local install_targets = {}
+
 for _, item in ipairs(all_dnf_packages) do
   if has_tag(item.tag) then
-    table.insert(filtered_dnf, item.name)
+    table.insert(install_targets, item.name)
   end
 end
-
-if #filtered_dnf > 0 then
-  print_step(string.format("Installing DNF Packages (%d selected)", #filtered_dnf))
-  run(string.format("sudo dnf install -y --skip-unavailable %s", table.concat(filtered_dnf, " ")))
-end
-
 
 print_step("Fetching Manifest for Custom Built RPMs")
 local manifest = load_remote_manifest(MANIFEST_URL)
@@ -212,34 +198,36 @@ local manifest = load_remote_manifest(MANIFEST_URL)
 if not manifest then
   print_warn("Failed to retrieve packages.json from GitHub. Skipping custom RPMs.")
 else
-  local rpms_to_install = {}
-
   for _, pkg in ipairs(custom_packages) do
     if has_tag(pkg.tag) then
       local rpm_filename = manifest[pkg.name]
       if rpm_filename then
         print_info(string.format("Resolved %s -> %s", pkg.name, rpm_filename))
-        table.insert(rpms_to_install, BASE_RPM_URL .. rpm_filename)
+        table.insert(install_targets, BASE_RPM_URL .. rpm_filename)
       else
         print_warn(string.format("Package '%s' not listed in packages.json", pkg.name))
       end
     end
   end
-
-  if #rpms_to_install > 0 then
-    print_step(string.format("Installing Custom RPMs (%d packages)", #rpms_to_install))
-    local cmd = string.format("sudo dnf install -y --skip-unavailable %s", table.concat(rpms_to_install, " "))
-    run(cmd)
-  end
 end
 
+if #install_targets > 0 then
+  print_step(string.format("Installing All Packages via DNF (%d items)", #install_targets))
+  run(string.format("sudo dnf install -y --skip-unavailable %s", table.concat(install_targets, " ")))
+end
+
+-- STAGE 3: Dev Environments
 if has_tag("dev") then
   print_step("Setting Up Development Environments")
 
   print_info("Configuring Rustup and Cargo tools")
   run("rustup-init -y")
   local cargo_bin = home .. "/.cargo/bin/cargo"
-  if run(string.format('[ -x "%s" ]', cargo_bin), true) then
+  local tinymist_bin = home .. "/.cargo/bin/tinymist"
+
+  if run(string.format('[ -x "%s" ]', tinymist_bin), true) then
+    print_info("tinymist-cli is already installed.")
+  elseif run(string.format('[ -x "%s" ]', cargo_bin), true) then
     run(cargo_bin .. " install --git https://github.com/Myriad-Dreamin/tinymist --locked tinymist-cli")
   else
     print_warn("Cargo binary not found in ~/.cargo/bin. Skipping tinymist installation.")
@@ -252,6 +240,7 @@ if has_tag("dev") then
   end
 end
 
+-- stow
 print_step("Deploying Dotfiles (Safe GNU Stow)")
 
 local backup_dir = home .. "/.config/dotfiles_backup_" .. os.date("%Y%m%d_%H%M%S")
@@ -270,7 +259,8 @@ for _, conf in ipairs(stow_configs) do
         backup_created = true
       end
 
-      local rel_path = target:gsub("^" .. home .. "/", "")
+      -- Safe substring without regex/pattern hazards
+      local rel_path = target:sub(#home + 2)
       local dest = backup_dir .. "/" .. rel_path
 
       run(string.format('mkdir -p "$(dirname "%s")"', dest))
