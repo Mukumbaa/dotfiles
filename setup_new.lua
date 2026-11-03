@@ -104,12 +104,15 @@ local all_dnf_packages = {
   { name = "wl-clipboard",          tag = "hyprland" },
 }
 
-local external_rpms = {
-  { url = "https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/caskaydia-mono-nerd-fonts-3.3.0-1.202609232024_base.fc44.noarch.rpm", tag = "base" },
-  { url = "https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/starship-1.26.0-1.202609242001_base.fc44.x86_64.rpm",                 tag = "base" },
-  { url = "https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/yazi-26.9.1-1.202609241239_base.fc44.x86_64.rpm",                     tag = "base" },
-  { url = "https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/superfile-1.6.0.rc1-1.202609251516_base.fc44.x86_64.rpm",             tag = "base" },
-  { url = "https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/quickshell-0.3.1-1.202609251512_base.fc44.x86_64.rpm",                tag = "hyprland" },
+local MANIFEST_URL = "https://raw.githubusercontent.com/Mukumbaa/Hyprland-RPM/main/packages.json"
+local BASE_RPM_URL = "https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/"
+
+local custom_packages = {
+  { name = "caskaydia-mono-nerd-fonts", tag = "base" },
+  { name = "starship",                 tag = "base" },
+  { name = "yazi",                     tag = "base" },
+  { name = "superfile",                tag = "base" },
+  { name = "quickshell",               tag = "hyprland" },
 }
 
 local stow_configs = {
@@ -143,6 +146,21 @@ local go_packages = {
   "github.com/go-delve/delve/cmd/dlv@latest"
 }
 
+local function load_remote_manifest(url)
+  local handle = io.popen("curl -sL --fail '" .. url .. "'")
+  if not handle then return nil end
+  local content = handle:read("*a")
+  handle:close()
+
+  if not content or content == "" then return nil end
+
+  -- Semplice parser JSON per mappe chiave:valore stringa
+  local manifest = {}
+  for key, value in content:gmatch('"([^"]+)"%s*:%s*"([^"]+)"') do
+    manifest[key] = value
+  end
+  return manifest
+end
 
 print_step("Starting System Setup (Selected Profile: " .. selected_profile:upper() .. ")")
 
@@ -175,16 +193,32 @@ if #filtered_dnf > 0 then
   run(string.format("sudo dnf install -y --skip-unavailable %s", table.concat(filtered_dnf, " ")))
 end
 
-local filtered_rpms = {}
-for _, item in ipairs(external_rpms) do
-  if has_tag(item.tag) then
-    table.insert(filtered_rpms, item.url)
-  end
-end
 
-if #filtered_rpms > 0 then
-  print_step(string.format("Installing External RPMs (%d selected)", #filtered_rpms))
-  run(string.format("sudo dnf install -y --skip-unavailable %s", table.concat(filtered_rpms, " ")))
+print_step("Fetching Manifest for Custom Built RPMs")
+local manifest = load_remote_manifest(MANIFEST_URL)
+
+if not manifest then
+  print_warn("Failed to retrieve packages.json from GitHub. Skipping custom RPMs.")
+else
+  local rpms_to_install = {}
+
+  for _, pkg in ipairs(custom_packages) do
+    if has_tag(pkg.tag) then
+      local rpm_filename = manifest[pkg.name]
+      if rpm_filename then
+        print_info(string.format("Resolved %s -> %s", pkg.name, rpm_filename))
+        table.insert(rpms_to_install, BASE_RPM_URL .. rpm_filename)
+      else
+        print_warn(string.format("Package '%s' not listed in packages.json", pkg.name))
+      end
+    end
+  end
+
+  if #rpms_to_install > 0 then
+    print_step(string.format("Installing Custom RPMs (%d packages)", #rpms_to_install))
+    local cmd = string.format("sudo dnf install -y --skip-unavailable %s", table.concat(rpms_to_install, " "))
+    run(cmd)
+  end
 end
 
 if has_tag("dev") then
