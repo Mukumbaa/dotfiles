@@ -133,7 +133,7 @@ PanelWindow {
           color: (root.osdType === "volume" && root.isMuted) || (root.osdType === "mic" && root.isMicMuted) 
             ? Theme.subtle 
             : root.osdColor
-          font.pixelSize: Theme.fontSizeIcon
+          font.pixelSize: Theme.fontSize
           font.family: Theme.fontFamily
         }
 
