@@ -1,58 +1,117 @@
--- ==============================================================================
--- 1. CONFIGURAZIONE DEI DATI 
--- ==============================================================================
 local home = os.getenv("HOME")
+if not home then error("Environment variable $HOME was not found.") end
 
--- Pacchetti da installare con DNF
-local dnf_packages = {
-  -- from https://github.com/Mukumbaa/Hyprland-RPM
-  -- "quickshell", -- i install it localy
-  -- "yazi", -- i install it localy
-  -- "superfile", -- i install it localy
-  -- "caskaydia-mono-nerd-fonts", -- i install it localy
-  -- "starship", -- i install it localy
-  "stow",
-  "hyprland",
-  "hyprpaper",
-  "hyprlock",
-  "hyprland-guiutils",
-  "wlogout",
-  "waybar",
-  "alacritty",
-  "kitty",
-  "helix",
-  "nvim",
-  "btop",
-  "fastfetch",
-  "wiremix",
-  "google-chrome-stable",
-  "lsd",
-  "fd-find",
-  "qalculate",
-  "gnome-tweaks",
-  "gnome-themes-extra",
-  "adw-gtk3-theme",
-  "dbus-devel",
-  "pkgconf-pkg-config",
-  "gh",
-  "blueman",
-  "nmtui",
-  "pipx",
-  "gcc",
-  "clangd",
-  "golang",
-  "rustup",
-  "grim",
-  "slurp",
-  "wl-clipboard",
-  "brave-browser-nightly",
-  "bat",
-  "trash-cli",
-  "binwalk",
-  "squashfs-tools",
+-- General position of dotfiles
+local dotfiles_dir = home .. "/dotfiles"
+
+local colors = {
+  blue   = "\27[34m", green = "\27[32m",
+  yellow = "\27[33m", red   = "\27[31m",
+  cyan   = "\27[36m", magenta = "\27[35m",
+  reset  = "\27[0m",  bold  = "\27[1m"
 }
 
--- Pacchetti Go da installare
+local function print_step(msg)
+  print("\n" .. colors.bold .. colors.blue .. "==> " .. colors.reset .. colors.bold .. msg .. colors.reset)
+end
+local function print_info(msg) print("  " .. colors.green .. "-> " .. colors.reset .. msg) end
+local function print_warn(msg) print("  " .. colors.yellow .. "!! " .. colors.reset .. msg) end
+
+local function run(cmd, can_fail)
+  local success = os.execute(cmd)
+  if not success and not can_fail then
+    io.stderr:write(colors.red .. "Command execution failed: " .. cmd .. colors.reset .. "\n")
+  end
+  return success
+end
+
+-- Profiles configuration
+local profile_tags = {
+  ["minimal"] = { base = true, dev = true },
+  ["desktop"] = { base = true, dev = true, gui_base = true },
+  ["full"]    = { base = true, dev = true, gui_base = true, hyprland = true }
+}
+
+-- Aliases to make CLI input seamless
+local profile_aliases = {
+  ["cli"]      = "minimal",
+  ["headless"] = "minimal",
+  ["core"]     = "minimal",
+  ["wsl"]      = "minimal",
+  ["vm"]       = "desktop",
+}
+
+-- ============================================================================
+-- DEFINIZIONE PACCHETTI E CONFIGURAZIONI
+-- ============================================================================
+local all_dnf_packages = {
+  -- Base / CLI
+  { name = "stow",                  tag = "base" },
+  { name = "btop",                  tag = "base" },
+  { name = "fastfetch",             tag = "base" },
+  { name = "lsd",                   tag = "base" },
+  { name = "fd-find",               tag = "base" },
+  { name = "bat",                   tag = "base" },
+  { name = "trash-cli",             tag = "base" },
+  { name = "binwalk",               tag = "base" },
+  { name = "squashfs-tools",        tag = "base" },
+  { name = "gh",                    tag = "base" },
+  { name = "nvim",                  tag = "base" },
+
+  -- Dev tools
+  { name = "pipx",                  tag = "dev" },
+  { name = "gcc",                   tag = "dev" },
+  { name = "clangd",                tag = "dev" },
+  { name = "golang",                tag = "dev" },
+  { name = "rustup",                tag = "dev" },
+  { name = "dbus-devel",            tag = "dev" },
+  { name = "pkgconf-pkg-config",    tag = "dev" },
+
+  -- GUI Base 
+  { name = "alacritty",             tag = "gui_base" },
+  { name = "google-chrome-stable",  tag = "gui_base" },
+  { name = "brave-browser-nightly", tag = "gui_base" },
+  { name = "gnome-tweaks",          tag = "gui_base" },
+  { name = "gnome-themes-extra",    tag = "gui_base" },
+  { name = "adw-gtk3-theme",        tag = "gui_base" },
+
+  -- Hyprland / Physical desktop utilities
+  { name = "hyprland",              tag = "hyprland" },
+  { name = "hyprland-guiutils",     tag = "hyprland" },
+  { name = "wiremix",               tag = "hyprland" },
+  { name = "blueman",               tag = "hyprland" },
+  { name = "NetworkManager-tui",    tag = "hyprland" },
+  { name = "grim",                  tag = "hyprland" },
+  { name = "slurp",                 tag = "hyprland" },
+  { name = "wl-clipboard",          tag = "hyprland" },
+}
+
+local MANIFEST_URL = "https://raw.githubusercontent.com/Mukumbaa/Hyprland-RPM/main/packages.json"
+local BASE_RPM_URL = "https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/"
+
+local custom_packages = {
+  { name = "caskaydia-mono-nerd-fonts", tag = "base" },
+  { name = "starship",                 tag = "base" },
+  { name = "superfile",                tag = "base" },
+  { name = "quickshell",               tag = "hyprland" },
+}
+
+local stow_configs = {
+  { pkg = "bashrc",      target = home .. "/.bashrc",               tag = "base" },
+  { pkg = "bash-config", target = home .. "/.config/bash-config",   tag = "base" },
+  { pkg = "starship",    target = home .. "/.config/starship.toml", tag = "base" },
+  { pkg = "fastfetch",   target = home .. "/.config/fastfetch",     tag = "base" },
+  { pkg = "btop",        target = home .. "/.config/btop",          tag = "base" },
+  { pkg = "nvim",        target = home .. "/.config/nvim",          tag = "base" },
+  { pkg = "scripts",     target = home .. "/.config/scripts",       tag = "base" },
+  { pkg = "superfile",   target = home .. "/.config/superfile",     tag = "base" },
+
+  { pkg = "alacritty",   target = home .. "/.config/alacritty",     tag = "gui_base" },
+
+  { pkg = "hypr",        target = home .. "/.config/hypr",          tag = "hyprland" },
+  { pkg = "quickshell",  target = home .. "/.config/quickshell",    tag = "hyprland" },
+}
+
 local go_packages = {
   "golang.org/x/tools/gopls@latest",
   "github.com/nametake/golangci-lint-langserver@latest",
@@ -61,131 +120,271 @@ local go_packages = {
   "github.com/go-delve/delve/cmd/dlv@latest"
 }
 
--- Configurazione Stow: Mappatura "Pacchetto -> Destinazione"
-local stow_configs = {
-  -- Gruppo A (Cartelle in .config)
-  { pkg = "alacritty",   target = home .. "/.config/alacritty" },
-  { pkg = "bash-config", target = home .. "/.config/bash-config" },
-  { pkg = "btop",        target = home .. "/.config/btop" },
-  { pkg = "fastfetch",   target = home .. "/.config/fastfetch" },
-  { pkg = "helix",       target = home .. "/.config/helix" },
-  { pkg = "nvim",        target = home .. "/.config/nvim" },
-  { pkg = "hypr",        target = home .. "/.config/hypr" },
-  { pkg = "quickshell",  target = home .. "/.config/quickshell" },
-  { pkg = "scripts",     target = home .. "/.config/scripts" },
-  { pkg = "waybar",      target = home .. "/.config/waybar" },
-  { pkg = "wlogout",     target = home .. "/.config/wlogout" },
-  { pkg = "kanshi",      target = home .. "/.config/kanshi" },
-  { pkg = "algo",        target = home .. "/.config/algo" },
-  { pkg = "yazi",        target = home .. "/.config/yazi" },
-  { pkg = "kitty",       target = home .. "/.config/kitty" },
-  { pkg = "superfile",   target = home .. "/.config/superfile" },
-  -- Gruppo B (File speciali)
-  { pkg = "bashrc",      target = home .. "/.bashrc" },
-  { pkg = "starship",    target = home .. "/.config/starship.toml" },
-}
+-- ============================================================================
+-- PARSING ARGOMENTI & GESTIONE HELP / SUMMARY
+-- ============================================================================
+local is_help = false
+local raw_profile = nil
 
-
--- ==============================================================================
--- 2. FUNZIONI DI SUPPORTO 
--- ==============================================================================
-local colors = {
-  blue = "\27[34m", green = "\27[32m", yellow = "\27[33m", red = "\27[31m", reset = "\27[0m", bold = "\27[1m"
-}
-
-local function print_step(msg)
-  print("\n" .. colors.bold .. colors.blue .. "==> " .. colors.reset .. colors.bold .. msg .. colors.reset)
+if arg and #arg > 0 then
+  for _, a in ipairs(arg) do
+    local flag_profile = a:match("^%-%-profile=(.+)$")
+    if flag_profile then
+      raw_profile = flag_profile:lower()
+    elseif a == "--help" or a == "-h" or a == "--summary" or a == "--dry-run" then
+      is_help = true
+    elseif not a:match("^%-") then
+      raw_profile = a:lower()
+    end
+  end
 end
 
-local function print_info(msg)
-  print("  " .. colors.green .. "-> " .. colors.reset .. msg)
+-- Stampa l'utilizzo generale se richiesto senza profilo
+local function print_usage()
+  print(colors.bold .. colors.blue .. "Usage:" .. colors.reset .. " lua setup.lua [profile] [options]\n")
+  print(colors.bold .. "Available Profiles:" .. colors.reset)
+  print("  " .. colors.green .. "minimal" .. colors.reset .. "   - Base CLI tools and dev environments (servers/WSL)")
+  print("  " .. colors.green .. "desktop" .. colors.reset .. "   - Minimal + GUI base (browsers, terminal, GNOME themes)")
+  print("  " .. colors.green .. "full" .. colors.reset .. "      - Complete suite with Hyprland & Quickshell (default)\n")
+  print(colors.bold .. "Aliases:" .. colors.reset)
+  print("  cli, headless, core, wsl -> minimal")
+  print("  vm                       -> desktop\n")
+  print(colors.bold .. "Options:" .. colors.reset)
+  print("  --help, -h, --summary    Print this help or summarize a specific profile")
+  print("  --profile=<name>         Explicitly select profile\n")
+  print(colors.bold .. "Examples:" .. colors.reset)
+  print("  lua setup.lua minimal --help      # Show what 'minimal' installs")
+  print("  lua setup.lua full --summary      # Show what 'full' installs")
+  print("  lua setup.lua desktop             # Execute installation for desktop")
 end
 
--- ==============================================================================
--- 3. LOGICA DI ESECUZIONE
--- ==============================================================================
-
-print_step("Inizio Setup del Sistema")
-
----------------------------------------------------------
--- FASE 1: Gestione Pacchetti di Sistema 
----------------------------------------------------------
-print_step("Rimozione Bloatware")
-os.execute("sudo dnf group remove libreoffice -y")
-os.execute("sudo dnf remove libreoffice* -y")
-
-print_step("Abilitazione Repository COPR")
-os.execute("sudo dnf copr enable lionheartp/Hyprland -y")
-
-os.execute("sudo dnf install dnf-plugins-core")
-os.execute("sudo dnf config-manager addrepo --from-repofile=https://brave-browser-rpm-nightly.s3.brave.com/brave-browser-nightly.repo")
--- os.execute("sudo dnf install brave-browser-nightly")
-
-print_step("Installazione Pacchetti DNF")
--- Uniamo tutta la tabella in una singola stringa separata da spazi
-local dnf_cmd = "sudo dnf install -y --skip-unavailable " .. table.concat(dnf_packages, " ")
-os.execute(dnf_cmd)
-
-os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/quickshell-0.3.1-1.202609251512_base.fc44.x86_64.rpm")
-os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/superfile-1.6.0.rc1-1.202609251516_base.fc44.x86_64.rpm")
-os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/yazi-26.9.1-1.202609241239_base.fc44.x86_64.rpm")
-os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/caskaydia-mono-nerd-fonts-3.3.0-1.202609232024_base.fc44.noarch.rpm")
-os.execute("sudo dnf install https://github.com/Mukumbaa/Hyprland-RPM/raw/refs/heads/main/starship-1.26.0-1.202609242001_base.fc44.x86_64.rpm")
-
--- Pipx path
-os.execute("pipx install ensurepath")
-
----------------------------------------------------------
--- FASE 3: Ambienti di Programmazione (Rust, Go)
----------------------------------------------------------
-print_step("Setup Ambienti di Sviluppo")
-os.execute("rustup-init -y")
-
--- Cargo
-print_info("Installazione tinymist-cli (Cargo)")
-local cargo_bin = home .. "/.cargo/bin/cargo"
-os.execute(cargo_bin .. " install --git https://github.com/Myriad-Dreamin/tinymist --locked tinymist-cli")
-
--- Go packages (Ciclo elegante sull'array)
-print_info("Installazione Strumenti Go")
-for _, pkg in ipairs(go_packages) do
-  os.execute("go install " .. pkg)
+-- Se l'utente chiede --help senza specificare un profilo
+if is_help and not raw_profile then
+  print_usage()
+  os.exit(0)
 end
 
----------------------------------------------------------
--- FASE 4: Safe Stow (Dotfiles)
----------------------------------------------------------
-print_step("Ripristino Dotfiles (Safe Stow)")
+local selected_profile = raw_profile or "full"
+local alias_used = nil
 
--- Crea la cartella di backup con il timestamp (es. 20260501_105900)
-local backup_dir = home .. "/.config/dotfiles_backup_" .. os.date("%Y%m%d_%H%M%S")
-os.execute('mkdir -p "' .. backup_dir .. '"')
-print_info("Eventuali conflitti verranno salvati in: " .. backup_dir)
+if profile_aliases[selected_profile] then
+  alias_used = selected_profile
+  selected_profile = profile_aliases[selected_profile]
+end
 
-for _, conf in ipairs(stow_configs) do
-  local target = conf.target
-  local pkg = conf.pkg
+local active_tags = profile_tags[selected_profile]
+if not active_tags then
+  local valid_list = table.concat({"minimal", "desktop", "full"}, ", ")
+  io.stderr:write(colors.red .. "Error: Invalid profile '" .. tostring(selected_profile) .. "'." .. colors.reset .. "\n")
+  io.stderr:write("Supported profiles: " .. valid_list .. "\n\n")
+  print_usage()
+  os.exit(1)
+end
 
-  -- Controllo: Se esiste (-e) E NON è un symlink (! -L)
-  -- os.execute restituisce 'true' se il comando Bash ha successo (exit code 0)
-  local check_cmd = string.format('[ -e "%s" ] && [ ! -L "%s" ]', target, target)
+local function has_tag(item_tag)
+  return active_tags[item_tag] == true
+end
 
-  if os.execute(check_cmd) then
-    print(colors.yellow .. "  !! Trovato file/cartella reale: " .. target .. colors.reset)
+-- Funzione per stampare il riepilogo dettagliato del profilo
+local function show_profile_summary(profile_name)
+  print_step("DRY-RUN / PROFILE SUMMARY: " .. profile_name:upper() .. (alias_used and (" (via alias: " .. alias_used .. ")") or ""))
 
-    -- Calcoliamo il percorso relativo per mantenere la struttura nel backup
-    -- gsub elimina il percorso della home stringa. Es: "/home/user/.bashrc" diventa ".bashrc"
-    local rel_path = target:gsub(home .. "/", "")
-    local dest = backup_dir .. "/" .. rel_path
+  -- 1. Tag Attivi
+  local tags = {}
+  for t, _ in pairs(active_tags) do table.insert(tags, t) end
+  table.sort(tags)
+  print_info("Active Tags: " .. colors.yellow .. table.concat(tags, ", ") .. colors.reset)
 
-    -- Ricreiamo la cartella genitore nel backup e spostiamo il file
-    os.execute('mkdir -p "$(dirname "' .. dest .. '")"')
-    os.execute('mv "' .. target .. '" "' .. dest .. '"')
-    print_info("Spostato in backup: " .. dest)
+  -- 2. Azioni di Sistema & Repository
+  print("\n" .. colors.bold .. colors.cyan .. "  [1] System Changes & Repositories:" .. colors.reset)
+  if has_tag("gui_base") or has_tag("hyprland") then
+    print("    - Bloatware Cleanup: Remove LibreOffice groups & packages")
+  end
+  if has_tag("hyprland") then
+    print("    - Enable COPR: " .. colors.magenta .. "lionheartp/Hyprland" .. colors.reset)
+  end
+  if has_tag("gui_base") then
+    print("    - Add Repository: " .. colors.magenta .. "Brave Browser Nightly" .. colors.reset)
+  end
+  if not has_tag("gui_base") and not has_tag("hyprland") then
+    print("    - None (clean minimal installation)")
   end
 
-  print_info("Stowing " .. pkg)
-  os.execute("stow " .. pkg)
+  -- 3. Pacchetti DNF
+  local dnf_list = {}
+  for _, item in ipairs(all_dnf_packages) do
+    if has_tag(item.tag) then table.insert(dnf_list, item.name) end
+  end
+  print("\n" .. colors.bold .. colors.cyan .. string.format("  [2] DNF Native Packages (%d):", #dnf_list) .. colors.reset)
+  print("    " .. table.concat(dnf_list, ", "))
+
+  -- 4. Pacchetti RPM Custom (GitHub)
+  local custom_list = {}
+  for _, pkg in ipairs(custom_packages) do
+    if has_tag(pkg.tag) then table.insert(custom_list, pkg.name) end
+  end
+  print("\n" .. colors.bold .. colors.cyan .. string.format("  [3] Custom GitHub RPMs (%d):", #custom_list) .. colors.reset)
+  if #custom_list > 0 then
+    print("    " .. table.concat(custom_list, ", "))
+  else
+    print("    - None")
+  end
+
+  -- 5. Ambienti di Sviluppo
+  print("\n" .. colors.bold .. colors.cyan .. "  [4] Development Environments (Rust & Go):" .. colors.reset)
+  if has_tag("dev") then
+    print("    - Rust: rustup-init, tinymist-cli (via cargo)")
+    print("    - Go Tools & LSPs:")
+    for _, gp in ipairs(go_packages) do
+      print("      * " .. gp)
+    end
+  else
+    print("    - Disabled for this profile")
+  end
+
+  -- 6. Configurazioni Dotfiles (Stow)
+  local stow_list = {}
+  for _, conf in ipairs(stow_configs) do
+    if has_tag(conf.tag) then table.insert(stow_list, conf) end
+  end
+  print("\n" .. colors.bold .. colors.cyan .. string.format("  [5] Dotfiles via GNU Stow (%d configs):", #stow_list) .. colors.reset)
+  for _, conf in ipairs(stow_list) do
+    print(string.format("    - %-12s -> %s", colors.bold .. conf.pkg .. colors.reset, conf.target))
+  end
+  print("\n" .. colors.green .. "No changes were made to your system." .. colors.reset .. "\n")
 end
 
-print_step("Setup Completato con Successo! Riavvia la sessione.")
+-- Se è stato richiesto --help / --summary con un profilo, lo mostra ed esce
+if is_help then
+  show_profile_summary(selected_profile)
+  os.exit(0)
+end
+
+-- ============================================================================
+-- ESECUZIONE REALE (INSTALLAZIONE)
+-- ============================================================================
+local function load_remote_manifest(url)
+  local handle = io.popen("curl -sSL -H 'Cache-Control: no-cache' --fail '" .. url .. "'")
+  if not handle then return nil end
+  local content = handle:read("*a")
+  handle:close()
+
+  if not content or content == "" then return nil end
+
+  local manifest = {}
+  for key, value in content:gmatch('"([^"]+)"%s*:%s*"([^"]+)"') do
+    manifest[key] = value
+  end
+  return manifest
+end
+
+print_step("Starting System Setup (Selected Profile: " .. selected_profile:upper() .. ")")
+
+-- STAGE 1: Repositories & Cleanup
+if has_tag("gui_base") or has_tag("hyprland") then
+  print_step("Removing Bloatware (LibreOffice)")
+  run("sudo dnf group remove -y libreoffice 2>/dev/null", true)
+  run("sudo dnf remove -y 'libreoffice*' 2>/dev/null", true)
+end
+
+if has_tag("hyprland") then
+  print_step("Enabling Hyprland COPR Repository")
+  run("sudo dnf install -y dnf-plugins-core")
+  run("sudo dnf copr enable -y lionheartp/Hyprland")
+end
+
+if has_tag("gui_base") then
+  print_step("Enabling Brave Browser Nightly Repository")
+  run("sudo dnf config-manager addrepo --from-repofile=https://brave-browser-rpm-nightly.s3.brave.com/brave-browser-nightly.repo --overwrite", true)
+end
+
+-- STAGE 2: Package Installation
+local install_targets = {}
+
+for _, item in ipairs(all_dnf_packages) do
+  if has_tag(item.tag) then
+    table.insert(install_targets, item.name)
+  end
+end
+
+print_step("Fetching Manifest for Custom Built RPMs")
+local manifest = load_remote_manifest(MANIFEST_URL)
+
+if not manifest then
+  print_warn("Failed to retrieve packages.json from GitHub. Skipping custom RPMs.")
+else
+  for _, pkg in ipairs(custom_packages) do
+    if has_tag(pkg.tag) then
+      local rpm_filename = manifest[pkg.name]
+      if rpm_filename then
+        print_info(string.format("Resolved %s -> %s", pkg.name, rpm_filename))
+        table.insert(install_targets, BASE_RPM_URL .. rpm_filename)
+      else
+        print_warn(string.format("Package '%s' not listed in packages.json", pkg.name))
+      end
+    end
+  end
+end
+
+if #install_targets > 0 then
+  print_step(string.format("Installing All Packages via DNF (%d items)", #install_targets))
+  run(string.format("sudo dnf install -y --skip-unavailable %s", table.concat(install_targets, " ")))
+end
+
+-- STAGE 3: Dev Environments
+if has_tag("dev") then
+  print_step("Setting Up Development Environments")
+
+  print_info("Configuring Rustup and Cargo tools")
+  run("rustup-init -y")
+  local cargo_bin = home .. "/.cargo/bin/cargo"
+  local tinymist_bin = home .. "/.cargo/bin/tinymist"
+
+  if run(string.format('[ -x "%s" ]', tinymist_bin), true) then
+    print_info("tinymist-cli is already installed.")
+  elseif run(string.format('[ -x "%s" ]', cargo_bin), true) then
+    run(cargo_bin .. " install --git https://github.com/Myriad-Dreamin/tinymist --locked tinymist-cli")
+  else
+    print_warn("Cargo binary not found in ~/.cargo/bin. Skipping tinymist installation.")
+  end
+
+  print_info("Installing Go tools and language servers")
+  local go_env = string.format("export PATH=$PATH:%s/go/bin; export GOTOOLCHAIN=auto; ", home)
+  for _, pkg in ipairs(go_packages) do
+    run(go_env .. "go install " .. pkg)
+  end
+end
+
+-- STAGE 4: GNU Stow
+print_step("Deploying Dotfiles (Safe GNU Stow)")
+
+local backup_dir = home .. "/.config/dotfiles_backup_" .. os.date("%Y%m%d_%H%M%S")
+local backup_created = false
+
+for _, conf in ipairs(stow_configs) do
+  if has_tag(conf.tag) then
+    local target = conf.target
+    local pkg = conf.pkg
+
+    local check_cmd = string.format('[ -e "%s" ] && [ ! -L "%s" ]', target, target)
+    if run(check_cmd, true) then
+      if not backup_created then
+        run(string.format('mkdir -p "%s"', backup_dir))
+        print_info("Created backup directory at: " .. backup_dir)
+        backup_created = true
+      end
+
+      local rel_path = target:sub(#home + 2)
+      local dest = backup_dir .. "/" .. rel_path
+
+      run(string.format('mkdir -p "$(dirname "%s")"', dest))
+      run(string.format('mv "%s" "%s"', target, dest))
+      print_warn("Backed up conflicting file: " .. target .. " -> " .. dest)
+    end
+
+    print_info("Stowing (" .. conf.tag .. "): " .. pkg)
+    run(string.format('stow -d "%s" -t "%s" "%s"', dotfiles_dir, home, pkg))
+  end
+end
+
+print_step("Setup completed successfully for profile: " .. selected_profile:upper() .. ". Please restart your session.")
