@@ -134,6 +134,7 @@ PanelWindow {
             ? Theme.subtle 
             : root.osdColor
           font.pixelSize: Theme.fontSizeIcon
+          font.family: Theme.fontFamily
         }
 
         // Barra di progressione
