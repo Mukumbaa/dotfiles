@@ -143,7 +143,6 @@ PanelWindow {
             RowLayout {
               anchors.centerIn: parent
               spacing: Theme.spacingMedium
-              Text { text: "󰕾"; color: AudioState.currentTab === "output" ? Theme.foam : Theme.subtle; font.pixelSize: Theme.fontSizePopup }
               Text { text: "Outputs"; color: AudioState.currentTab === "output" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSize; font.bold: true }
             }
             MouseArea {
@@ -161,7 +160,6 @@ PanelWindow {
             RowLayout {
               anchors.centerIn: parent
               spacing: Theme.spacingMedium
-              Text { text: "󰍬"; color: AudioState.currentTab === "input" ? Theme.iris : Theme.subtle; font.pixelSize: Theme.fontSizePopup }
               Text { text: "Inputs"; color: AudioState.currentTab === "input" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSize; font.bold: true }
             }
             MouseArea {
@@ -198,7 +196,8 @@ PanelWindow {
                 return AudioState.currentTab === "output" ? "󰕾" : "󰍬"
               }
               color: parent.parent.isMuted ? Theme.subtle : parent.parent.accentCol
-              font.pixelSize: Theme.fontSizePopup
+              font.pixelSize: Theme.fontsizePopup
+              font.family: Theme.fontFamily
 
               MouseArea {
                 anchors.fill: parent
@@ -304,6 +303,8 @@ PanelWindow {
                 text: AudioState.currentTab === "output" ? "󰓃" : "󰍬"
                 color: devRow.isDefault ? (AudioState.currentTab === "output" ? Theme.foam : Theme.iris) : Theme.subtle
                 font.pixelSize: Theme.fontSizePopup
+                font.family: Theme.fontFamily
+
               }
 
               Text {
@@ -324,6 +325,7 @@ PanelWindow {
                 text: ""
                 color: AudioState.currentTab === "output" ? Theme.foam : Theme.iris
                 font.pixelSize: Theme.fontSizePopup
+                font.family: Theme.fontFamily
                 font.bold: true
               }
             }
