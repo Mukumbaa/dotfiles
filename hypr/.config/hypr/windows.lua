@@ -1,4 +1,3 @@
-
 hl.window_rule({ name = "windowrule-1", match = { class = ".*" }, suppress_event = "maximize" })
 
 hl.window_rule({
@@ -83,13 +82,37 @@ hl.window_rule({
     float = true,
     center = true,
     pin = true,
-    border_color = "rgb(eb6f92)", -- colore Love del tuo tema
+    border_color = "rgb(eb6f92)",
 })
-
--- Gestore Bluetooth e Wi-Fi
 hl.window_rule({
-    match = { class = "^(blueman-manager|nmgui)$" },
+    name = "ghidra-popups-fix",
+    match = {
+        class = "^(ghidra-Ghidra)$",
+        title = "^$", -- i popup delle variabili/tooltip spesso non hanno titolo
+    },
+    no_anim = true,
+    no_shadow = true,
+    no_focus = true,
+})
+hl.window_rule({
+    name = "ghidra-tooltips-fix",
+    match = {
+        class = "^(ghidra-Ghidra)$",
+        title = "^(win.*)$", -- Java assegna win0, win1, win2... ai popup
+    },
     float = true,
-    size = "700 450",
-    center = true,
+    no_initial_focus = true,
+    no_focus = true,
+    no_anim = true,
+    no_shadow = true,
+    -- Forza il popup a comparire ESATTAMENTE sotto al cursore (spostato di 15px in basso a destra)
+    move = "onscreen cursor 15 15",
+})
+hl.window_rule({
+    name = "ghidra-codebrowser-tile",
+    match = {
+        class = "^(ghidra-Ghidra)$",
+        title = "^(CodeBrowser.*)$",
+    },
+    tile = true,
 })
