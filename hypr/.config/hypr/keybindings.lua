@@ -1,12 +1,13 @@
 local utils = require("utils")
+local apps = require("default-programs")
+
 -- =========================
--- Essencial
+-- Essenziali
 -- =========================
-hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(Terminal))
+hl.bind("SUPER + RETURN", hl.dsp.exec_cmd(apps.terminal))
 hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind("SUPER + M", hl.dsp.exit())
-hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(FileManager))
--- hl.bind("SUPER + SPACE", hl.dsp.exec_cmd(Terminal .. " --class algo -e algo"))
+hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(apps.file_manager))
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 
 hl.bind("SUPER + left", hl.dsp.focus({ direction = "l" }))
@@ -44,7 +45,7 @@ hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- =========================
--- Audio / Light
+-- Audio / Luminosità
 -- =========================
 hl.bind("XF86AudioRaiseVolume",
     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0 && wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"),
@@ -79,18 +80,17 @@ hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = tru
 hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true })
 
 -- =========================
--- Lid switch
+-- Lid switch & Monitor
 -- =========================
--- hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd("hyprlock"), { locked = true })
--- hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd("hyprctl dispatch dpms on"), { locked = true })
 hl.bind("switch:on:Lid Switch", utils.lid_down, { locked = true })
 hl.bind("switch:off:Lid Switch", utils.lid_up, { locked = true })
 
 hl.on("monitor.removed", function()
-    hl.dispatch(hl.dsp.focus({monitor = "eDP-1"}))
+    hl.dispatch(hl.dsp.focus({ monitor = "eDP-1" }))
 end)
 
 hl.bind("SUPER + O", utils.mirror_monitor)
+
 -- =========================
 -- Swap window
 -- =========================
@@ -111,36 +111,33 @@ hl.bind("SUPER + SHIFT + DOWN",
     { description = "Swap window down" })
 
 -- =========================
--- Extra binds
+-- Scorciatoie Extra
 -- =========================
--- hl.bind("SUPER + L", hl.dsp.exec_cmd("hyprlock"))
 hl.bind("SUPER + L", hl.dsp.exec_cmd("qs ipc call lock lock"))
 hl.bind("ALT + TAB", hl.dsp.window.cycle_next())
 
-hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd(Browser))
--- hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("wlogout"))
+hl.bind("SUPER + SHIFT + B", hl.dsp.exec_cmd(apps.browser))
 hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("qs ipc call powermenu toggle"))
 
 hl.bind("SUPER + I", hl.dsp.exec_cmd("nmgui"))
-hl.bind("SUPER + SHIFT + I", hl.dsp.exec_cmd(Terminal .. " -e nmtui"))
+hl.bind("SUPER + SHIFT + I", hl.dsp.exec_cmd(apps.terminal .. " -e nmtui"))
 
 hl.bind("SUPER + B", hl.dsp.exec_cmd("blueman-manager"))
 hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("gnome-calendar"))
 
 hl.bind("Print", function() utils.hyprshot("region")() end)
 hl.bind("SHIFT + Print", function() utils.hyprshot("output")() end)
-
 hl.bind("SUPER + SHIFT + S", function() utils.hyprshot("region")() end)
+
 hl.bind("SUPER + ALT + SPACE", utils.roll_wallpaper)
 hl.bind("SUPER + P", utils.float_window)
--- hl.bind("SUPER + T", function () utils.toggle_waybar(true) end)
-hl.bind("SUPER + T", function () utils.toggle_quickshell_bar(true) end)
+hl.bind("SUPER + T", function() utils.toggle_quickshell_bar(true) end)
 
 hl.bind("SUPER + F", hl.dsp.window.fullscreen())
 hl.bind("SUPER + R", function()
-  hl.exec_cmd("hyprctl reload")
-  -- hl.notification.create({ text = "Reloaded config", duration = "2500", color = "rgb(31748f)" })
-  hl.exec_cmd('notify-send -a "Hyprland" "keybindings.lua" "Reloaded config"')
+    hl.exec_cmd("hyprctl reload")
+    hl.exec_cmd('notify-send -a "Hyprland" "keybindings.lua" "Reloaded config"')
 end)
 
-hl.bind("SUPER + Control_L", hl.dsp.exec_cmd("hyprctl switchxkblayout all next; pkill -RTMIN+8 waybar"))
+-- Switch layout tastiera senza residui di Waybar
+hl.bind("SUPER + Control_L", hl.dsp.exec_cmd("hyprctl switchxkblayout all next"))

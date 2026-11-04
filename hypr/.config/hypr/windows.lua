@@ -77,3 +77,19 @@ hl.window_rule({
   size = {800, 500},
   center = true,
 })
+-- Dialoghi di autenticazione Polkit e pinentry (GPG)
+hl.window_rule({
+    match = { class = "^(polkit-gnome-authentication-agent-1|org.kde.polkit-kde-authentication-agent-1|pinentry.*)$" },
+    float = true,
+    center = true,
+    pin = true,
+    border_color = "rgb(eb6f92)", -- colore Love del tuo tema
+})
+
+-- Gestore Bluetooth e Wi-Fi
+hl.window_rule({
+    match = { class = "^(blueman-manager|nmgui)$" },
+    float = true,
+    size = "700 450",
+    center = true,
+})

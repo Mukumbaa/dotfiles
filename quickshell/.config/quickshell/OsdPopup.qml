@@ -32,17 +32,36 @@ PanelWindow {
   WlrLayershell.layer: WlrLayer.Overlay
   exclusiveZone: 0
 
+  // -------------------------------------------------------------
+  // TRACCIAMENTO AUDIO (SINK E SOURCE)
+  // -------------------------------------------------------------
   PwObjectTracker {
-    objects: Pipewire.defaultAudioSink ? [Pipewire.defaultAudioSink] : []
+    objects: [
+      ...(Pipewire.defaultAudioSink ? [Pipewire.defaultAudioSink] : []),
+      ...(Pipewire.defaultAudioSource ? [Pipewire.defaultAudioSource] : [])
+    ]
   }
 
   property var sink: Pipewire.defaultAudioSink
   property real currentVol: (sink && sink.audio) ? sink.audio.volume : 0.0
   property bool isMuted: (sink && sink.audio) ? sink.audio.muted : false
 
+  property var source: Pipewire.defaultAudioSource
+  property bool isMicMuted: (source && source.audio) ? source.audio.muted : false
+
   property string osdType: "volume"
   property int osdValue: 0
   property string osdIcon: ""
+
+  // -------------------------------------------------------------
+  // COLORI PER TIPO: Verde (Volume), Arancione (Luminosità), Viola (Mic)
+  // -------------------------------------------------------------
+  readonly property color osdColor: {
+    if (root.osdType === "volume") return Theme.foam      // Verde (Rosé Pine)
+    if (root.osdType === "brightness") return Theme.gold  // Arancione
+    if (root.osdType === "mic") return Theme.iris         // Viola
+    return Theme.text
+  }
 
   function triggerOsd(type, val, icon) {
     osdType = type
@@ -70,6 +89,13 @@ PanelWindow {
     triggerOsd("volume", isMuted ? 0 : currentVol * 100, icon)
   }
 
+  onIsMicMutedChanged: {
+    if (source && source.audio) {
+      let icon = isMicMuted ? "󰍭" : "󰍬"
+      triggerOsd("mic", isMicMuted ? 0 : 100, icon)
+    }
+  }
+
   Connections {
     target: BrightnessState
     function onBrightnessChanged() {
@@ -79,6 +105,9 @@ PanelWindow {
     }
   }
 
+  // -------------------------------------------------------------
+  // INTERFACCIA GRAFICA
+  // -------------------------------------------------------------
   Item {
     anchors.fill: parent
 
@@ -98,12 +127,16 @@ PanelWindow {
         anchors.rightMargin: Theme.marginRight
         spacing: Theme.spacingLarge
 
+        // Icona colorata
         Text {
           text: root.osdIcon
-          color: root.osdType === "volume" ? Theme.foam : Theme.gold
+          color: (root.osdType === "volume" && root.isMuted) || (root.osdType === "mic" && root.isMicMuted) 
+            ? Theme.subtle 
+            : root.osdColor
           font.pixelSize: Theme.fontSizeIcon
         }
 
+        // Barra di progressione
         Rectangle {
           Layout.fillWidth: true
           implicitHeight: 6
@@ -114,13 +147,20 @@ PanelWindow {
             width: parent.width * (Math.min(root.osdValue, 100) / 100)
             height: parent.height
             radius: Theme.radiusSmall
-            color: root.osdType === "volume" ? Theme.foam : Theme.gold
+            color: root.osdColor
           }
         }
 
+        // Testo valore (% o stato Microfono)
         Text {
-          text: root.osdValue + "%"
-          color: Theme.text
+          text: {
+            if (root.osdType === "mic") return root.isMicMuted ? "MUTED" : "ON"
+            if (root.osdType === "volume" && root.isMuted) return "MUTED"
+            return root.osdValue + "%"
+          }
+          color: (root.osdType === "mic" && root.isMicMuted) || (root.osdType === "volume" && root.isMuted) 
+            ? Theme.love 
+            : Theme.text
           font.family: Theme.fontFamily
           font.pixelSize: Theme.fontSize
           font.bold: true

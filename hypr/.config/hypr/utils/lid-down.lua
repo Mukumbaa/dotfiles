@@ -1,5 +1,4 @@
 local module = {}
-local utils = require("utils.toggle-waybar")
 function module.lid_down()
   local monitors = hl.get_monitors()
 
