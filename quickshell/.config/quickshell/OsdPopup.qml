@@ -85,7 +85,7 @@ PanelWindow {
   }
 
   onIsMutedChanged: {
-    let icon = isMuted ? "󰝟" : ""
+    let icon = isMuted ? "" : ""
     triggerOsd("volume", isMuted ? 0 : currentVol * 100, icon)
   }
 
