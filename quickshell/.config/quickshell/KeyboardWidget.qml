@@ -3,9 +3,12 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 
-Item {
+MouseArea {
+  id: kbWidget
   implicitWidth: kbText.implicitWidth
   implicitHeight: kbText.implicitHeight
+  cursorShape: Qt.PointingHandCursor
+  onClicked: Quickshell.execDetached(["hyprctl", "switchxkblayout", "all", "next"])
 
   Text {
     id: kbText
@@ -13,7 +16,9 @@ Item {
 
     text: layoutName
     color: Theme.text
-    font { pixelSize: 12; family: Theme.fontFamily; weight: Font.Bold }
+    font.pixelSize: Theme.fontSize
+    font.family: Theme.fontFamily
+    font.bold: true
 
     Process {
       id: initKbProc
@@ -42,11 +47,5 @@ Item {
         }
       }
     }
-  }
-
-  MouseArea {
-    anchors.fill: parent
-    cursorShape: Qt.PointingHandCursor
-    onClicked: Quickshell.execDetached(["hyprctl", "switchxkblayout", "all", "next"])
   }
 }

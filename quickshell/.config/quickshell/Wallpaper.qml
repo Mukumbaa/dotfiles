@@ -87,9 +87,6 @@ Scope {
     wallpaperScope.currentWallpaperPath = wallpaperScope.wallpaperList[wallpaperScope.currentIndex]
   }
 
-  // -------------------------------------------------------------
-  // SFONDI DISTRIBUITI CORRETTAMENTE SU OGNI MONITOR
-  // -------------------------------------------------------------
   Variants {
     model: Quickshell.screens
 

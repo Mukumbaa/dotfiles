@@ -3,16 +3,19 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 
-Item {
+MouseArea {
+  id: wifiWidget
   implicitWidth: wifiLayout.implicitWidth
   implicitHeight: wifiLayout.implicitHeight
+  cursorShape: Qt.PointingHandCursor
+  onClicked: ConnectionsState.toggle("wifi")
 
   RowLayout {
     id: wifiLayout
-    spacing: 4
+    spacing: Theme.spacingSmall
     property string ssid: "Disconnected"
 
-    // OTTIMIZZATO (Zero polling, reattivo agli eventi istantaneamente)
+    // Query SSID attivo
     Process {
       id: wifiProc
       command: ["nmcli", "-t", "-f", "ACTIVE,SSID", "dev", "wifi"]
@@ -25,36 +28,39 @@ Item {
       }
     }
 
+    // Timer per evitare picchi di processi quando nmcli monitor genera eventi a raffica
+    Timer {
+      id: wifiDebounceTimer
+      interval: 350
+      onTriggered: {
+        if (!wifiProc.running) wifiProc.running = true
+      }
+    }
+
+    // Monitor eventi NetworkManager in ascolto continuo
     Process {
       id: wifiMonitorProc
       running: true
       command: ["nmcli", "monitor"]
       stdout: SplitParser {
-        onRead: {
-          if (!wifiProc.running) wifiProc.running = true
-        }
+        onRead: wifiDebounceTimer.restart()
       }
     }
 
     Component.onCompleted: wifiProc.running = true
 
-
     Text {
       text: wifiLayout.ssid !== "Disconnected" && wifiLayout.ssid !== "" ? "󰤨" : "󰤮"
       color: wifiLayout.ssid !== "Disconnected" ? Theme.text : Theme.subtle
-      font { pixelSize: 12; family: Theme.fontFamily }
+      font.pixelSize: Theme.fontSize
+      font.family: Theme.fontFamily
     }
 
     Text {
       text: wifiLayout.ssid
       color: wifiLayout.ssid !== "Disconnected" ? Theme.text : Theme.subtle
-      font { pixelSize: 12; family: Theme.fontFamily }
+      font.pixelSize: Theme.fontSize
+      font.family: Theme.fontFamily
     }
-  }
-
-  MouseArea {
-    anchors.fill: parent
-    cursorShape: Qt.PointingHandCursor
-    onClicked: ConnectionsState.toggle("wifi")
   }
 }

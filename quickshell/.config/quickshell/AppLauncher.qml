@@ -20,7 +20,6 @@ PanelWindow {
     }
   }
 
-  // Copre tutto lo schermo per catturare click esterni e sfondo oscurato
   anchors {
     top: true
     bottom: true
@@ -32,7 +31,6 @@ PanelWindow {
   WlrLayershell.layer: WlrLayer.Overlay
   WlrLayershell.keyboardFocus: isOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-  // Ricevitore IPC per aprirlo/chiuderlo da terminale o Hyprland
   IpcHandler {
     target: "launcher"
     function toggle(): void { LauncherState.toggle() }
@@ -40,44 +38,55 @@ PanelWindow {
     function close(): void { LauncherState.close() }
   }
 
-  // Scorciatoia globale nativa Quickshell
   GlobalShortcut {
     name: "launcher"
     onPressed: LauncherState.toggle()
   }
 
   // -------------------------------------------------------------
-  // LOGICA FILTRO APPLICAZIONI
+  // CACHE ED OTTIMIZZAZIONE APPLICAZIONI
   // -------------------------------------------------------------
   property string searchFilter: ""
+
+  // Cache pre-filtrata con stringhe lowercase già pronte
+  readonly property var allValidApps: {
+    let list = []
+    if (DesktopEntries && DesktopEntries.applications && DesktopEntries.applications.values) {
+      for (let app of DesktopEntries.applications.values) {
+        if (!app || app.noDisplay || !app.name) continue
+        list.push({
+          entry: app,
+          name: app.name || "",
+          nameLower: (app.name || "").toLowerCase(),
+          generic: app.genericName || "",
+          genericLower: (app.genericName || "").toLowerCase(),
+          comment: app.comment || "",
+          commentLower: (app.comment || "").toLowerCase(),
+          idLower: (app.id || "").toLowerCase(),
+          icon: app.icon || ""
+        })
+      }
+    }
+    return list
+  }
 
   property var filteredApps: {
     let q = searchFilter.trim().toLowerCase()
     let apps = []
 
-    if (DesktopEntries && DesktopEntries.applications && DesktopEntries.applications.values) {
-      for (let app of DesktopEntries.applications.values) {
-        if (!app || app.noDisplay || !app.name) continue
-
-        if (!q) {
-          apps.push(app)
-        } else {
-          let name = (app.name || "").toLowerCase()
-          let gen = (app.genericName || "").toLowerCase()
-          let comm = (app.comment || "").toLowerCase()
-          let id = (app.id || "").toLowerCase()
-
-          if (name.includes(q) || gen.includes(q) || comm.includes(q) || id.includes(q)) {
-            apps.push(app)
-          }
+    if (!q) {
+      apps = [...allValidApps]
+    } else {
+      for (let item of allValidApps) {
+        if (item.nameLower.includes(q) || item.genericLower.includes(q) || item.commentLower.includes(q) || item.idLower.includes(q)) {
+          apps.push(item)
         }
       }
     }
 
-    // Ordina: prima i risultati che iniziano con la query, poi alfabetico
     apps.sort((a, b) => {
-      let aStarts = q ? (a.name.toLowerCase().startsWith(q) ? 1 : 0) : 0
-      let bStarts = q ? (b.name.toLowerCase().startsWith(q) ? 1 : 0) : 0
+      let aStarts = q ? (a.nameLower.startsWith(q) ? 1 : 0) : 0
+      let bStarts = q ? (b.nameLower.startsWith(q) ? 1 : 0) : 0
       if (aStarts !== bStarts) return bStarts - aStarts
       return a.name.localeCompare(b.name)
     })
@@ -90,10 +99,10 @@ PanelWindow {
     appListView.positionViewAtBeginning()
   }
 
-  function launchApp(app) {
-    if (!app) return
+  function launchApp(item) {
+    if (!item || !item.entry) return
     LauncherState.close()
-    app.execute()
+    item.entry.execute()
   }
 
   function launchSelected() {
@@ -113,26 +122,24 @@ PanelWindow {
   }
 
   // -------------------------------------------------------------
-  // SFONDO E CONTENITORE CENTRALE
+  // CONTENITORE
   // -------------------------------------------------------------
   Rectangle {
     id: backdrop
     anchors.fill: parent
-    color: Qt.rgba(0.05, 0.04, 0.08, 0.65 * root.animProgress)
+    color: Theme.backdrop
     opacity: root.animProgress
 
-    // Click fuori per chiudere
     MouseArea {
       anchors.fill: parent
       onClicked: LauncherState.close()
     }
 
-    // Finestra Card Centrata
     Rectangle {
       id: card
       anchors.centerIn: parent
-      implicitWidth: 480
-      implicitHeight: 420
+      implicitWidth: Theme.launcherWidth
+      implicitHeight: Theme.launcherHeight
 
       scale: 0.94 + (0.06 * root.animProgress)
       opacity: root.animProgress
@@ -142,7 +149,6 @@ PanelWindow {
       border.color: Theme.overlay
       border.width: Theme.borderWidth
 
-      // Intercetta i click interni per evitare la chiusura
       MouseArea {
         anchors.fill: parent
         onClicked: searchInput.forceActiveFocus()
@@ -150,14 +156,14 @@ PanelWindow {
 
       ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 14
-        spacing: 10
+        anchors.margins: Theme.paddingWindow
+        spacing: Theme.spacingLarge
 
-        // 1. Barra di Ricerca
+        // Barra di Ricerca
         Rectangle {
           Layout.fillWidth: true
           implicitHeight: 42
-          radius: 8
+          radius: Theme.radiusCard
           color: Theme.surface
           border.color: searchInput.activeFocus ? Theme.foam : Theme.overlay
           border.width: 1
@@ -166,14 +172,14 @@ PanelWindow {
 
           RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-            spacing: 10
+            anchors.leftMargin: Theme.paddingLarge
+            anchors.rightMargin: Theme.paddingLarge
+            spacing: Theme.spacingLarge
 
             Text {
               text: "󰍉"
               color: searchInput.text.length > 0 ? Theme.foam : Theme.subtle
-              font.pixelSize: 16
+              font.pixelSize: Theme.fontSizeLarge
             }
 
             Item {
@@ -186,7 +192,7 @@ PanelWindow {
                 verticalAlignment: TextInput.AlignVCenter
                 color: Theme.text
                 font.family: Theme.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: Theme.fontSize
                 focus: root.isOpen
 
                 onTextEdited: {
@@ -231,7 +237,7 @@ PanelWindow {
             Rectangle {
               implicitWidth: 32
               implicitHeight: 20
-              radius: 4
+              radius: Theme.radiusSmall
               color: Theme.overlay
 
               Text {
@@ -248,7 +254,7 @@ PanelWindow {
 
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
-        // 2. Lista Applicazioni
+        // Lista Risultati
         ListView {
           id: appListView
           Layout.fillWidth: true
@@ -269,24 +275,23 @@ PanelWindow {
             id: appItem
             width: ListView.view.width
             implicitHeight: 40
-            radius: 6
+            radius: Theme.radiusMedium
 
             property bool isSelected: appListView.currentIndex === index
 
-            color: isSelected ? Theme.overlay : (itemMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.04) : "transparent")
+            color: isSelected ? Theme.overlay : (itemMouse.containsMouse ? Theme.hover : "transparent")
             border.color: isSelected ? Theme.iris : "transparent"
             border.width: isSelected ? 1 : 0
 
             RowLayout {
               anchors.fill: parent
-              anchors.leftMargin: 10
-              anchors.rightMargin: 10
-              spacing: 12
+              anchors.leftMargin: Theme.paddingLarge
+              anchors.rightMargin: Theme.paddingLarge
+              spacing: Theme.spacingLarge
 
-              // Icona App (con fallback elegante)
               Image {
                 id: appIcon
-                source: Quickshell.iconPath(modelData.icon || "", true)
+                source: modelData.icon ? Quickshell.iconPath(modelData.icon, true) : ""
                 sourceSize: Qt.size(48, 48)
                 Layout.preferredWidth: 24
                 Layout.preferredHeight: 24
@@ -299,16 +304,15 @@ PanelWindow {
                 visible: !appIcon.visible
                 text: " 󰀻 "
                 color: appItem.isSelected ? Theme.foam : Theme.subtle
-                font.pixelSize: 21
+                font.pixelSize: Theme.fontSizeTitle
               }
 
-              // Nome e Descrizione
               ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 1
 
                 Text {
-                  text: modelData.name || ""
+                  text: modelData.name
                   color: appItem.isSelected ? Theme.foam : Theme.text
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSize
@@ -318,8 +322,8 @@ PanelWindow {
                 }
 
                 Text {
-                  visible: (modelData.genericName || modelData.comment || "").length > 0
-                  text: modelData.genericName || modelData.comment || ""
+                  visible: (modelData.generic || modelData.comment).length > 0
+                  text: modelData.generic || modelData.comment
                   color: Theme.subtle
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSizePopup
@@ -328,12 +332,11 @@ PanelWindow {
                 }
               }
 
-              // Badge Invio su elemento selezionato
               Text {
                 visible: appItem.isSelected
                 text: "󰌑"
                 color: Theme.foam
-                font.pixelSize: 14
+                font.pixelSize: Theme.fontSizeMedium
               }
             }
 
@@ -347,7 +350,6 @@ PanelWindow {
             }
           }
 
-          // Placeholder se non trova app
           Text {
             anchors.centerIn: parent
             visible: appListView.count === 0

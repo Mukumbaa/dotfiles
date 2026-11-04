@@ -33,7 +33,7 @@ PanelWindow {
   exclusiveZone: 0
 
   // -------------------------------------------------------------
-  // LOGICA CALENDARIO OTTIMIZZATA
+  // LOGICA CALENDARIO
   // -------------------------------------------------------------
   property var displayDate: new Date()
   property var today: new Date()
@@ -81,7 +81,7 @@ PanelWindow {
   Component.onCompleted: updateCalendar()
 
   // -------------------------------------------------------------
-  // AUTO-CHIUSURA INTELLIGENTE
+  // AUTO-CHIUSURA
   // -------------------------------------------------------------
   HoverHandler {
     id: panelHover
@@ -99,9 +99,7 @@ PanelWindow {
     id: autoCloseTimer
     interval: Theme.autoCloseTimer
     onTriggered: {
-      if (!panelHover.hovered) {
-        CalendarState.close()
-      }
+      if (!panelHover.hovered) CalendarState.close()
     }
   }
 
@@ -109,9 +107,7 @@ PanelWindow {
     id: inactivityTimer
     interval: Theme.inactivityTimer
     onTriggered: {
-      if (!panelHover.hovered) {
-        CalendarState.close()
-      }
+      if (!panelHover.hovered) CalendarState.close()
     }
   }
 
@@ -125,7 +121,7 @@ PanelWindow {
   }
 
   // -------------------------------------------------------------
-  // CONTENITORE PRINCIPALE (Accelerato via GPU)
+  // CONTENITORE
   // -------------------------------------------------------------
   Item {
     anchors.fill: parent
@@ -135,45 +131,31 @@ PanelWindow {
       id: card
       width: parent.width
       height: parent.height
-
-      // Cache GPU per fluidità assoluta durante lo scorrimento
       layer.enabled: root.isOpen || root.animProgress > 0.001
 
-      // y: (root.animProgress - 1.0) * height
-      // opacity: root.animProgress
-
       opacity: root.animProgress
-      transform: Translate {
-        y: (1.0 - root.animProgress) * -3 // scorrimento leggero di 15px verso il basso
-      }
+      transform: Translate { y: (1.0 - root.animProgress) * -3 }
       color: Theme.base
       radius: Theme.radius
-      // topLeftRadius: 0
-      // topRightRadius: 0
-      // bottomLeftRadius: 12
-      // bottomRightRadius: 12
       border.color: Theme.overlay
       border.width: Theme.borderWidth
 
       ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 10
-        spacing: 8
+        anchors.margins: Theme.paddingLarge
+        spacing: Theme.spacingLarge
 
-        // =========================================================
-        // HEADER MESE / ANNO / CONTROLLI (Centrato al 100%)
-        // =========================================================
+        // Header Mese / Controlli
         Item {
           Layout.fillWidth: true
           implicitHeight: 24
 
-          // 1. Tasto Mese Precedente (a sinistra)
           Rectangle {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             implicitWidth: 24
             implicitHeight: 24
-            radius: 5
+            radius: Theme.radiusSmall
             color: prevMouse.containsMouse ? Theme.overlay : "transparent"
 
             Text {
@@ -193,7 +175,6 @@ PanelWindow {
             }
           }
 
-          // 2. Testo MESE ANNO
           Text {
             anchors.centerIn: parent
             text: Qt.formatDateTime(root.displayDate, "MMMM yyyy").toUpperCase()
@@ -203,16 +184,15 @@ PanelWindow {
             font.bold: true
           }
 
-          // 3. Gruppo Controlli Destri (Today + Mese Successivo)
           RowLayout {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 4
+            spacing: Theme.spacingSmall
 
             Rectangle {
               implicitWidth: 38
               implicitHeight: 20
-              radius: 4
+              radius: Theme.radiusSmall
               color: todayMouse.containsMouse ? Theme.overlay : Theme.base
 
               Text {
@@ -236,7 +216,7 @@ PanelWindow {
             Rectangle {
               implicitWidth: 24
               implicitHeight: 24
-              radius: 5
+              radius: Theme.radiusSmall
               color: nextMouse.containsMouse ? Theme.overlay : "transparent"
 
               Text {
@@ -279,7 +259,7 @@ PanelWindow {
           }
         }
 
-        // Griglia dei 42 Giorni
+        // Griglia Giorni
         GridLayout {
           Layout.fillWidth: true
           Layout.fillHeight: true
@@ -293,7 +273,7 @@ PanelWindow {
             Rectangle {
               Layout.fillWidth: true
               implicitHeight: 24
-              radius: 5
+              radius: Theme.radiusSmall
               color: modelData.isToday ? Theme.foam : (dayMouse.containsMouse && modelData.isCurrent ? Theme.overlay : "transparent")
 
               Text {

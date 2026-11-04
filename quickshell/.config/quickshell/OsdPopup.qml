@@ -12,7 +12,10 @@ PanelWindow {
   visible: isOsdVisible || animProgress > 0.001
 
   Behavior on animProgress {
-    NumberAnimation { duration: 180; easing.type: Easing.OutQuad }
+    NumberAnimation {
+      duration: Theme.animationDuration
+      easing.type: Easing.OutQuad
+    }
   }
 
   anchors {
@@ -29,9 +32,6 @@ PanelWindow {
   WlrLayershell.layer: WlrLayer.Overlay
   exclusiveZone: 0
 
-  // -------------------------------------------------------------
-  // MONITORAGGIO VOLUME E LUMINOSITÀ
-  // -------------------------------------------------------------
   PwObjectTracker {
     objects: Pipewire.defaultAudioSink ? [Pipewire.defaultAudioSink] : []
   }
@@ -70,7 +70,6 @@ PanelWindow {
     triggerOsd("volume", isMuted ? 0 : currentVol * 100, icon)
   }
 
-  // Riceve i cambi di luminosità dal singleton
   Connections {
     target: BrightnessState
     function onBrightnessChanged() {
@@ -86,7 +85,7 @@ PanelWindow {
     Rectangle {
       anchors.fill: parent
       color: Theme.base
-      radius: Theme.radius * 2
+      radius: Theme.radiusPill
       border.color: Theme.overlay
       border.width: Theme.borderWidth
 
@@ -95,26 +94,26 @@ PanelWindow {
 
       RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
-        spacing: 12
+        anchors.leftMargin: Theme.marginRight
+        anchors.rightMargin: Theme.marginRight
+        spacing: Theme.spacingLarge
 
         Text {
           text: root.osdIcon
           color: root.osdType === "volume" ? Theme.foam : Theme.gold
-          font.pixelSize: 18
+          font.pixelSize: Theme.fontSizeIcon
         }
 
         Rectangle {
           Layout.fillWidth: true
           implicitHeight: 6
-          radius: 3
+          radius: Theme.radiusSmall
           color: Theme.overlay
 
           Rectangle {
             width: parent.width * (Math.min(root.osdValue, 100) / 100)
             height: parent.height
-            radius: 3
+            radius: Theme.radiusSmall
             color: root.osdType === "volume" ? Theme.foam : Theme.gold
           }
         }

@@ -3,11 +3,13 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Pipewire
 
-RowLayout {
-  id: volGroup
-  spacing: 6
+MouseArea {
+  id: volWidget
+  implicitWidth: volRow.implicitWidth
+  implicitHeight: volRow.implicitHeight
+  hoverEnabled: true
+  cursorShape: Qt.PointingHandCursor
 
-  // Tracker Pipewire
   PwObjectTracker {
     objects: Pipewire.defaultAudioSink ? [Pipewire.defaultAudioSink] : []
   }
@@ -16,7 +18,6 @@ RowLayout {
   property real rawVol: (sink && sink.audio) ? sink.audio.volume : 0.0
   property int volumeLevel: Math.round(rawVol * 100)
   property bool isMuted: (sink && sink.audio) ? sink.audio.muted : false
-  property bool isHovered: false
 
   property string volIcon: {
     if (isMuted || volumeLevel === 0) return ""
@@ -25,60 +26,31 @@ RowLayout {
     return ""
   }
 
-  // Timer {
-  //   id: volHoverTimer
-  //   interval: 150
-  //   onTriggered: {
-  //     if (!sliderMouse.pressed) {
-  //       volGroup.isHovered = sliderMouse.containsMouse || textMouse.containsMouse
-  //     }
-  //   }
-  // }
-  //
-  // function checkHover() {
-  //   if (sliderMouse.containsMouse || textMouse.containsMouse || sliderMouse.pressed) {
-  //     volHoverTimer.stop()
-  //     volGroup.isHovered = true
-  //   } else {
-  //     volHoverTimer.restart()
-  //   }
-  // }
+  onClicked: AudioState.toggle("output")
 
-  // Icona + Testo (Click apre l'Audio Mixer Popup)
-  MouseArea {
-    id: textMouse
-    implicitWidth: volTextRow.implicitWidth
-    implicitHeight: volTextRow.implicitHeight
-    hoverEnabled: true
-    cursorShape: Qt.PointingHandCursor
+  onWheel: wheel => {
+    if (!sink || !sink.audio) return
+    let delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05
+    sink.audio.muted = false
+    sink.audio.volume = Math.max(0.0, Math.min(1.0, sink.audio.volume + delta))
+  }
 
-    // onEntered: volGroup.checkHover()
-    // onExited: volGroup.checkHover()
+  RowLayout {
+    id: volRow
+    spacing: Theme.spacingSmall
 
-    onClicked: AudioState.toggle("output")
-
-    onWheel: wheel => {
-      if (!volGroup.sink || !volGroup.sink.audio) return
-      let delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05
-      volGroup.sink.audio.muted = false
-      volGroup.sink.audio.volume = Math.max(0.0, Math.min(1.0, volGroup.sink.audio.volume + delta))
+    Text {
+      text: (volWidget.isMuted ? "0" : volWidget.volumeLevel) + "%"
+      color: volWidget.isMuted ? Theme.subtle : Theme.text
+      font.pixelSize: Theme.fontSize
+      font.family: Theme.fontFamily
     }
 
-    RowLayout {
-      id: volTextRow
-      spacing: 4
-
-      Text {
-        text: (volGroup.isMuted ? "0" : volGroup.volumeLevel) + "%"
-        color: volGroup.isMuted ? Theme.subtle : Theme.text
-        font { pixelSize: 12; family: Theme.fontFamily }
-      }
-
-      Text {
-        text: volGroup.volIcon
-        color: volGroup.isMuted ? Theme.subtle : Theme.text
-        font { pixelSize: 12; family: Theme.fontFamily }
-      }
+    Text {
+      text: volWidget.volIcon
+      color: volWidget.isMuted ? Theme.subtle : Theme.text
+      font.pixelSize: Theme.fontSize
+      font.family: Theme.fontFamily
     }
   }
 }

@@ -4,7 +4,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import Quickshell.Services.UPower
 
 PanelWindow {
   id: root
@@ -13,7 +12,6 @@ PanelWindow {
   property real animProgress: isOpen ? 1.0 : 0.0
   visible: isOpen || animProgress > 0.001
 
-  // Stessa identica curva super-fluida del Calendario e dell'Audio
   Behavior on animProgress {
     NumberAnimation {
       duration: Theme.animationDuration
@@ -30,7 +28,7 @@ PanelWindow {
     right: Theme.marginRight
   }
 
-  implicitWidth: 265
+  implicitWidth: Theme.popupWidthSmall
   implicitHeight: 200
   color: "transparent"
 
@@ -38,22 +36,10 @@ PanelWindow {
   exclusiveZone: 0
 
   // -------------------------------------------------------------
-  // LOGICA BATTERIA, TEMPO E WATT (Calcolo Matematico Esatto)
+  // LETTURA DEI CONSUMI (Watt)
   // -------------------------------------------------------------
-  property var displayDevice: UPower.displayDevice
-  property int batteryLevel: displayDevice ? Math.round(displayDevice.percentage * 100) : 0
-  property bool isCharging: displayDevice ? displayDevice.state === UPowerDeviceState.Charging : false
-  property real wattageValue: displayDevice && displayDevice.changeRate ? Math.abs(displayDevice.changeRate) : 0.0
+  property real wattageValue: BatteryState.displayDevice && BatteryState.displayDevice.changeRate ? Math.abs(BatteryState.displayDevice.changeRate) : 0.0
 
-  property var iconsCharging: "󰂄"
-  property var iconsDefault:  ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-
-  property string batIcon: {
-    let idx = Math.max(0, Math.min(Math.floor(batteryLevel / 10), 9))
-    return isCharging ? iconsCharging : iconsDefault[idx]
-  }
-
-  // Lettura precisa: se c'è power_now legge solo quello, altrimenti fa corrente x tensione
   Process {
     id: wattQueryProc
     command: ["sh", "-c", "if [ -f /sys/class/power_supply/BAT*/power_now ]; then cat /sys/class/power_supply/BAT*/power_now 2>/dev/null | head -n1; elif [ -f /sys/class/power_supply/BAT*/current_now ] && [ -f /sys/class/power_supply/BAT*/voltage_now ]; then c=$(cat /sys/class/power_supply/BAT*/current_now 2>/dev/null | head -n1); v=$(cat /sys/class/power_supply/BAT*/voltage_now 2>/dev/null | head -n1); echo \"$c $v\"; fi"]
@@ -74,7 +60,6 @@ PanelWindow {
     }
   }
 
-  // Poll periodico: parte solo a popup fermo e aperto, senza bloccare l'animazione iniziale
   Timer {
     id: wattPollTimer
     interval: 2000
@@ -86,19 +71,8 @@ PanelWindow {
     }
   }
 
-  // Stima del tempo residuo
-  property string remainingTime: {
-    if (!displayDevice) return ""
-    let sec = isCharging ? displayDevice.timeToFull : displayDevice.timeToEmpty
-    if (!sec || sec <= 0) return ""
-    let h = Math.floor(sec / 3600)
-    let m = Math.floor((sec % 3600) / 60)
-    if (h > 0) return h + "h " + m + "m"
-    return m + "m"
-  }
-
   // -------------------------------------------------------------
-  // PROFILI ENERGETICI (Zero conflitti e zero delay)
+  // PROFILI ENERGETICI
   // -------------------------------------------------------------
   property string currentProfile: "balanced"
 
@@ -120,9 +94,7 @@ PanelWindow {
   }
 
   function setProfile(profile) {
-    // Imposta subito la selezione grafica permanente
     root.currentProfile = profile
-
     let tunedTarget = "balanced-battery"
     if (profile === "performance") tunedTarget = "throughput-performance"
     else if (profile === "power-saver") tunedTarget = "powersave"
@@ -131,7 +103,6 @@ PanelWindow {
     profileCheckTimer.restart()
   }
 
-  // Timer di verifica allungato a 1.5 secondi per dare tempo a tuned di salvare
   Timer {
     id: profileCheckTimer
     interval: 1500
@@ -141,11 +112,10 @@ PanelWindow {
     }
   }
 
-  // Legge il profilo 1 sola volta all'avvio del sistema
   Component.onCompleted: profileQueryProc.running = true
 
   // -------------------------------------------------------------
-  // AUTO-CHIUSURA AL MOUSE LEAVE
+  // AUTO-CHIUSURA
   // -------------------------------------------------------------
   HoverHandler {
     id: panelHover
@@ -163,9 +133,7 @@ PanelWindow {
     id: autoCloseTimer
     interval: Theme.autoCloseTimer
     onTriggered: {
-      if (!panelHover.hovered) {
-        BatteryState.close()
-      }
+      if (!panelHover.hovered) BatteryState.close()
     }
   }
 
@@ -173,17 +141,13 @@ PanelWindow {
     id: inactivityTimer
     interval: Theme.inactivityTimer
     onTriggered: {
-      if (!panelHover.hovered) {
-        BatteryState.close()
-      }
+      if (!panelHover.hovered) BatteryState.close()
     }
   }
 
-  // ZERO PROCESSI AL CLICK: apertura istantanea e fluida a 144 FPS
   onIsOpenChanged: {
     if (isOpen) {
       inactivityTimer.restart()
-      // Avvia la prima lettura precisa dei Watt dopo 400ms (quando la finestra è già ferma)
       wattDelayTimer.restart()
     } else {
       autoCloseTimer.stop()
@@ -195,7 +159,7 @@ PanelWindow {
 
   Timer {
     id: wattDelayTimer
-    interval: 1000
+    interval: 800
     onTriggered: {
       if (root.isOpen) {
         wattQueryProc.running = false
@@ -205,7 +169,7 @@ PanelWindow {
   }
 
   // -------------------------------------------------------------
-  // CONTENITORE PRINCIPALE
+  // CONTENITORE
   // -------------------------------------------------------------
   Item {
     anchors.fill: parent
@@ -215,11 +179,8 @@ PanelWindow {
       id: card
       width: parent.width
       height: parent.height
-
       opacity: root.animProgress
-      transform: Translate {
-        y: (1.0 - root.animProgress) * -3 // scorrimento leggero di 15px verso il basso
-      }
+      transform: Translate { y: (1.0 - root.animProgress) * -3 }
 
       color: Theme.base
       radius: Theme.radius
@@ -228,18 +189,19 @@ PanelWindow {
 
       ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 10
-        spacing: 8
+        anchors.margins: Theme.paddingLarge
+        spacing: Theme.spacingLarge
 
-        // 1. STATO BATTERIA, WATT E TEMPO RESIDUO
+        // 1. Dettaglio Batteria
         RowLayout {
           Layout.fillWidth: true
-          spacing: 8
+          spacing: Theme.spacingLarge
 
           Text {
-            text: root.batIcon
-            color: root.batteryLevel <= 20 && !root.isCharging ? Theme.love : Theme.foam
-            font.pixelSize: Theme.fontSize * 2
+            text: BatteryState.batIcon
+            font.family: Theme.fontFamily
+            color: BatteryState.batteryLevel <= 20 && !BatteryState.isCharging ? Theme.love : Theme.foam
+            font.pixelSize: Theme.fontSizeTitle
           }
 
           ColumnLayout {
@@ -250,8 +212,8 @@ PanelWindow {
               Layout.fillWidth: true
 
               Text {
-                text: root.batteryLevel + "%"
-                color: root.batteryLevel <= 20 && !root.isCharging ? Theme.love : Theme.text
+                text: BatteryState.batteryLevel + "%"
+                color: BatteryState.batteryLevel <= 20 && !BatteryState.isCharging ? Theme.love : Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize
                 font.bold: true
@@ -259,19 +221,18 @@ PanelWindow {
 
               Item { Layout.fillWidth: true }
 
-              // Badge Watt
               Rectangle {
                 visible: root.wattageValue > 0
-                implicitWidth: wattText.implicitWidth + 8
+                implicitWidth: wattText.implicitWidth + Theme.paddingMedium
                 implicitHeight: 18
-                radius: 4
+                radius: Theme.radiusSmall
                 color: Theme.overlay
 
                 Text {
                   id: wattText
                   anchors.centerIn: parent
-                  text: (root.isCharging ? "+" : "-") + root.wattageValue.toFixed(1) + " W"
-                  color: root.isCharging ? Theme.foam : (root.wattageValue > 25 ? Theme.love : Theme.gold)
+                  text: (BatteryState.isCharging ? "+" : "-") + root.wattageValue.toFixed(1) + " W"
+                  color: BatteryState.isCharging ? Theme.foam : (root.wattageValue > 25 ? Theme.love : Theme.gold)
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSizePopup
                   font.bold: true
@@ -281,9 +242,9 @@ PanelWindow {
 
             Text {
               text: {
-                let base = root.isCharging ? "Charging" : "Discharging"
-                if (root.remainingTime) {
-                  return base + " (" + root.remainingTime + (root.isCharging ? " to 100%" : " remaining") + ")"
+                let base = BatteryState.isCharging ? "Charging" : "Discharging"
+                if (BatteryState.remainingTime) {
+                  return base + " (" + BatteryState.remainingTime + (BatteryState.isCharging ? " to 100%" : " remaining") + ")"
                 }
                 return base
               }
@@ -294,7 +255,7 @@ PanelWindow {
           }
         }
 
-        // Barra di carica grafica
+        // Barra grafica
         Rectangle {
           Layout.fillWidth: true
           implicitHeight: 4
@@ -302,16 +263,16 @@ PanelWindow {
           color: Theme.overlay
 
           Rectangle {
-            width: parent.width * (Math.min(root.batteryLevel, 100) / 100)
+            width: parent.width * (Math.min(BatteryState.batteryLevel, 100) / 100)
             height: parent.height
             radius: 2
-            color: root.isCharging ? Theme.foam : (root.batteryLevel <= 20 ? Theme.love : Theme.text)
+            color: BatteryState.isCharging ? Theme.foam : (BatteryState.batteryLevel <= 20 ? Theme.love : Theme.text)
           }
         }
 
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
-        // 2. SELEZIONE PROFILI ENERGETICI
+        // 2. Selettore Profili
         Text {
           text: "POWER PROFILE"
           color: Theme.subtle
@@ -322,7 +283,7 @@ PanelWindow {
 
         ColumnLayout {
           Layout.fillWidth: true
-          spacing: 4
+          spacing: Theme.spacingSmall
 
           ProfileItem {
             icon: "󰓅"
@@ -366,14 +327,14 @@ PanelWindow {
 
     Layout.fillWidth: true
     implicitHeight: 30
-    radius: 6
-    color: pItem.isActive ? Theme.overlay : (pMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.04) : "transparent")
+    radius: Theme.radiusMedium
+    color: pItem.isActive ? Theme.overlay : (pMouse.containsMouse ? Theme.hover : "transparent")
 
     RowLayout {
       anchors.fill: parent
-      anchors.leftMargin: 8
-      anchors.rightMargin: 8
-      spacing: 8
+      anchors.leftMargin: Theme.paddingMedium
+      anchors.rightMargin: Theme.paddingMedium
+      spacing: Theme.spacingLarge
 
       Text {
         text: pItem.icon

@@ -32,15 +32,14 @@ Scope {
       right: Theme.marginRight
     }
 
-    implicitWidth: 320
+    implicitWidth: Theme.popupWidthNormal
     implicitHeight: 700
     color: "transparent"
 
     WlrLayershell.layer: WlrLayer.Overlay
     exclusiveZone: 0
 
-    // mask: Region.fromItem(notifCol)
-    mask: Region {item: notifCol}
+    mask: Region { item: notifCol }
     visible: notifServer.trackedNotifications.values.length > 0
 
     Column {
@@ -76,21 +75,18 @@ Scope {
 
             Component.onCompleted: introAnim.start()
 
-            // 1. ENTRATA FLUIDA (OutCubic snella)
             ParallelAnimation {
               id: introAnim
-              NumberAnimation { target: notifCard; property: "opacity"; from: 0.0; to: 1.0; duration: 180; easing.type: Easing.OutCubic }
-              NumberAnimation { target: cardTrans; property: "x"; from: 30; to: 0; duration: 180; easing.type: Easing.OutCubic }
+              NumberAnimation { target: notifCard; property: "opacity"; from: 0.0; to: 1.0; duration: Theme.animationDuration; easing.type: Easing.OutCubic }
+              NumberAnimation { target: cardTrans; property: "x"; from: 30; to: 0; duration: Theme.animationDuration; easing.type: Easing.OutCubic }
             }
 
-            // 2. USCITA MORBIDA E REATTIVA (Transizione e risalita parzialmente sovrapposte)
             ParallelAnimation {
               id: exitSequence
 
               NumberAnimation { target: notifCard; property: "opacity"; to: 0.0; duration: 140; easing.type: Easing.OutQuad }
               NumberAnimation { target: cardTrans; property: "x"; to: 40; duration: 140; easing.type: Easing.OutQuad }
-              
-              // Fa scorrere verso l'alto le altre notifiche subito con un leggero ritardo (40ms) invece di attendere 140ms
+
               SequentialAnimation {
                 PauseAnimation { duration: 40 }
                 NumberAnimation {
@@ -124,21 +120,16 @@ Scope {
               id: cardHover
             }
 
-            // -------------------------------------------------------
-            // CONTENUTO DELLA NOTIFICA
-            // -------------------------------------------------------
             ColumnLayout {
               id: cardContent
               anchors.fill: parent
-              anchors.margins: 10
-              spacing: 6
+              anchors.margins: Theme.paddingLarge
+              spacing: Theme.spacingMedium
 
-              // Header: Icona App + Nome + Tasto Copia + Tasto Chiudi
               RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: Theme.spacingMedium
 
-                // Icona App Ottimizzata (Asincrona e SourceSize vincolata)
                 Image {
                   visible: modelData.appIcon !== ""
                   source: modelData.appIcon
@@ -153,25 +144,24 @@ Scope {
                   visible: modelData.appIcon === ""
                   text: "󰂚"
                   color: Theme.foam
-                  font.pixelSize: 12
+                  font.pixelSize: Theme.fontSize
                 }
 
                 Text {
                   text: modelData.appName || "Notifica"
                   color: Theme.subtle
                   font.family: Theme.fontFamily
-                  font.pixelSize: 12
+                  font.pixelSize: Theme.fontSize
                   font.bold: true
                   Layout.fillWidth: true
                   elide: Text.ElideRight
                 }
 
-                // Tasto Copia
                 Rectangle {
                   id: copyBtn
                   implicitWidth: 18
                   implicitHeight: 18
-                  radius: 4
+                  radius: Theme.radiusSmall
                   color: copyMouse.containsMouse ? Theme.overlay : "transparent"
 
                   property bool isCopied: false
@@ -186,7 +176,7 @@ Scope {
                     anchors.centerIn: parent
                     text: copyBtn.isCopied ? "󰄬" : "󰅍"
                     color: copyBtn.isCopied ? Theme.foam : (copyMouse.containsMouse ? Theme.text : Theme.subtle)
-                    font.pixelSize: 11
+                    font.pixelSize: Theme.fontSizeSmall
                   }
 
                   MouseArea {
@@ -203,11 +193,10 @@ Scope {
                   }
                 }
 
-                // Tasto Chiudi
                 Text {
                   text: "󰅖"
                   color: closeMouse.containsMouse ? Theme.love : Theme.subtle
-                  font.pixelSize: 12
+                  font.pixelSize: Theme.fontSize
 
                   MouseArea {
                     id: closeMouse
@@ -221,10 +210,9 @@ Scope {
 
               Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
-              // Corpo Notifica
               RowLayout {
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: Theme.spacingLarge
 
                 Image {
                   visible: modelData.image !== ""
@@ -245,7 +233,7 @@ Scope {
                     text: modelData.summary || ""
                     color: Theme.text
                     font.family: Theme.fontFamily
-                    font.pixelSize: 14
+                    font.pixelSize: Theme.fontSizeMedium
                     font.bold: true
                     wrapMode: Text.Wrap
                     elide: Text.ElideRight
@@ -257,7 +245,7 @@ Scope {
                     text: modelData.body || ""
                     color: Theme.subtle
                     font.family: Theme.fontFamily
-                    font.pixelSize: 12
+                    font.pixelSize: Theme.fontSize
                     wrapMode: Text.Wrap
                     elide: Text.ElideRight
                     maximumLineCount: 3
@@ -265,10 +253,9 @@ Scope {
                 }
               }
 
-              // Pulsanti di Azione
               RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: Theme.spacingMedium
                 visible: modelData.actions && modelData.actions.length > 0
 
                 Repeater {
@@ -277,7 +264,7 @@ Scope {
                   Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 24
-                    radius: 5
+                    radius: Theme.radiusSmall
                     color: actMouse.containsMouse ? Theme.overlay : Theme.base
 
                     Text {
@@ -285,7 +272,7 @@ Scope {
                       text: modelData.text
                       color: Theme.foam
                       font.family: Theme.fontFamily
-                      font.pixelSize: 10
+                      font.pixelSize: Theme.fontSizePopup
                       font.bold: true
                     }
 

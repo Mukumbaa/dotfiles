@@ -1,12 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Services.Mpris
 
 RowLayout {
   anchors.centerIn: parent
-  spacing: 8
-
+  spacing: Theme.spacingLarge
 
   SystemClock {
     id: clock
@@ -21,20 +19,14 @@ RowLayout {
 
     property bool showFullDate: false
     text: showFullDate 
-    ? Qt.formatDateTime(clock.date, "dd MMMM yyyy")
-    : Qt.formatDateTime(clock.date, "dddd hh:mm")
+      ? Qt.formatDateTime(clock.date, "dd MMMM yyyy")
+      : Qt.formatDateTime(clock.date, "dddd hh:mm")
 
     MouseArea {
       anchors.fill: parent
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
-
-      // Hover: apre il calendario
-      // onEntered: CalendarState.open()
-
-      // Click: toggle (o cambio formato data)
       onClicked: CalendarState.toggle()
     }
   }
-
 }

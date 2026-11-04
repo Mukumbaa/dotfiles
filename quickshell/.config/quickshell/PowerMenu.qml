@@ -12,29 +12,21 @@ PanelWindow {
   property bool isOpen: PowerMenuState.visible
   property real animProgress: isOpen ? 1.0 : 0.0
   visible: isOpen || animProgress > 0.001
+
   IpcHandler {
     target: "powermenu"
-
-    function toggle(): void {
-      PowerMenuState.toggle()
-    }
-
-    function open(): void {
-      PowerMenuState.visible = true
-    }
-
-    function close(): void {
-      PowerMenuState.close()
-    }
+    function toggle(): void { PowerMenuState.toggle() }
+    function open(): void { PowerMenuState.open() }
+    function close(): void { PowerMenuState.close() }
   }
+
   Behavior on animProgress {
     NumberAnimation {
-      duration: 180
+      duration: Theme.animationDuration
       easing.type: Easing.OutCubic
     }
   }
 
-  // Copre l'intero schermo
   anchors {
     top: true
     bottom: true
@@ -46,7 +38,6 @@ PanelWindow {
   WlrLayershell.layer: WlrLayer.Overlay
   WlrLayershell.keyboardFocus: isOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-  // Scorciatoia globale nativa per Hyprland
   GlobalShortcut {
     name: "powermenu"
     onPressed: PowerMenuState.toggle()
@@ -57,20 +48,17 @@ PanelWindow {
     Quickshell.execDetached(cmd)
   }
 
-  // Sfondo scuro oscurato con fade-in
   Rectangle {
     id: backdrop
     anchors.fill: parent
-    color: Qt.rgba(0.05, 0.04, 0.08, 0.75)
+    color: Theme.backdropDark
     opacity: root.animProgress
 
-    // Chiudi cliccando ovunque sullo sfondo
     MouseArea {
       anchors.fill: parent
       onClicked: PowerMenuState.close()
     }
 
-    // Gestione tasti fisici da tastiera (ESC per chiudere, L, S, E, R, P per le azioni)
     FocusScope {
       anchors.fill: parent
       focus: root.isOpen
@@ -84,14 +72,12 @@ PanelWindow {
         else if (event.key === Qt.Key_P) executeAction(["systemctl", "poweroff"])
       }
 
-      // Contenitore centrale dei 5 pulsanti
       RowLayout {
         anchors.centerIn: parent
-        spacing: 20
+        spacing: Theme.spacingLarge * 2
         scale: 0.9 + (0.1 * root.animProgress)
         opacity: root.animProgress
 
-        // 1. LOCK
         PowerButton {
           icon: "󰌾"
           label: "Lock"
@@ -100,7 +86,6 @@ PanelWindow {
           onTriggered: root.executeAction(["qs", "ipc", "call", "lock", "lock"])
         }
 
-        // 2. SUSPEND
         PowerButton {
           icon: ""
           label: "Suspend"
@@ -109,7 +94,6 @@ PanelWindow {
           onTriggered: root.executeAction(["systemctl", "suspend"])
         }
 
-        // 3. LOGOUT
         PowerButton {
           icon: "󰍃"
           label: "Logout"
@@ -118,7 +102,6 @@ PanelWindow {
           onTriggered: root.executeAction(["hyprctl", "dispatch", "exit"])
         }
 
-        // 4. REBOOT
         PowerButton {
           icon: "󰜉"
           label: "Reboot"
@@ -127,7 +110,6 @@ PanelWindow {
           onTriggered: root.executeAction(["systemctl", "reboot"])
         }
 
-        // 5. SHUTDOWN
         PowerButton {
           icon: "󰐥"
           label: "Shutdown"
@@ -139,7 +121,6 @@ PanelWindow {
     }
   }
 
-  // Componente pulsante riutilizzabile
   component PowerButton: Rectangle {
     id: btn
     property string icon: ""
@@ -150,10 +131,10 @@ PanelWindow {
 
     implicitWidth: 105
     implicitHeight: 115
-    radius: 14
+    radius: Theme.radiusLarge
     color: btnMouse.containsMouse ? Theme.overlay : Theme.surface
     border.color: btnMouse.containsMouse ? btn.accentColor : Theme.overlay
-    border.width: 1.5
+    border.width: Theme.borderWidth
 
     scale: btnMouse.containsMouse ? 1.05 : 1.0
 
@@ -163,13 +144,13 @@ PanelWindow {
 
     ColumnLayout {
       anchors.centerIn: parent
-      spacing: 6
+      spacing: Theme.spacingMedium
 
       Text {
         Layout.alignment: Qt.AlignHCenter
         text: btn.icon
         color: btnMouse.containsMouse ? btn.accentColor : Theme.text
-        font.pixelSize: 34
+        font.pixelSize: Theme.fontSizeHuge
         Behavior on color { ColorAnimation { duration: 120 } }
       }
 

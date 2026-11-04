@@ -6,10 +6,8 @@ import Quickshell.Io
 Scope {
   id: rootScope
 
-  // Stato visibilità della barra
   property bool showBar: true
 
-  // Ricevitore comandi IPC per la barra
   IpcHandler {
     target: "bar"
 
@@ -21,7 +19,7 @@ Scope {
     }
   }
 
-  // 1. Barra di Stato Multi-Monitor  
+  // Barra di Stato Multi-Monitor  
   Variants {
     model: Quickshell.screens
 
@@ -38,7 +36,7 @@ Scope {
           left: true
           right: true
         }
-        implicitHeight: 26
+        implicitHeight: Theme.barHeight
 
         Rectangle {
           id: bar
@@ -47,8 +45,8 @@ Scope {
 
           RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 16
-            anchors.rightMargin: 16
+            anchors.leftMargin: Theme.marginRight
+            anchors.rightMargin: Theme.marginRight
 
             LeftSection {}
             Item { Layout.fillWidth: true }
@@ -61,7 +59,7 @@ Scope {
     }
   }
 
-  // Popup e Widget globali
+  // Popup e Servizi Globali
   ConnectionsPopup {}
   CalendarPopup {}
   BatteryPopup {}

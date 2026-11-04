@@ -4,11 +4,7 @@ import QtQuick
 QtObject {
   property bool visible: false
 
-  function toggle() {
-    visible = !visible
-  }
-
-  function close() {
-    visible = false
-  }
+  function toggle(): void { visible = !visible }
+  function open(): void { visible = true }
+  function close(): void { visible = false }
 }

@@ -5,7 +5,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Pam
-import Quickshell.Services.UPower
 
 Scope {
   id: lockScope
@@ -40,7 +39,6 @@ Scope {
       id: lockSurface
       color: Theme.base
 
-      // Fa partire l'animazione di entrata nel momento esatto in cui la superficie è pronta a schermo
       Component.onCompleted: introAnimation.restart()
 
       PamContext {
@@ -58,8 +56,6 @@ Scope {
         onCompleted: result => {
           pendingPassword = ""
           lockScope.isAuthenticating = false
-
-          // Ripristina l'icona perfettamente dritta (angolo 0)
           statusIcon.rotation = 0
 
           if (result === PamResult.Success) {
@@ -73,17 +69,13 @@ Scope {
         }
       }
 
-      // -------------------------------------------------------------
-      // ANIMAZIONI
-      // -------------------------------------------------------------
-      // 1. Animazione di Entrata (Visibile e morbida)
+      // Animazioni
       ParallelAnimation {
         id: introAnimation
         NumberAnimation { target: contentCol; property: "opacity"; from: 0.0; to: 1.0; duration: 320; easing.type: Easing.OutCubic }
         NumberAnimation { target: contentCol; property: "scale"; from: 0.92; to: 1.0; duration: 320; easing.type: Easing.OutCubic }
       }
 
-      // 2. Animazione di Uscita (Sblocco)
       ParallelAnimation {
         id: exitAnimation
         NumberAnimation { target: contentCol; property: "opacity"; to: 0.0; duration: 200; easing.type: Easing.InQuad }
@@ -98,63 +90,44 @@ Scope {
         }
       }
 
-      // -------------------------------------------------------------
-      // 1. BATTERIA IN ALTO A DESTRA
-      // -------------------------------------------------------------
+      // 1. Batteria in alto a destra (collegata al singleton globale)
       RowLayout {
         id: batIndicator
         anchors {
           top: parent.top
           right: parent.right
-          // margins: 8
-          topMargin: 3
-          rightMargin: 16
+          topMargin: Theme.marginTop
+          rightMargin: Theme.marginRight
         }
-        spacing: 4
+        spacing: Theme.spacingSmall
         opacity: contentCol.opacity
-
-        property var displayDevice: UPower.displayDevice
-        property int batteryLevel: displayDevice ? Math.round(displayDevice.percentage * 100) : 0
-        property bool isCharging: displayDevice ? displayDevice.state === UPowerDeviceState.Charging : false
-
-        property var iconsCharging: "󰂄"
-        property var iconsDefault:  ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-
-        property string batIcon: {
-          let idx = Math.max(0, Math.min(Math.floor(batteryLevel / 10), 9))
-          return isCharging ? iconsCharging : iconsDefault[idx]
-        }
-
-        visible: displayDevice !== null
+        visible: BatteryState.displayDevice !== null
 
         Text {
-          text: batIndicator.batteryLevel + "%"
-          color: (batIndicator.batteryLevel <= 20 && !batIndicator.isCharging) ? Theme.love : Theme.text
+          text: BatteryState.batteryLevel + "%"
+          color: (BatteryState.batteryLevel <= 20 && !BatteryState.isCharging) ? Theme.love : Theme.text
           font.family: Theme.fontFamily
           font.pixelSize: Theme.fontSize
         }
 
         Text {
-          text: batIndicator.batIcon
-          color: (batIndicator.batteryLevel <= 20 && !batIndicator.isCharging) ? Theme.love : (batIndicator.isCharging ? Theme.foam : Theme.text)
+          text: BatteryState.batIcon
+          color: (BatteryState.batteryLevel <= 20 && !BatteryState.isCharging) ? Theme.love : (BatteryState.isCharging ? Theme.foam : Theme.text)
           font.family: Theme.fontFamily
-          font.pixelSize: 18
+          font.pixelSize: Theme.fontSizeIcon
         }
       }
 
-      // -------------------------------------------------------------
-      // CONTENUTO CENTRALE
-      // -------------------------------------------------------------
+      // 2. Contenuto Centrale
       ColumnLayout {
         id: contentCol
         anchors.centerIn: parent
-        spacing: 16
-        opacity: 0.0 // Parte invisibile per far risaltare l'animazione di entrata
+        spacing: Theme.spacingExtra * 2
+        opacity: 0.0
 
-        // 3. Orologio istantaneo al risveglio (precision: Seconds)
-        SystemClock { 
+        SystemClock {
           id: lockClock
-          precision: SystemClock.Seconds 
+          precision: SystemClock.Seconds
         }
 
         Text {
@@ -162,35 +135,33 @@ Scope {
           text: Qt.formatDateTime(lockClock.date, "hh:mm")
           color: Theme.text
           font.family: Theme.fontFamily
-          font.pixelSize: 72
+          font.pixelSize: Theme.fontSizeClock
           font.bold: true
         }
 
-        // Data
         Text {
           Layout.alignment: Qt.AlignHCenter
           text: Qt.formatDateTime(lockClock.date, "dddd, dd MMMM yyyy")
           color: Theme.subtle
           font.family: Theme.fontFamily
-          font.pixelSize: 15
+          font.pixelSize: Theme.fontSizeLarge
         }
 
-        Item { implicitHeight: 12 }
+        Item { implicitHeight: Theme.spacingLarge }
 
-        // Box Password (Autocentrato Dinamicamente)
+        // Box Password
         Rectangle {
           id: inputCard
           Layout.alignment: Qt.AlignHCenter
           implicitWidth: 260
           implicitHeight: 42
-          radius: 21
+          radius: Theme.radiusPill
           color: Theme.surface
           border.color: lockScope.errorMessage.length > 0 ? Theme.love : (lockScope.isAuthenticating ? Theme.gold : Theme.overlay)
           border.width: Theme.borderWidth
 
           Behavior on border.color { ColorAnimation { duration: 150 } }
 
-          // Placeholder centrato (visibile quando non c'è testo)
           Text {
             anchors.centerIn: parent
             text: "Password"
@@ -200,7 +171,6 @@ Scope {
             visible: !pwdInput.text.length && !lockScope.isAuthenticating
           }
 
-          // Input Password centrato in tempo reale
           TextInput {
             id: pwdInput
             anchors.fill: parent
@@ -210,20 +180,16 @@ Scope {
             verticalAlignment: TextInput.AlignVCenter
             color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: 16
+            font.pixelSize: Theme.fontSizeLarge
             font.letterSpacing: 2
             echoMode: TextInput.Password
             passwordCharacter: ""
             focus: lockScope.isLocked
             enabled: !lockScope.isAuthenticating
-
-            // Sostituisce il cursore con un elemento vuoto invisibile al 100%
             cursorDelegate: Component { Item {} }
 
             onTextEdited: {
-              if (lockScope.errorMessage.length > 0) {
-                lockScope.errorMessage = ""
-              }
+              if (lockScope.errorMessage.length > 0) lockScope.errorMessage = ""
             }
 
             onAccepted: {
@@ -241,15 +207,14 @@ Scope {
             }
           }
 
-          // Icona Lucchetto / Spinner ancorata a destra
           Text {
             id: statusIcon
             anchors.right: parent.right
-            anchors.rightMargin: 14
+            anchors.rightMargin: Theme.paddingWindow
             anchors.verticalCenter: parent.verticalCenter
             text: lockScope.isAuthenticating ? "󰑐" : "󰌾"
             color: lockScope.isAuthenticating ? Theme.gold : (lockScope.errorMessage.length > 0 ? Theme.love : Theme.subtle)
-            font.pixelSize: 15
+            font.pixelSize: Theme.fontSizeLarge
             rotation: 0
 
             RotationAnimation {
@@ -263,7 +228,6 @@ Scope {
             }
           }
 
-          // Effetto Shake su errore
           SequentialAnimation {
             id: errorAnim
             NumberAnimation { target: inputCard; property: "x"; to: inputCard.x - 12; duration: 40; easing.type: Easing.InOutQuad }
@@ -274,7 +238,6 @@ Scope {
           }
         }
 
-        // Testo di Errore
         Text {
           Layout.alignment: Qt.AlignHCenter
           text: lockScope.errorMessage
@@ -284,7 +247,6 @@ Scope {
           font.bold: true
           visible: lockScope.errorMessage.length > 0
           opacity: visible ? 1.0 : 0.0
-
           Behavior on opacity { NumberAnimation { duration: 150 } }
         }
       }

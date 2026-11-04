@@ -28,14 +28,14 @@ PanelWindow {
     right: Theme.marginRight
   }
 
-  implicitWidth: 350
+  implicitWidth: Theme.popupWidthLarge
   implicitHeight: 330
   color: "transparent"
 
   WlrLayershell.layer: WlrLayer.Overlay
   exclusiveZone: 0
 
-  // Richiede il focus della tastiera solo quando stai digitando la password del Wi-Fi
+  // Focus esclusivo solo quando si inserisce la password Wi-Fi
   WlrLayershell.keyboardFocus: isPasswordPromptOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
   // -------------------------------------------------------------
@@ -58,7 +58,7 @@ PanelWindow {
     interval: Theme.autoCloseTimer
     onTriggered: {
       if (!panelHover.hovered && !isPasswordPromptOpen) {
-        ConnectionsState.visible = false
+        ConnectionsState.close()
       }
     }
   }
@@ -68,14 +68,14 @@ PanelWindow {
     interval: Theme.inactivityTimer
     onTriggered: {
       if (!panelHover.hovered && !isPasswordPromptOpen) {
-        ConnectionsState.visible = false
+        ConnectionsState.close()
       }
     }
   }
-  // Timer che attende la fine dell'animazione prima di avviare la scansione CPU-heavy
+
   Timer {
     id: openScanDelay
-    interval: Theme.animationDuration + 50 // Parte solo quando la finestra è ferma a schermo
+    interval: Theme.animationDuration + 50
     onTriggered: {
       if (ConnectionsState.currentTab === "wifi") root.scanWifi()
       if (ConnectionsState.currentTab === "bluetooth") root.scanBt()
@@ -96,7 +96,7 @@ PanelWindow {
   }
 
   // =============================================================
-  // 1. LOGICA WI-FI COMPLETA
+  // 1. LOGICA WI-FI
   // =============================================================
   property bool wifiEnabled: true
   property var wifiNetworks: []
@@ -128,7 +128,6 @@ PanelWindow {
     }
   }
 
-  // Legge TUTTE le connessioni Wi-Fi salvate
   Process {
     id: savedWifiProc
     command: ["sh", "-c", "nmcli -t -f TYPE,NAME connection show | grep -E '^(802-11-wireless|wifi):' | cut -d: -f2"]
@@ -147,7 +146,6 @@ PanelWindow {
 
   property real lastWifiScan: 0
 
-  // Scansione Wi-Fi robusta con doppio rilevamento stato attivo
   Process {
     id: wifiScanProc
     property bool forceRescan: false
@@ -201,14 +199,12 @@ PanelWindow {
     }
   }
 
-  // Timer di delay post-connessione per attendere DHCP / attivazione
   Timer {
     id: wifiPostConnectTimer
     interval: 600
     onTriggered: root.scanWifi(true)
   }
 
-  // Connessione a reti salvate o aperte
   Process {
     id: wifiConnectDirectProc
     stdout: StdioCollector {
@@ -219,7 +215,6 @@ PanelWindow {
     }
   }
 
-  // Connessione con password
   Process {
     id: wifiConnectPassProc
     stdout: StdioCollector {
@@ -237,7 +232,6 @@ PanelWindow {
     }
   }
 
-  // Dimentica rete Wi-Fi
   Process {
     id: wifiForgetProc
     stdout: StdioCollector {
@@ -246,10 +240,7 @@ PanelWindow {
   }
 
   function scanWifi(force = false) {
-    if (!force && root.wifiNetworks.length > 0 && (Date.now() - root.lastWifiScan < 20000)) {
-      return
-    }
-
+    if (!force && root.wifiNetworks.length > 0 && (Date.now() - root.lastWifiScan < 20000)) return
     wifiScanProc.forceRescan = force
     savedWifiProc.running = false
     wifiToggleProc.running = false
@@ -290,7 +281,7 @@ PanelWindow {
   }
 
   // =============================================================
-  // 2. LOGICA BLUETOOTH COMPLETA
+  // 2. LOGICA BLUETOOTH OTTIMIZZATA
   // =============================================================
   property bool btEnabled: true
   property var btDevices: []
@@ -306,9 +297,23 @@ PanelWindow {
     }
   }
 
+  // Esegue info SOLO per i dispositivi connessi, risparmiando cicli CPU su tutti gli altri
   Process {
     id: btScanProc
-    command: ["sh", "-c", "bluetoothctl devices 2>/dev/null | sed -r 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' | while read -r tag mac name; do if [ \"$tag\" = \"Device\" ] && [ -n \"$mac\" ]; then info=$(bluetoothctl info \"$mac\" 2>/dev/null); if echo \"$info\" | grep -q 'Connected: yes'; then bat=$(echo \"$info\" | grep -i 'Battery Percentage:' | head -n1); echo \"$mac|yes|$bat|$name\"; else echo \"$mac|no||$name\"; fi; fi; done"]
+    command: [
+      "sh", "-c",
+      "connected=$(bluetoothctl devices Connected 2>/dev/null | sed -r 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' | awk '{print $2}'); " +
+      "bluetoothctl devices 2>/dev/null | sed -r 's/\\x1b\\[[0-9;]*[a-zA-Z]//g' | while read -r tag mac name; do " +
+      "  [ \"$tag\" = \"Device\" ] && [ -n \"$mac\" ] || continue; " +
+      "  if echo \"$connected\" | grep -qw \"$mac\"; then " +
+      "    info=$(bluetoothctl info \"$mac\" 2>/dev/null); " +
+      "    bat=$(echo \"$info\" | grep -i 'Battery Percentage:' | head -n1); " +
+      "    echo \"$mac|yes|$bat|$name\"; " +
+      "  else " +
+      "    echo \"$mac|no||$name\"; " +
+      "  fi; " +
+      "done"
+    ]
     stdout: StdioCollector {
       onStreamFinished: {
         let lines = this.text.trim().split("\n")
@@ -369,14 +374,12 @@ PanelWindow {
     }
   }
 
-  // Timer di sincronizzazione Bluetooth con FORZATURA attiva
   Timer {
     id: btSyncDelayTimer
     interval: 500
     onTriggered: root.scanBt(true)
   }
 
-  // Timer di sicurezza anti-blocco (se il bluetooth ci mette troppo)
   Timer {
     id: btActionTimeoutTimer
     interval: 8000
@@ -436,9 +439,7 @@ PanelWindow {
   property real lastBtScan: 0
 
   function scanBt(force = false) {
-    if (!force && root.btDevices.length > 0 && (Date.now() - root.lastBtScan < 15000)) {
-      return
-    }
+    if (!force && root.btDevices.length > 0 && (Date.now() - root.lastBtScan < 15000)) return
     root.lastBtScan = Date.now()
     btPowerProc.running = false
     btScanProc.running = false
@@ -475,7 +476,7 @@ PanelWindow {
   }
 
   // =============================================================
-  // 3. INTERFACCIA GRAFICA
+  // 3. INTERFACCIA
   // =============================================================
   Item {
     anchors.fill: parent
@@ -485,40 +486,40 @@ PanelWindow {
       id: card
       width: parent.width
       height: parent.height
-
       opacity: root.animProgress
-      transform: Translate {
-        y: (1.0 - root.animProgress) * -3
-      }
+      transform: Translate { y: (1.0 - root.animProgress) * -3 }
+
       color: Theme.base
       radius: Theme.radius
       border.color: Theme.overlay
       border.width: Theme.borderWidth
 
       ColumnLayout {
-        id: contentCol
         anchors.fill: parent
-        anchors.topMargin: 10
-        anchors.bottomMargin: 10
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
-        spacing: 6
+        anchors.margins: Theme.paddingLarge
+        spacing: Theme.spacingMedium
 
-        // 1. Tab Switcher
+        // Tab Switcher
         RowLayout {
           Layout.fillWidth: true
           implicitHeight: 28
-          spacing: 6
+          spacing: Theme.spacingMedium
 
           Rectangle {
             Layout.fillWidth: true
             implicitHeight: 28
-            radius: 6
+            radius: Theme.radiusMedium
             color: ConnectionsState.currentTab === "wifi" ? Theme.overlay : "transparent"
             RowLayout {
               anchors.centerIn: parent
-              spacing: 6
-              Text { text: "Wi-Fi"; color: ConnectionsState.currentTab === "wifi" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSize; font.bold: true }
+              spacing: Theme.spacingMedium
+              Text {
+                text: "Wi-Fi"
+                color: ConnectionsState.currentTab === "wifi" ? Theme.text : Theme.subtle
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+                font.bold: true
+              }
             }
             MouseArea {
               anchors.fill: parent
@@ -530,12 +531,18 @@ PanelWindow {
           Rectangle {
             Layout.fillWidth: true
             implicitHeight: 28
-            radius: 6
+            radius: Theme.radiusMedium
             color: ConnectionsState.currentTab === "bluetooth" ? Theme.overlay : "transparent"
             RowLayout {
               anchors.centerIn: parent
-              spacing: 6
-              Text { text: "Bluetooth"; color: ConnectionsState.currentTab === "bluetooth" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSize; font.bold: true }
+              spacing: Theme.spacingMedium
+              Text {
+                text: "Bluetooth"
+                color: ConnectionsState.currentTab === "bluetooth" ? Theme.text : Theme.subtle
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+                font.bold: true
+              }
             }
             MouseArea {
               anchors.fill: parent
@@ -545,12 +552,12 @@ PanelWindow {
           }
         }
 
-        // 2. Sotto-header unificato
+        // Sotto-header con Toggle e Refresh
         RowLayout {
           visible: !root.isPasswordPromptOpen
           Layout.fillWidth: true
           implicitHeight: 24
-          spacing: 6
+          spacing: Theme.spacingMedium
 
           Text {
             text: ConnectionsState.currentTab === "wifi" ? "Wi-Fi" : "Bluetooth"
@@ -562,16 +569,16 @@ PanelWindow {
 
           Item { Layout.fillWidth: true }
 
-          // Bottone Refresh
+          // Refresh Button
           Rectangle {
             implicitWidth: 24
             implicitHeight: 24
-            radius: 5
+            radius: Theme.radiusSmall
             color: refreshMouse.containsMouse ? Theme.overlay : "transparent"
 
             Text {
               anchors.centerIn: parent
-              font.family: Theme.fontFamily;
+              font.family: Theme.fontFamily
               text: "󰑐"
               color: {
                 let isScanning = ConnectionsState.currentTab === "wifi" ? wifiScanProc.running : btScanProc.running
@@ -609,7 +616,7 @@ PanelWindow {
 
             implicitWidth: 36
             implicitHeight: 18
-            radius: 9
+            radius: Theme.radiusPill
             color: isTabEnabled ? accentColor : Theme.overlay
 
             Rectangle {
@@ -617,7 +624,7 @@ PanelWindow {
               y: 2
               implicitWidth: 14
               implicitHeight: 14
-              radius: 7
+              radius: Theme.radiusPill
               color: Theme.base
               Behavior on x { NumberAnimation { duration: 120 } }
             }
@@ -655,19 +662,17 @@ PanelWindow {
 
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
-        // =========================================================
-        // 4. VISTA WI-FI
-        // =========================================================
+        // Vista Wi-Fi
         Item {
           visible: ConnectionsState.currentTab === "wifi"
           Layout.fillWidth: true
           Layout.fillHeight: true
 
-          // Scheda Password
+          // Inserimento Password
           ColumnLayout {
             visible: root.isPasswordPromptOpen
             anchors.fill: parent
-            spacing: 8
+            spacing: Theme.spacingLarge
 
             Text {
               text: "Connect to " + root.targetSsid
@@ -677,11 +682,10 @@ PanelWindow {
               font.bold: true
             }
 
-            // Box Input con toggle mostra/nascondi password
             Rectangle {
               Layout.fillWidth: true
               implicitHeight: 32
-              radius: 6
+              radius: Theme.radiusMedium
               color: Theme.overlay
               border.color: passInput.activeFocus ? Theme.foam : Theme.overlay
               border.width: 1
@@ -689,7 +693,7 @@ PanelWindow {
               TextInput {
                 id: passInput
                 anchors.fill: parent
-                anchors.leftMargin: 8
+                anchors.leftMargin: Theme.paddingMedium
                 anchors.rightMargin: 30
                 verticalAlignment: TextInput.AlignVCenter
                 color: Theme.text
@@ -704,7 +708,7 @@ PanelWindow {
               Text {
                 visible: !passInput.text
                 anchors.left: parent.left
-                anchors.leftMargin: 8
+                anchors.leftMargin: Theme.paddingMedium
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Insert password..."
                 color: Theme.subtle
@@ -712,19 +716,18 @@ PanelWindow {
                 font.pixelSize: Theme.fontSizePopup
               }
 
-              // Pulsante Occhio Mostra/Nascondi Password
               Rectangle {
                 anchors.right: parent.right
                 anchors.rightMargin: 4
                 anchors.verticalCenter: parent.verticalCenter
                 implicitWidth: 24
                 implicitHeight: 24
-                radius: 4
-                color: eyeMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
+                radius: Theme.radiusSmall
+                color: eyeMouse.containsMouse ? Theme.hoverStrong : "transparent"
 
                 Text {
                   anchors.centerIn: parent
-                  font.family: Theme.fontFamily;
+                  font.family: Theme.fontFamily
                   text: root.showPassword ? "󰈉" : "󰈈"
                   color: root.showPassword ? Theme.foam : Theme.subtle
                   font.pixelSize: Theme.fontSizePopup
@@ -750,12 +753,12 @@ PanelWindow {
 
             RowLayout {
               Layout.fillWidth: true
-              spacing: 8
+              spacing: Theme.spacingLarge
 
               Rectangle {
                 Layout.fillWidth: true
                 implicitHeight: 28
-                radius: 6
+                radius: Theme.radiusMedium
                 color: Theme.overlay
                 Text { anchors.centerIn: parent; text: "Cancel"; color: Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSizePopup }
                 MouseArea {
@@ -771,13 +774,13 @@ PanelWindow {
               Rectangle {
                 Layout.fillWidth: true
                 implicitHeight: 28
-                radius: 6
+                radius: Theme.radiusMedium
                 color: root.isConnectingWithPass ? Theme.overlay : Theme.foam
                 RowLayout {
                   anchors.centerIn: parent
-                  spacing: 6
+                  spacing: Theme.spacingMedium
                   Text {
-                    font.family: Theme.fontFamily;
+                    font.family: Theme.fontFamily
                     visible: root.isConnectingWithPass
                     text: "󰑐"; color: Theme.base; font.pixelSize: Theme.fontSizePopup
                     RotationAnimation on rotation { running: root.isConnectingWithPass; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
@@ -802,7 +805,7 @@ PanelWindow {
             Item { Layout.fillHeight: true }
           }
 
-          // Lista Reti
+          // Lista Reti Wi-Fi
           ListView {
             visible: !root.isPasswordPromptOpen && root.wifiEnabled
             anchors.fill: parent
@@ -813,8 +816,8 @@ PanelWindow {
               id: wifiItem
               width: ListView.view.width
               implicitHeight: 34
-              radius: 5
-              color: modelData.inUse ? Theme.overlay : (rowMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.05) : "transparent")
+              radius: Theme.radiusSmall
+              color: modelData.inUse ? Theme.overlay : (rowMouse.containsMouse ? Theme.hover : "transparent")
 
               property bool isBusy: root.wifiActionSsid === modelData.ssid
               property bool isSavedNet: root.savedConnections.includes(modelData.ssid)
@@ -830,12 +833,12 @@ PanelWindow {
 
               RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 6
-                anchors.rightMargin: 6
-                spacing: 8
+                anchors.leftMargin: Theme.paddingMedium
+                anchors.rightMargin: Theme.paddingMedium
+                spacing: Theme.spacingLarge
 
                 Text {
-                  font.family: Theme.fontFamily;
+                  font.family: Theme.fontFamily
                   text: wifiItem.isBusy ? "󰑐" : (modelData.signal > 70 ? "󰤨" : (modelData.signal > 40 ? "󰤥" : "󰤟"))
                   color: wifiItem.isBusy ? Theme.gold : (modelData.inUse ? Theme.foam : Theme.subtle)
                   font.pixelSize: Theme.fontSizePopup
@@ -853,7 +856,7 @@ PanelWindow {
                 }
 
                 Text {
-                  font.family: Theme.fontFamily;
+                  font.family: Theme.fontFamily
                   visible: !modelData.isOpen && !wifiItem.isSavedNet && !modelData.inUse
                   text: "󰌾"
                   color: Theme.subtle
@@ -877,11 +880,11 @@ PanelWindow {
                   visible: wifiItem.isSavedNet && !wifiItem.isBusy
                   implicitWidth: 22
                   implicitHeight: 22
-                  radius: 4
+                  radius: Theme.radiusSmall
                   color: forgetWifiMouse.containsMouse ? Theme.love : "transparent"
 
                   Text {
-                    font.family: Theme.fontFamily;
+                    font.family: Theme.fontFamily
                     anchors.centerIn: parent
                     text: "󰆴"
                     color: forgetWifiMouse.containsMouse ? Theme.base : Theme.subtle
@@ -903,21 +906,19 @@ PanelWindow {
           Text {
             visible: !root.wifiEnabled
             anchors.centerIn: parent
-            text: "Wi-Fi disactivated"
+            text: "Wi-Fi disattivato"
             color: Theme.subtle
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizePopup
           }
         }
 
-        // =========================================================
-        // 5. VISTA BLUETOOTH
-        // =========================================================
+        // Vista Bluetooth
         ColumnLayout {
           visible: ConnectionsState.currentTab === "bluetooth"
           Layout.fillWidth: true
           Layout.fillHeight: true
-          spacing: 6
+          spacing: Theme.spacingMedium
 
           ListView {
             Layout.fillWidth: true
@@ -929,8 +930,8 @@ PanelWindow {
               id: devItem
               width: ListView.view.width
               implicitHeight: 34
-              radius: 5
-              color: modelData.connected ? Theme.overlay : (devMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.05) : "transparent")
+              radius: Theme.radiusSmall
+              color: modelData.connected ? Theme.overlay : (devMouse.containsMouse ? Theme.hover : "transparent")
               property bool isBusy: root.btActionMac === modelData.mac
 
               MouseArea {
@@ -943,13 +944,11 @@ PanelWindow {
               }
 
               RowLayout {
-                id: btRowLayout
                 anchors.fill: parent
-                anchors.leftMargin: 6
-                anchors.rightMargin: 6
-                spacing: 8
+                anchors.leftMargin: Theme.paddingMedium
+                anchors.rightMargin: Theme.paddingMedium
+                spacing: Theme.spacingLarge
 
-                // 1. Icona Bluetooth / Spinner
                 Text {
                   Layout.alignment: Qt.AlignVCenter
                   font.family: Theme.fontFamily
@@ -959,11 +958,10 @@ PanelWindow {
                   RotationAnimation on rotation { running: devItem.isBusy; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
                 }
 
-                // 2. Gruppo Nome Dispositivo + Batteria affiancata
                 RowLayout {
                   Layout.fillWidth: true
                   Layout.alignment: Qt.AlignVCenter
-                  spacing: 6
+                  spacing: Theme.spacingMedium
 
                   Text {
                     text: modelData.name
@@ -975,7 +973,6 @@ PanelWindow {
                     Layout.maximumWidth: parent.width - (batBadge.visible ? batBadge.implicitWidth + 6 : 0)
                   }
 
-                  // Badge Batteria subito accanto al nome
                   RowLayout {
                     id: batBadge
                     visible: modelData.connected && modelData.battery >= 0 && !devItem.isBusy
@@ -991,7 +988,7 @@ PanelWindow {
                       verticalAlignment: Text.AlignVCenter
                     }
                     Text {
-                      font.family: Theme.fontFamily;
+                      font.family: Theme.fontFamily
                       text: {
                         let b = modelData.battery
                         if (b >= 90) return "󰁹"
@@ -1010,7 +1007,6 @@ PanelWindow {
                   Item { Layout.fillWidth: true }
                 }
 
-                // 3. Stato Connessione (allineato a destra)
                 Text {
                   Layout.alignment: Qt.AlignVCenter
                   text: {
@@ -1022,19 +1018,18 @@ PanelWindow {
                   font.pixelSize: Theme.fontSizePopup
                 }
 
-                // 4. Bottone Dimentica Dispositivo (Cestino)
                 Rectangle {
                   id: forgetBtBtn
                   z: 2
                   visible: !devItem.isBusy
                   implicitWidth: 22
                   implicitHeight: 22
-                  radius: 4
+                  radius: Theme.radiusSmall
                   color: forgetBtMouse.containsMouse ? Theme.love : "transparent"
                   Layout.alignment: Qt.AlignVCenter
 
                   Text {
-                    font.family: Theme.fontFamily;
+                    font.family: Theme.fontFamily
                     anchors.centerIn: parent
                     text: "󰆴"
                     color: forgetBtMouse.containsMouse ? Theme.base : Theme.subtle
@@ -1057,19 +1052,21 @@ PanelWindow {
 
           RowLayout {
             Layout.fillWidth: true
-            spacing: 6
+            spacing: Theme.spacingMedium
 
             Text { text: "Nearby"; color: Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSizePopup; font.bold: true }
             Item { Layout.fillWidth: true }
 
             Rectangle {
-              implicitWidth: 90; implicitHeight: 20; radius: 4
+              implicitWidth: 90
+              implicitHeight: 20
+              radius: Theme.radiusSmall
               color: root.isBtScanning ? Theme.overlay : Theme.base
               RowLayout {
                 anchors.centerIn: parent
-                spacing: 4
+                spacing: Theme.spacingSmall
                 Text {
-                  font.family: Theme.fontFamily;
+                  font.family: Theme.fontFamily
                   visible: root.isBtScanning
                   text: "󰑐"; color: Theme.iris; font.pixelSize: Theme.fontSizePopup
                   RotationAnimation on rotation { running: root.isBtScanning; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
@@ -1101,16 +1098,16 @@ PanelWindow {
               id: availItem
               width: ListView.view.width
               implicitHeight: 28
-              radius: 4
+              radius: Theme.radiusSmall
               color: availMouse.containsMouse ? Theme.overlay : "transparent"
               property bool isBusy: root.btActionMac === modelData.mac
 
               RowLayout {
                 anchors.fill: parent
-                anchors.margins: 4
-                spacing: 6
+                anchors.margins: Theme.paddingSmall
+                spacing: Theme.spacingMedium
 
-                Text { text: availItem.isBusy ? "󰑐" : "󰂲"; color: Theme.subtle; font.pixelSize: Theme.fontSizePopup;font.family: Theme.fontFamily; }
+                Text { text: availItem.isBusy ? "󰑐" : "󰂲"; color: Theme.subtle; font.pixelSize: Theme.fontSizePopup; font.family: Theme.fontFamily }
                 Text { text: modelData.name; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSizePopup; Layout.fillWidth: true; elide: Text.ElideRight }
                 Text { text: availItem.isBusy ? "Pairing..." : "Pair"; color: Theme.iris; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSizePopup; font.bold: true }
               }

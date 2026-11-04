@@ -6,8 +6,12 @@ QtObject {
   property string currentTab: "output" // "output" oppure "input"
 
   function toggle(tab) {
-    if (tab) currentTab = tab
-    visible = !visible
+    if (visible && currentTab === tab) {
+      visible = false
+    } else {
+      if (tab) currentTab = tab
+      visible = true
+    }
   }
 
   function open(tab) {

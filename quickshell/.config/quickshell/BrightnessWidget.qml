@@ -13,7 +13,7 @@ Item {
 
   Behavior on animProgress {
     NumberAnimation {
-      duration: 180
+      duration: Theme.animationDuration
       easing.type: Easing.OutCubic
     }
   }
@@ -28,24 +28,26 @@ Item {
     }
   }
 
-  // 1. Icona + Percentuale (Perfettamente centrate su un'unica linea)
+  // 1. Icona + Percentuale
   RowLayout {
     id: brightTextRow
     anchors.left: parent.left
     anchors.verticalCenter: parent.verticalCenter
-    spacing: 4
+    spacing: Theme.spacingSmall
 
     Text {
       text: BrightnessState.brightness + "%"
       color: Theme.text
-      font { pixelSize: 12; family: Theme.fontFamily }
+      font.pixelSize: Theme.fontSize
+      font.family: Theme.fontFamily
       Layout.alignment: Qt.AlignVCenter
     }
 
     Text {
       text: BrightnessState.brightness >= 50 ? "" : ""
       color: Theme.text
-      font { pixelSize: 12; family: Theme.fontFamily }
+      font.pixelSize: Theme.fontSize
+      font.family: Theme.fontFamily
       Layout.alignment: Qt.AlignVCenter
     }
   }
@@ -65,11 +67,11 @@ Item {
     onWheel: wheel => BrightnessState.adjustBrightness(wheel.angleDelta.y)
   }
 
-  // 2. Slider (Allineato sulla stessa linea mediana del testo)
+  // 2. Slider espandibile
   Item {
     id: sliderContainer
     anchors.left: brightTextRow.right
-    anchors.leftMargin: 8
+    anchors.leftMargin: Theme.paddingMedium
     anchors.verticalCenter: parent.verticalCenter
     height: parent.height
     width: 80 * brightGroup.animProgress
@@ -77,19 +79,18 @@ Item {
     visible: brightGroup.animProgress > 0.001
     clip: true
 
-    // Barretta grafica centrata
     Rectangle {
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
       width: 70
       height: 4
-      radius: 2
+      radius: Theme.radiusSmall
       color: Theme.overlay
 
       Rectangle {
         width: parent.width * (BrightnessState.brightness / 100.0)
         height: parent.height
-        radius: 2
+        radius: Theme.radiusSmall
         color: Theme.gold
       }
     }

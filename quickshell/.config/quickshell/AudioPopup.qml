@@ -29,7 +29,7 @@ PanelWindow {
     right: Theme.marginRight
   }
 
-  implicitWidth: 320
+  implicitWidth: Theme.popupWidthNormal
   implicitHeight: 310
   color: "transparent"
 
@@ -37,27 +37,26 @@ PanelWindow {
   exclusiveZone: 0
 
   // -------------------------------------------------------------
-  // TRACCIAMENTO TOTALE E SICURO DEI DISPOSITIVI PIPEWIRE
+  // TRACCIAMENTO PIPEWIRE (Attivo solo a finestra aperta)
   // -------------------------------------------------------------
   PwObjectTracker {
-    objects: [
+    objects: root.isOpen ? [
       ...(Pipewire.defaultAudioSink ? [Pipewire.defaultAudioSink] : []),
       ...(Pipewire.defaultAudioSource ? [Pipewire.defaultAudioSource] : []),
       ...(Pipewire.nodes && Pipewire.nodes.values ? Pipewire.nodes.values : [])
-    ]
+    ] : []
   }
 
   property var defaultSink: Pipewire.defaultAudioSink
   property var defaultSource: Pipewire.defaultAudioSource
 
-  // Liste reattive: se stacchi un dispositivo si aggiornano all'istante a costo zero
   readonly property var outputNodes: {
-    if (!Pipewire.nodes || !Pipewire.nodes.values) return []
+    if (!root.visible || !Pipewire.nodes || !Pipewire.nodes.values) return []
     return Pipewire.nodes.values.filter(n => n && !n.isStream && n.audio && n.isSink)
   }
 
   readonly property var inputNodes: {
-    if (!Pipewire.nodes || !Pipewire.nodes.values) return []
+    if (!root.visible || !Pipewire.nodes || !Pipewire.nodes.values) return []
     return Pipewire.nodes.values.filter(n => n && !n.isStream && n.audio && !n.isSink)
   }
 
@@ -67,7 +66,7 @@ PanelWindow {
   }
 
   // -------------------------------------------------------------
-  // AUTO-CHIUSURA AL MOUSE LEAVE
+  // AUTO-CHIUSURA
   // -------------------------------------------------------------
   HoverHandler {
     id: panelHover
@@ -83,21 +82,17 @@ PanelWindow {
 
   Timer {
     id: autoCloseTimer
-    interval: 600
+    interval: Theme.autoCloseTimer
     onTriggered: {
-      if (!panelHover.hovered) {
-        AudioState.close()
-      }
+      if (!panelHover.hovered) AudioState.close()
     }
   }
 
   Timer {
     id: inactivityTimer
-    interval: 3500
+    interval: Theme.inactivityTimer
     onTriggered: {
-      if (!panelHover.hovered) {
-        AudioState.close()
-      }
+      if (!panelHover.hovered) AudioState.close()
     }
   }
 
@@ -111,7 +106,7 @@ PanelWindow {
   }
 
   // -------------------------------------------------------------
-  // CONTENITORE PRINCIPALE
+  // CONTENITORE
   // -------------------------------------------------------------
   Item {
     anchors.fill: parent
@@ -121,11 +116,8 @@ PanelWindow {
       id: card
       width: parent.width
       height: parent.height
-
       opacity: root.animProgress
-      transform: Translate {
-        y: (1.0 - root.animProgress) * -3 // scorrimento leggero di 15px verso il basso
-      }
+      transform: Translate { y: (1.0 - root.animProgress) * -3 }
 
       color: Theme.base
       radius: Theme.radius
@@ -134,23 +126,23 @@ PanelWindow {
 
       ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 10
-        spacing: 8
+        anchors.margins: Theme.paddingLarge
+        spacing: Theme.spacingLarge
 
-        // 1. TAB SWITCHER (Outputs / Inputs)
+        // 1. Tab Switcher
         RowLayout {
           Layout.fillWidth: true
           implicitHeight: 28
-          spacing: 6
+          spacing: Theme.spacingMedium
 
           Rectangle {
             Layout.fillWidth: true
             implicitHeight: 28
-            radius: 6
+            radius: Theme.radiusMedium
             color: AudioState.currentTab === "output" ? Theme.overlay : "transparent"
             RowLayout {
               anchors.centerIn: parent
-              spacing: 6
+              spacing: Theme.spacingMedium
               Text { text: "󰕾"; color: AudioState.currentTab === "output" ? Theme.foam : Theme.subtle; font.pixelSize: Theme.fontSizePopup }
               Text { text: "Outputs"; color: AudioState.currentTab === "output" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSize; font.bold: true }
             }
@@ -164,11 +156,11 @@ PanelWindow {
           Rectangle {
             Layout.fillWidth: true
             implicitHeight: 28
-            radius: 6
+            radius: Theme.radiusMedium
             color: AudioState.currentTab === "input" ? Theme.overlay : "transparent"
             RowLayout {
               anchors.centerIn: parent
-              spacing: 6
+              spacing: Theme.spacingMedium
               Text { text: "󰍬"; color: AudioState.currentTab === "input" ? Theme.iris : Theme.subtle; font.pixelSize: Theme.fontSizePopup }
               Text { text: "Inputs"; color: AudioState.currentTab === "input" ? Theme.text : Theme.subtle; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSize; font.bold: true }
             }
@@ -180,13 +172,11 @@ PanelWindow {
           }
         }
 
-        // =========================================================
-        // 2. SLIDER VOLUME PRINCIPALE DEL DISPOSITIVO CORRENTE
-        // =========================================================
+        // 2. Slider Volume Principale
         Rectangle {
           Layout.fillWidth: true
           implicitHeight: 46
-          radius: 8
+          radius: Theme.radiusCard
           color: Theme.overlay
 
           property var activeNode: AudioState.currentTab === "output" ? Pipewire.defaultAudioSink : Pipewire.defaultAudioSource
@@ -196,10 +186,10 @@ PanelWindow {
 
           RowLayout {
             anchors.fill: parent
-            anchors.margins: 8
-            spacing: 8
+            anchors.margins: Theme.paddingMedium
+            spacing: Theme.spacingLarge
 
-            // Bottone Mute
+            // Mute Button
             Text {
               text: {
                 if (parent.parent.isMuted || parent.parent.currentVol === 0) {
@@ -220,18 +210,18 @@ PanelWindow {
               }
             }
 
-            // Slider interattivo
+            // Slider
             Rectangle {
               id: mainVolTrack
               Layout.fillWidth: true
               implicitHeight: 8
-              radius: 4
+              radius: Theme.radiusSmall
               color: Theme.base
 
               Rectangle {
                 width: parent.width * Math.min(1.0, parent.parent.parent.currentVol)
                 height: parent.height
-                radius: 4
+                radius: Theme.radiusSmall
                 color: parent.parent.parent.isMuted ? Theme.subtle : parent.parent.parent.accentCol
               }
 
@@ -260,7 +250,6 @@ PanelWindow {
               }
             }
 
-            // Percentuale
             Text {
               text: Math.round(parent.parent.currentVol * 100) + "%"
               color: Theme.text
@@ -273,9 +262,7 @@ PanelWindow {
 
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.overlay }
 
-        // =========================================================
-        // 3. LISTA DISPOSITIVI DISPONIBILI
-        // =========================================================
+        // 3. Lista Dispositivi
         Text {
           text: AudioState.currentTab === "output" ? "SELECT OUTPUT DEVICE" : "SELECT INPUT DEVICE"
           color: Theme.subtle
@@ -295,9 +282,8 @@ PanelWindow {
             required property var modelData
             width: ListView.view.width
             implicitHeight: 34
-            radius: 6
+            radius: Theme.radiusMedium
 
-            // Protezione totale contro nodi non validi o distrutti
             visible: modelData !== null && modelData !== undefined && modelData.id !== undefined
 
             property bool isDefault: {
@@ -306,13 +292,13 @@ PanelWindow {
               return !!target && target.id !== undefined && target.id === modelData.id
             }
 
-            color: isDefault ? Theme.overlay : (devRowMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.04) : "transparent")
+            color: isDefault ? Theme.overlay : (devRowMouse.containsMouse ? Theme.hover : "transparent")
 
             RowLayout {
               anchors.fill: parent
-              anchors.leftMargin: 8
-              anchors.rightMargin: 8
-              spacing: 8
+              anchors.leftMargin: Theme.paddingMedium
+              anchors.rightMargin: Theme.paddingMedium
+              spacing: Theme.spacingLarge
 
               Text {
                 text: AudioState.currentTab === "output" ? "󰓃" : "󰍬"
