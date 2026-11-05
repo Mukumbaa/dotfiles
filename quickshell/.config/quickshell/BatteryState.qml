@@ -53,13 +53,13 @@ QtObject {
 
     if (batteryLevel <= 5 && !_notified5) {
       _notified5 = true
-      Quickshell.execDetached(["notify-send", "-u", "critical", "-a", "System", "Batteria Critica (5%)", "Collega il caricatore immediatamente"])
+      Quickshell.execDetached(["notify-send", "-u", "critical", "-a", "System", "Critical Battery (5%)", "Connect the charger immediately"])
     } else if (batteryLevel <= 10 && !_notified10) {
       _notified10 = true
-      Quickshell.execDetached(["notify-send", "-u", "critical", "-a", "System", "Batteria Quasi Scarica (10%)", "Collega il caricatore"])
+      Quickshell.execDetached(["notify-send", "-u", "critical", "-a", "System", "Low Battery (10%)", "Connect the charger"])
     } else if (batteryLevel <= 15 && !_notified15) {
       _notified15 = true
-      Quickshell.execDetached(["notify-send", "-a", "System", "Batteria in Esaurimento (15%)", "Collega il caricatore"])
+      Quickshell.execDetached(["notify-send", "-a", "System", "Battery Running Low (15%)", "Connect the charger"])
     }
   }
 }
