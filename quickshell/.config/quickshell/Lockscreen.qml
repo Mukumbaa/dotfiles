@@ -20,15 +20,11 @@ Scope {
     }
   }
 
+  // Resetta solo i flag logici (nessun accesso a elementi grafici non ancora creati)
   onIsLockedChanged: {
     if (isLocked) {
       errorMessage = ""
       isAuthenticating = false
-      pwdInput.text = ""
-      pam.pendingPassword = ""
-      pam.start()
-    } else {
-      pam.abort()
     }
   }
 
@@ -39,7 +35,20 @@ Scope {
       id: lockSurface
       color: Theme.base
 
-      Component.onCompleted: introAnimation.restart()
+      // Avvia PAM e prepara l'input solo quando la superficie è fisicamente pronta a schermo
+      Component.onCompleted: {
+        introAnimation.restart()
+        lockScope.errorMessage = ""
+        lockScope.isAuthenticating = false
+        pwdInput.text = ""
+        pam.pendingPassword = ""
+        pam.start()
+      }
+
+      // Interrompe la sessione PAM quando la superficie viene distrutta
+      Component.onDestruction: {
+        pam.abort()
+      }
 
       PamContext {
         id: pam
@@ -90,7 +99,7 @@ Scope {
         }
       }
 
-      // 1. Batteria in alto a destra (collegata al singleton globale)
+      // 1. Batteria in alto a destra
       RowLayout {
         id: batIndicator
         anchors {

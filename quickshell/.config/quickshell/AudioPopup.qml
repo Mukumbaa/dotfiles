@@ -37,10 +37,10 @@ PanelWindow {
   exclusiveZone: 0
 
   // -------------------------------------------------------------
-  // TRACCIAMENTO PIPEWIRE (Attivo solo a finestra aperta)
+  // TRACCIAMENTO PIPEWIRE (Attivo solo quando visibile)
   // -------------------------------------------------------------
   PwObjectTracker {
-    objects: root.isOpen ? [
+    objects: root.visible ? [
       ...(Pipewire.defaultAudioSink ? [Pipewire.defaultAudioSink] : []),
       ...(Pipewire.defaultAudioSource ? [Pipewire.defaultAudioSource] : []),
       ...(Pipewire.nodes && Pipewire.nodes.values ? Pipewire.nodes.values : [])
@@ -196,8 +196,7 @@ PanelWindow {
                 return AudioState.currentTab === "output" ? "󰕾" : "󰍬"
               }
               color: parent.parent.isMuted ? Theme.subtle : parent.parent.accentCol
-              font.pixelSize: Theme.fontsizePopup
-              font.family: Theme.fontFamily
+              font.pixelSize: Theme.fontSize
 
               MouseArea {
                 anchors.fill: parent
@@ -303,8 +302,6 @@ PanelWindow {
                 text: AudioState.currentTab === "output" ? "󰓃" : "󰍬"
                 color: devRow.isDefault ? (AudioState.currentTab === "output" ? Theme.foam : Theme.iris) : Theme.subtle
                 font.pixelSize: Theme.fontSizePopup
-                font.family: Theme.fontFamily
-
               }
 
               Text {
@@ -325,7 +322,6 @@ PanelWindow {
                 text: ""
                 color: AudioState.currentTab === "output" ? Theme.foam : Theme.iris
                 font.pixelSize: Theme.fontSizePopup
-                font.family: Theme.fontFamily
                 font.bold: true
               }
             }
