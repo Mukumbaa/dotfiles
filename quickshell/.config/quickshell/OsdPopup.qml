@@ -32,6 +32,14 @@ PanelWindow {
   WlrLayershell.layer: WlrLayer.Overlay
   exclusiveZone: 0
 
+  // Evita che l'OSD si apra da solo al boot durante l'inizializzazione di PipeWire
+  property bool ready: false
+  Timer {
+    interval: 600
+    running: true
+    onTriggered: root.ready = true
+  }
+
   // -------------------------------------------------------------
   // TRACCIAMENTO AUDIO (SINK E SOURCE)
   // -------------------------------------------------------------
@@ -54,16 +62,17 @@ PanelWindow {
   property string osdIcon: ""
 
   // -------------------------------------------------------------
-  // COLORI PER TIPO: Verde (Volume), Arancione (Luminosità), Viola (Mic)
+  // COLORI PER TIPO
   // -------------------------------------------------------------
   readonly property color osdColor: {
-    if (root.osdType === "volume") return Theme.foam      // Verde (Rosé Pine)
+    if (root.osdType === "volume") return Theme.foam      // Verde/Ciano
     if (root.osdType === "brightness") return Theme.gold  // Arancione
     if (root.osdType === "mic") return Theme.iris         // Viola
     return Theme.text
   }
 
   function triggerOsd(type, val, icon) {
+    if (!root.ready) return
     osdType = type
     osdValue = Math.round(val)
     osdIcon = icon
@@ -77,16 +86,21 @@ PanelWindow {
     onTriggered: root.isOsdVisible = false
   }
 
+  // Calcolo istantaneo e sincrono da currentVol (elimina lo sfasamento del 5%)
   onCurrentVolChanged: {
     if (sink && sink.audio) {
-      let icon = isMuted ? "" : (currentVol > 0.6 ? "" : (currentVol > 0.2 ? "" : ""))
-      triggerOsd("volume", isMuted ? 0 : currentVol * 100, icon)
+      let val = Math.round(currentVol * 100)
+      let icon = isMuted ? "" : (val > 60 ? "" : (val > 20 ? "" : ""))
+      triggerOsd("volume", isMuted ? 0 : val, icon)
     }
   }
 
   onIsMutedChanged: {
-    let icon = isMuted ? "" : ""
-    triggerOsd("volume", isMuted ? 0 : currentVol * 100, icon)
+    if (sink && sink.audio) {
+      let val = Math.round(currentVol * 100)
+      let icon = isMuted ? "" : (val > 60 ? "" : (val > 20 ? "" : ""))
+      triggerOsd("volume", isMuted ? 0 : val, icon)
+    }
   }
 
   onIsMicMutedChanged: {
