@@ -6,7 +6,6 @@ RowLayout {
   spacing: Theme.barSpacing
 
   KeyboardWidget {}
-  CpuWidget {}
   BluetoothWidget {}
   WifiWidget {}
   BrightnessWidget {}
