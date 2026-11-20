@@ -30,6 +30,7 @@ alias cm='~/.config/scripts/change-monitor'
 alias ls='lsd'
 alias ff='fastfetch'
 alias v='nvim'
+alias update='sudo dnf update --refresh'
 
 # Crea directory e ci entra
 mkcd() {
