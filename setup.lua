@@ -76,14 +76,15 @@ local all_dnf_packages = {
   { name = "adw-gtk3-theme",        tag = "gui_base" },
 
   -- Hyprland / Physical desktop utilities
-  { name = "hyprland",              tag = "hyprland" },
-  { name = "hyprland-guiutils",     tag = "hyprland" },
-  { name = "wiremix",               tag = "hyprland" },
-  { name = "blueman",               tag = "hyprland" },
-  { name = "NetworkManager-tui",    tag = "hyprland" },
-  { name = "grim",                  tag = "hyprland" },
-  { name = "slurp",                 tag = "hyprland" },
-  { name = "wl-clipboard",          tag = "hyprland" },
+  { name = "hyprland",           tag = "hyprland" },
+  { name = "hyprland-guiutils",  tag = "hyprland" },
+  { name = "wiremix",            tag = "hyprland" },
+  { name = "blueman",            tag = "hyprland" },
+  { name = "NetworkManager-tui", tag = "hyprland" },
+  { name = "grim",               tag = "hyprland" },
+  { name = "slurp",              tag = "hyprland" },
+  { name = "wl-clipboard",       tag = "hyprland" },
+  { name = "cliphist",           tag = "hyprland" },
 }
 
 local MANIFEST_URL = "https://raw.githubusercontent.com/Mukumbaa/Hyprland-RPM/main/packages.json"

@@ -70,4 +70,5 @@ Scope {
   Wallpaper {}
   NotificationPopup {}
   AppLauncher {}
+  ClipboardPopup {}
 }

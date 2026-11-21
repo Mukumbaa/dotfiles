@@ -9,6 +9,7 @@ hl.bind("SUPER + W", hl.dsp.window.close())
 hl.bind("SUPER + M", hl.dsp.exit())
 hl.bind("SUPER + SHIFT + F", hl.dsp.exec_cmd(apps.file_manager))
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
+hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc call clipboard toggle"))
 
 hl.bind("SUPER + left", hl.dsp.focus({ direction = "l" }))
 hl.bind("SUPER + right", hl.dsp.focus({ direction = "r" }))

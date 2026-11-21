@@ -1,10 +1,12 @@
 local apps = {
-    terminal = "alacritty",
-    terminal2 = "foot",
-    file_manager = "alacritty -e spf",
-    browser = "google-chrome",
-    browser2 = "brave-browser",
+  terminal = "alacritty",
+  terminal2 = "foot",
+  file_manager = "alacritty -e spf",
+  browser = "google-chrome",
+  browser2 = "brave-browser",
 }
+
+local clip_script = os.getenv("HOME") .. "/.config/scripts/cliphist-ttl.lua"
 
 hl.on("hyprland.start", function()
   hl.exec_cmd("quickshell")
@@ -18,5 +20,14 @@ hl.on("hyprland.start", function()
   }
   '
   ]])
+  -- Watcher clipboard con tracciamento scadenza (3 ore)
+  hl.exec_cmd(string.format(
+    [[wl-paste --type text --watch sh -c 'wl-paste --list-types | grep -qE "^(text/plain|UTF8_STRING)" && lua "%s" store']],
+    clip_script
+  ))
+  hl.exec_cmd(string.format(
+    [[wl-paste --type image --watch lua "%s" store]],
+    clip_script
+  ))
 end)
 return apps;
