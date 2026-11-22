@@ -1,7 +1,7 @@
 {
   "name": "gruvbox",
   "base": "#282828",
-  "surface": "#1d2021",
+  "surface": "#32302f",
   "overlay": "#3c3836",
   "text": "#ebdbb2",
   "subtle": "#a89984",
