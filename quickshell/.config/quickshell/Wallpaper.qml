@@ -14,7 +14,11 @@ Scope {
 
   Process {
     id: scanWallpapersProc
-    command: ["sh", "-c", "find -L \"" + wallpaperScope.wallpaperDir + "\" -maxdepth 1 -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) 2>/dev/null | sort -V"]
+    // Risolve il percorso reale (readlink -f) così ogni tema ha path univoci e Qt non riusa vecchie cache
+    command: [
+      "sh", "-c",
+      "dir=$(readlink -f \"" + wallpaperScope.wallpaperDir + "\" 2>/dev/null); [ -d \"$dir\" ] && find \"$dir\" -maxdepth 1 -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) | sort -V"
+    ]
     stdout: StdioCollector {
       onStreamFinished: {
         let lines = this.text.trim().split("\n")
@@ -56,7 +60,7 @@ Scope {
   Process {
     id: wallpaperDirWatcher
     running: true
-    command: ["sh", "-c", "stdbuf -oL -eL inotifywait -m -e create -e delete -e moved_to -e moved_from \"" + wallpaperScope.wallpaperDir + "\" 2>/dev/null"]
+    command: ["sh", "-c", "stdbuf -oL -eL inotifywait -m -e create -e delete -e moved_to -e moved_from \"" + wallpaperScope.wallpaperDir + "/\" 2>/dev/null"]
     stdout: SplitParser {
       onRead: scanDebounceTimer.restart()
     }
