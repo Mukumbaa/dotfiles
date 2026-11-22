@@ -73,6 +73,13 @@ QtObject {
   readonly property color hoverStrong: Qt.rgba(1, 1, 1, 0.08)
   readonly property color backdrop: Qt.rgba(base.r * 0.35, base.g * 0.35, base.b * 0.35, 0.65)
   readonly property color backdropDark: Qt.rgba(base.r * 0.35, base.g * 0.35, base.b * 0.35, 0.75)
+  // Bordo esterno neutro: miscela overlay + 25% di subtle (stacca anche sopra Alacritty/Neovim)
+  readonly property color border: Qt.rgba(
+    overlay.r * 0.75 + subtle.r * 0.25,
+    overlay.g * 0.75 + subtle.g * 0.25,
+    overlay.b * 0.75 + subtle.b * 0.25,
+    1.0
+  )
 
   // Watcher live su ~/.cache/current-theme/quickshell.json
   readonly property string _themeJsonPath: (Quickshell.env("HOME") || "/home/mukumba") + "/.cache/current-theme/quickshell.json"
@@ -103,3 +110,4 @@ QtObject {
     onFileChanged: reload()
   }
 }
+

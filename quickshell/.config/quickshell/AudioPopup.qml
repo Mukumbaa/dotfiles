@@ -121,7 +121,7 @@ PanelWindow {
 
       color: Theme.base
       radius: Theme.radius
-      border.color: Theme.overlay
+      border.color: Theme.border
       border.width: Theme.borderWidth
 
       ColumnLayout {

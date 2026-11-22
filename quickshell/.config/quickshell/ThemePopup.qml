@@ -174,7 +174,7 @@ PanelWindow {
 
       color: Theme.base
       radius: Theme.radius
-      border.color: Theme.overlay
+      border.color: Theme.border
       border.width: Theme.borderWidth
 
       MouseArea {
@@ -318,7 +318,7 @@ PanelWindow {
                 implicitHeight: 24
                 radius: Theme.radiusSmall
                 color: modelData.base
-                border.color: Theme.overlay
+                border.color: Theme.border
                 border.width: 1
 
                 Row {
@@ -341,7 +341,7 @@ PanelWindow {
               // Nome Tema
               Text {
                 text: modelData.label
-                color: themeItem.isSelected ? Theme.foam : Theme.text
+                color: Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize
                 font.bold: themeItem.isSelected || themeItem.isCurrentActive
@@ -374,7 +374,7 @@ PanelWindow {
               Text {
                 visible: themeItem.isSelected
                 text: "󰌑"
-                color: Theme.foam
+                color: Theme.iris
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
               }

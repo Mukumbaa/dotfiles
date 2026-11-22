@@ -129,7 +129,7 @@ PanelWindow {
       anchors.fill: parent
       color: Theme.base
       radius: Theme.radiusPill
-      border.color: Theme.overlay
+      border.color: Theme.border
       border.width: Theme.borderWidth
 
       scale: 0.9 + (0.1 * root.animProgress)

@@ -62,7 +62,7 @@ Scope {
             height: Math.max(0, parent.height - 8)
             radius: Theme.radius
             color: Theme.base
-            border.color: Theme.overlay
+            border.color: Theme.border
             border.width: Theme.borderWidth
 
             property bool isClosing: false

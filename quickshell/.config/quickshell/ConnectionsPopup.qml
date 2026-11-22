@@ -491,7 +491,7 @@ PanelWindow {
 
       color: Theme.base
       radius: Theme.radius
-      border.color: Theme.overlay
+      border.color: Theme.border
       border.width: Theme.borderWidth
 
       ColumnLayout {
@@ -686,7 +686,7 @@ PanelWindow {
               Layout.fillWidth: true
               implicitHeight: 32
               radius: Theme.radiusMedium
-              color: Theme.overlay
+              color: Theme.surface
               border.color: passInput.activeFocus ? Theme.foam : Theme.overlay
               border.width: 1
 
@@ -1061,7 +1061,7 @@ PanelWindow {
               implicitWidth: 90
               implicitHeight: 20
               radius: Theme.radiusSmall
-              color: root.isBtScanning ? Theme.overlay : Theme.base
+              color: root.isBtScanning ? Theme.overlay : Theme.surface
               RowLayout {
                 anchors.centerIn: parent
                 spacing: Theme.spacingSmall

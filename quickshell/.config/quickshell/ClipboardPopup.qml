@@ -217,7 +217,7 @@ PanelWindow {
 
       color: Theme.base
       radius: Theme.radius
-      border.color: Theme.overlay
+      border.color: Theme.border
       border.width: Theme.borderWidth
 
       MouseArea {
@@ -439,7 +439,7 @@ PanelWindow {
 
                 Text {
                   text: modelData.preview
-                  color: clipItem.isSelected ? Theme.foam : Theme.text
+                  color: Theme.text
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSize
                   font.bold: clipItem.isSelected
@@ -462,7 +462,7 @@ PanelWindow {
               Text {
                 visible: clipItem.isSelected
                 text: "󰌑"
-                color: Theme.foam
+                color: Theme.iris
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
               }

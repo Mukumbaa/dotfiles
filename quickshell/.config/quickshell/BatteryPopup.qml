@@ -184,7 +184,7 @@ PanelWindow {
 
       color: Theme.base
       radius: Theme.radius
-      border.color: Theme.overlay
+      border.color: Theme.border
       border.width: Theme.borderWidth
 
       ColumnLayout {
@@ -200,7 +200,7 @@ PanelWindow {
           Text {
             text: BatteryState.batIcon
             font.family: Theme.fontFamily
-            color: BatteryState.batteryLevel <= 20 && !BatteryState.isCharging ? Theme.love : Theme.foam
+            color: BatteryState.batteryLevel <= 20 && !BatteryState.isCharging ? Theme.love : (BatteryState.isCharging ? Theme.foam : Theme.text)
             font.pixelSize: Theme.fontSizeTitle
           }
 

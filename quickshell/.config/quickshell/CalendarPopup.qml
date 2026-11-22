@@ -137,7 +137,7 @@ PanelWindow {
       transform: Translate { y: (1.0 - root.animProgress) * -3 }
       color: Theme.base
       radius: Theme.radius
-      border.color: Theme.overlay
+      border.color: Theme.border
       border.width: Theme.borderWidth
 
       ColumnLayout {
@@ -193,7 +193,7 @@ PanelWindow {
               implicitWidth: 38
               implicitHeight: 20
               radius: Theme.radiusSmall
-              color: todayMouse.containsMouse ? Theme.overlay : Theme.base
+              color: todayMouse.containsMouse ? Theme.overlay : Theme.surface
 
               Text {
                 anchors.centerIn: parent

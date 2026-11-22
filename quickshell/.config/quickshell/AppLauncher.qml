@@ -313,7 +313,7 @@ PanelWindow {
 
                 Text {
                   text: modelData.name
-                  color: appItem.isSelected ? Theme.foam : Theme.text
+                  color: Theme.text
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSize
                   font.bold: appItem.isSelected
@@ -335,7 +335,7 @@ PanelWindow {
               Text {
                 visible: appItem.isSelected
                 text: "󰌑"
-                color: Theme.foam
+                color: Theme.iris
                 font.pixelSize: Theme.fontSizeMedium
               }
             }
