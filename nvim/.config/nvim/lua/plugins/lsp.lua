@@ -166,6 +166,19 @@ return {
       },
     })
 
+    vim.lsp.config("rust_analyzer", {
+      settings = {
+        ["rust-analyzer"] = {
+          cargo = {
+            allFeatures = true,
+          },
+          check = {
+            command = "clippy",
+          },
+        },
+      },
+    })
+
     vim.lsp.enable({
       "clangd",
       "gopls",
@@ -174,6 +187,7 @@ return {
       "basedpyright",
       "lua_ls",
       "tinymist",
+      "rust_analyzer",
     })
   end,
 }
