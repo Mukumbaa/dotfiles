@@ -71,4 +71,5 @@ Scope {
   NotificationPopup {}
   AppLauncher {}
   ClipboardPopup {}
+  ThemePopup {}
 }

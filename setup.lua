@@ -111,6 +111,7 @@ local stow_configs = {
 
   { pkg = "hypr",        target = home .. "/.config/hypr",          tag = "hyprland" },
   { pkg = "quickshell",  target = home .. "/.config/quickshell",    tag = "hyprland" },
+  { pkg = "themes", target = home .. "/.config/themes", tag = "hyprland" },
 }
 
 local go_packages = {

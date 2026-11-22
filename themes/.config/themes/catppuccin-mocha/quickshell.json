@@ -1,0 +1,14 @@
+{
+  "name": "catppuccin-mocha",
+  "base": "#1e1e2e",
+  "surface": "#181825",
+  "overlay": "#313244",
+  "text": "#cdd6f4",
+  "subtle": "#a6adc8",
+  "love": "#f38ba8",
+  "gold": "#f9e2af",
+  "rose": "#94e2d5",
+  "pine": "#a6e3a1",
+  "foam": "#89b4fa",
+  "iris": "#cba6f7"
+}

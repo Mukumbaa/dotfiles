@@ -7,6 +7,7 @@ singleton PowerMenuState PowerMenuState.qml
 singleton BrightnessState BrightnessState.qml
 singleton LauncherState LauncherState.qml
 singleton ClipboardState ClipboardState.qml
+singleton ThemeState ThemeState.qml
 LeftSection LeftSection.qml
 CenterSection CenterSection.qml
 RightSection RightSection.qml
@@ -28,3 +29,4 @@ Wallpaper Wallpaper.qml
 NotificationPopup NotificationPopup.qml
 AppLauncher AppLauncher.qml
 ClipboardPopup ClipboardPopup.qml
+ThemePopup ThemePopup.qml

@@ -10,11 +10,11 @@ Scope {
   property int currentIndex: 0
   property string currentWallpaperPath: ""
 
-  property string wallpaperDir: (Quickshell.env("HOME") || "/home/user") + "/.config/hypr/wallpaper"
+  property string wallpaperDir: (Quickshell.env("HOME") || "/home/mukumba") + "/.cache/current-theme/wallpapers"
 
   Process {
     id: scanWallpapersProc
-    command: ["sh", "-c", "find \"" + wallpaperScope.wallpaperDir + "\" -maxdepth 1 -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) | sort -V"]
+    command: ["sh", "-c", "find -L \"" + wallpaperScope.wallpaperDir + "\" -maxdepth 1 -type f \\( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \\) 2>/dev/null | sort -V"]
     stdout: StdioCollector {
       onStreamFinished: {
         let lines = this.text.trim().split("\n")

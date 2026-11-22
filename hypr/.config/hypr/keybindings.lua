@@ -142,3 +142,5 @@ end)
 
 -- Switch layout tastiera senza residui di Waybar
 hl.bind("SUPER + Control_L", hl.dsp.exec_cmd("hyprctl switchxkblayout all next"))
+
+hl.bind("SUPER + SHIFT + T", hl.dsp.exec_cmd("qs ipc call theme toggle"))

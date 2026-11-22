@@ -1,7 +1,11 @@
 pragma Singleton
 import QtQuick
+import Quickshell
+import Quickshell.Io
 
 QtObject {
+  id: root
+
   // Tipografia
   readonly property string fontFamily: "CaskaydiaMono NF"
   readonly property int fontSizeMicro: 9
@@ -28,7 +32,7 @@ QtObject {
   readonly property int paddingLarge: 10
   readonly property int paddingWindow: 14
 
-  // Raggi (Border Radius)
+  // Raggi
   readonly property int borderWidth: 4
   readonly property int radiusSmall: 4
   readonly property int radiusMedium: 6
@@ -50,24 +54,52 @@ QtObject {
   readonly property int autoCloseTimer: 600
   readonly property int inactivityTimer: 1500
 
-  // Palette Colori Rosé Pine
-  readonly property color base: "#1B1A28"
-  readonly property color surface: "#1f1d2e"
-  readonly property color overlay: "#26233a"
-  readonly property color text: "#e0def4"
-  readonly property color subtle: "#908caa"
+  // Palette Dinamica (con Rosé Pine come fallback predefinito)
+  property color base: "#1B1A28"
+  property color surface: "#1f1d2e"
+  property color overlay: "#26233a"
+  property color text: "#e0def4"
+  property color subtle: "#908caa"
 
-  // Colori Sovrapposti e Interattivi
+  property color love: "#eb6f92"
+  property color gold: "#f6c177"
+  property color rose: "#ebbcba"
+  property color pine: "#31748f"
+  property color foam: "#9ccfd8"
+  property color iris: "#c4a7e7"
+
+  // Colori derivati in tempo reale
   readonly property color hover: Qt.rgba(1, 1, 1, 0.04)
   readonly property color hoverStrong: Qt.rgba(1, 1, 1, 0.08)
-  readonly property color backdrop: Qt.rgba(0.05, 0.04, 0.08, 0.65)
-  readonly property color backdropDark: Qt.rgba(0.05, 0.04, 0.08, 0.75)
+  readonly property color backdrop: Qt.rgba(base.r * 0.35, base.g * 0.35, base.b * 0.35, 0.65)
+  readonly property color backdropDark: Qt.rgba(base.r * 0.35, base.g * 0.35, base.b * 0.35, 0.75)
 
-  // Accenti
-  readonly property color love: "#eb6f92"
-  readonly property color gold: "#f6c177"
-  readonly property color rose: "#ebbcba"
-  readonly property color pine: "#31748f"
-  readonly property color foam: "#9ccfd8"
-  readonly property color iris: "#c4a7e7"
+  // Watcher live su ~/.cache/current-theme/quickshell.json
+  readonly property string _themeJsonPath: (Quickshell.env("HOME") || "/home/mukumba") + "/.cache/current-theme/quickshell.json"
+
+  function _applyTheme(raw) {
+    if (!raw || !raw.trim()) return
+    try {
+      let d = JSON.parse(raw)
+      if (d.base) base = d.base
+      if (d.surface) surface = d.surface
+      if (d.overlay) overlay = d.overlay
+      if (d.text) text = d.text
+      if (d.subtle) subtle = d.subtle
+      if (d.love) love = d.love
+      if (d.gold) gold = d.gold
+      if (d.rose) rose = d.rose
+      if (d.pine) pine = d.pine
+      if (d.foam) foam = d.foam
+      if (d.iris) iris = d.iris
+    } catch (e) {}
+  }
+
+  readonly property FileView _themeWatcher: FileView {
+    path: root._themeJsonPath
+    watchChanges: true
+    preload: true
+    onLoaded: root._applyTheme(text())
+    onFileChanged: reload()
+  }
 }

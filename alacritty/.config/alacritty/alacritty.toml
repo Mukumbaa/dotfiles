@@ -1,5 +1,5 @@
 [general]
-import = ["~/.config/alacritty/themes/rose-pine.toml"]
+import = ["~/.cache/current-theme/alacritty.toml"]
 
 
 [env]

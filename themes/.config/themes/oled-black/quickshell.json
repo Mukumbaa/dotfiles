@@ -1,0 +1,14 @@
+{
+  "name": "oled-black",
+  "base": "#050507",
+  "surface": "#0e0e12",
+  "overlay": "#1a1a22",
+  "text": "#eeeeee",
+  "subtle": "#9494a8",
+  "love": "#ff5454",
+  "gold": "#e3c78a",
+  "rose": "#79dac8",
+  "pine": "#8cc85f",
+  "foam": "#80a0ff",
+  "iris": "#ae81ff"
+}
