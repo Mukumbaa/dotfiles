@@ -1,0 +1,14 @@
+{
+  "name": "ash",
+  "base": "#121212",
+  "surface": "#1a1a1a",
+  "overlay": "#212121",
+  "text": "#e0e0e0",
+  "subtle": "#8a8a8a",
+  "accent": "#b2b2b2",
+  "accent2": "#8a8a8a",
+  "accent3": "#767676",
+  "error": "#9e9e9e",
+  "warning": "#b2b2b2",
+  "success": "#767676"
+}

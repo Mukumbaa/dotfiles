@@ -1,0 +1,14 @@
+{
+  "name": "abstract-black",
+  "base": "#0b0b0b",
+  "surface": "#171717",
+  "overlay": "#202329",
+  "text": "#d7dae0",
+  "subtle": "#8d9199",
+  "accent": "#8fb4de",
+  "accent2": "#a67cf0",
+  "accent3": "#5cd0e0",
+  "error": "#e5545a",
+  "warning": "#ecc46a",
+  "success": "#57d9a3"
+}

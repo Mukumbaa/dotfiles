@@ -1,0 +1,47 @@
+code_syntax_highlight = "bw"
+
+file_panel_border = "#383838"
+sidebar_border = "#121212"
+footer_border = "#383838"
+
+file_panel_border_active = "#656565"
+sidebar_border_active = "#8a8a8a"
+footer_border_active = "#b2b2b2"
+modal_border_active = "#8a8a8a"
+
+full_screen_bg = "#121212"
+file_panel_bg = "#121212"
+sidebar_bg = "#121212"
+footer_bg = "#121212"
+modal_bg = "#121212"
+
+full_screen_fg = "#e0e0e0"
+file_panel_fg = "#e0e0e0"
+sidebar_fg = "#e0e0e0"
+footer_fg = "#e0e0e0"
+modal_fg = "#e0e0e0"
+
+cursor = "#b2b2b2"
+correct = "#767676"
+error = "#9e9e9e"
+hint = "#767676"
+cancel = "#656565"
+gradient_color = ["#767676", "#9e9e9e"]
+
+file_panel_top_directory_icon = "#b2b2b2"
+file_panel_top_path = "#767676"
+file_panel_item_selected_fg = "#8a8a8a"
+file_panel_item_selected_bg = "#121212"
+
+sidebar_title = "#656565"
+sidebar_item_selected_fg = "#b2b2b2"
+sidebar_item_selected_bg = "#121212"
+sidebar_divider = "#8a8a8a"
+
+modal_cancel_fg = "#e0e0e0"
+modal_cancel_bg = "#494949"
+modal_confirm_fg = "#e0e0e0"
+modal_confirm_bg = "#9e9e9e"
+
+help_menu_hotkey = "#b2b2b2"
+help_menu_title = "#b2b2b2"
