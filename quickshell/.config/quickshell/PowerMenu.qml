@@ -82,7 +82,7 @@ PanelWindow {
           icon: "󰌾"
           label: "Lock"
           keyHint: "L"
-          accentColor: Theme.iris
+          accentColor: Theme.accent2
           onTriggered: root.executeAction(["qs", "ipc", "call", "lock", "lock"])
         }
 
@@ -90,7 +90,7 @@ PanelWindow {
           icon: ""
           label: "Suspend"
           keyHint: "S"
-          accentColor: Theme.foam
+          accentColor: Theme.accent
           onTriggered: root.executeAction(["systemctl", "suspend"])
         }
 
@@ -98,7 +98,7 @@ PanelWindow {
           icon: "󰍃"
           label: "Logout"
           keyHint: "E"
-          accentColor: Theme.rose
+          accentColor: Theme.accent3
           onTriggered: root.executeAction(["hyprctl", "dispatch", "exit"])
         }
 
@@ -106,7 +106,7 @@ PanelWindow {
           icon: "󰜉"
           label: "Reboot"
           keyHint: "R"
-          accentColor: Theme.gold
+          accentColor: Theme.warning
           onTriggered: root.executeAction(["systemctl", "reboot"])
         }
 
@@ -114,7 +114,7 @@ PanelWindow {
           icon: "󰐥"
           label: "Shutdown"
           keyHint: "P"
-          accentColor: Theme.love
+          accentColor: Theme.error
           onTriggered: root.executeAction(["systemctl", "poweroff"])
         }
       }
@@ -133,7 +133,7 @@ PanelWindow {
     implicitHeight: 115
     radius: Theme.radiusLarge
     color: btnMouse.containsMouse ? Theme.overlay : Theme.surface
-    border.color: btnMouse.containsMouse ? btn.accentColor : Theme.overlay
+    border.color: btnMouse.containsMouse ? btn.accentColor : Theme.border
     border.width: Theme.borderWidth
 
     scale: btnMouse.containsMouse ? 1.05 : 1.0

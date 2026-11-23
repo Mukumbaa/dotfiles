@@ -65,9 +65,9 @@ PanelWindow {
   // COLORI PER TIPO
   // -------------------------------------------------------------
   readonly property color osdColor: {
-    if (root.osdType === "volume") return Theme.foam      // Verde/Ciano
-    if (root.osdType === "brightness") return Theme.gold  // Arancione
-    if (root.osdType === "mic") return Theme.iris         // Viola
+    if (root.osdType === "volume") return Theme.accent      // Verde/Ciano
+    if (root.osdType === "brightness") return Theme.warning  // Arancione
+    if (root.osdType === "mic") return Theme.accent2         // Viola
     return Theme.text
   }
 
@@ -174,7 +174,7 @@ PanelWindow {
             return root.osdValue + "%"
           }
           color: (root.osdType === "mic" && root.isMicMuted) || (root.osdType === "volume" && root.isMuted) 
-            ? Theme.love 
+            ? Theme.error 
             : Theme.text
           font.family: Theme.fontFamily
           font.pixelSize: Theme.fontSize

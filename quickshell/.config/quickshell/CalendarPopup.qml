@@ -198,7 +198,7 @@ PanelWindow {
               Text {
                 anchors.centerIn: parent
                 text: "Today"
-                color: Theme.foam
+                color: Theme.accent
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizePopup
                 font.bold: true
@@ -251,7 +251,7 @@ PanelWindow {
               Layout.fillWidth: true
               horizontalAlignment: Text.AlignHCenter
               text: modelData
-              color: index >= 5 ? Theme.love : Theme.subtle
+              color: index >= 5 ? Theme.error : Theme.subtle
               font.family: Theme.fontFamily
               font.pixelSize: Theme.fontSizePopup
               font.bold: true
@@ -274,7 +274,7 @@ PanelWindow {
               Layout.fillWidth: true
               implicitHeight: 24
               radius: Theme.radiusSmall
-              color: modelData.isToday ? Theme.foam : (dayMouse.containsMouse && modelData.isCurrent ? Theme.overlay : "transparent")
+              color: modelData.isToday ? Theme.accent : (dayMouse.containsMouse && modelData.isCurrent ? Theme.overlay : "transparent")
 
               Text {
                 anchors.centerIn: parent

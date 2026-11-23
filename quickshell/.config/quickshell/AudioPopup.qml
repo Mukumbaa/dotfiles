@@ -175,12 +175,12 @@ PanelWindow {
           Layout.fillWidth: true
           implicitHeight: 46
           radius: Theme.radiusCard
-          color: Theme.overlay
+          color: Theme.surface
 
           property var activeNode: AudioState.currentTab === "output" ? Pipewire.defaultAudioSink : Pipewire.defaultAudioSource
           property real currentVol: (activeNode && activeNode.audio && typeof activeNode.audio.volume === "number") ? activeNode.audio.volume : 0.0
           property bool isMuted: (activeNode && activeNode.audio && typeof activeNode.audio.muted === "boolean") ? activeNode.audio.muted : false
-          property color accentCol: AudioState.currentTab === "output" ? Theme.foam : Theme.iris
+          property color accentCol: AudioState.currentTab === "output" ? Theme.accent : Theme.accent2
 
           RowLayout {
             anchors.fill: parent
@@ -214,7 +214,7 @@ PanelWindow {
               Layout.fillWidth: true
               implicitHeight: 8
               radius: Theme.radiusSmall
-              color: Theme.base
+              color: Theme.overlay
 
               Rectangle {
                 width: parent.width * Math.min(1.0, parent.parent.parent.currentVol)
@@ -300,7 +300,7 @@ PanelWindow {
 
               Text {
                 text: AudioState.currentTab === "output" ? "󰓃" : "󰍬"
-                color: devRow.isDefault ? (AudioState.currentTab === "output" ? Theme.foam : Theme.iris) : Theme.subtle
+                color: devRow.isDefault ? (AudioState.currentTab === "output" ? Theme.accent : Theme.accent2) : Theme.subtle
                 font.pixelSize: Theme.fontSizePopup
               }
 
@@ -320,7 +320,7 @@ PanelWindow {
               Text {
                 visible: devRow.isDefault
                 text: ""
-                color: AudioState.currentTab === "output" ? Theme.foam : Theme.iris
+                color: AudioState.currentTab === "output" ? Theme.accent : Theme.accent2
                 font.pixelSize: Theme.fontSizePopup
                 font.bold: true
               }

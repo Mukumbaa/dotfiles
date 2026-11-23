@@ -200,7 +200,7 @@ PanelWindow {
           Text {
             text: BatteryState.batIcon
             font.family: Theme.fontFamily
-            color: BatteryState.batteryLevel <= 20 && !BatteryState.isCharging ? Theme.love : (BatteryState.isCharging ? Theme.foam : Theme.text)
+            color: BatteryState.batteryLevel <= 20 && !BatteryState.isCharging ? Theme.error : (BatteryState.isCharging ? Theme.accent : Theme.text)
             font.pixelSize: Theme.fontSizeTitle
           }
 
@@ -213,7 +213,7 @@ PanelWindow {
 
               Text {
                 text: BatteryState.batteryLevel + "%"
-                color: BatteryState.batteryLevel <= 20 && !BatteryState.isCharging ? Theme.love : Theme.text
+                color: BatteryState.batteryLevel <= 20 && !BatteryState.isCharging ? Theme.error : Theme.text
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize
                 font.bold: true
@@ -232,7 +232,7 @@ PanelWindow {
                   id: wattText
                   anchors.centerIn: parent
                   text: (BatteryState.isCharging ? "+" : "-") + root.wattageValue.toFixed(1) + " W"
-                  color: BatteryState.isCharging ? Theme.foam : (root.wattageValue > 25 ? Theme.love : Theme.gold)
+                  color: BatteryState.isCharging ? Theme.accent : (root.wattageValue > 25 ? Theme.error : Theme.warning)
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSizePopup
                   font.bold: true
@@ -266,7 +266,7 @@ PanelWindow {
             width: parent.width * (Math.min(BatteryState.batteryLevel, 100) / 100)
             height: parent.height
             radius: 2
-            color: BatteryState.isCharging ? Theme.foam : (BatteryState.batteryLevel <= 20 ? Theme.love : Theme.text)
+            color: BatteryState.isCharging ? Theme.accent : (BatteryState.batteryLevel <= 20 ? Theme.error : Theme.text)
           }
         }
 
@@ -289,7 +289,7 @@ PanelWindow {
             icon: "󰓅"
             title: "Performance"
             profileKey: "performance"
-            accentColor: Theme.love
+            accentColor: Theme.error
             isActive: root.currentProfile === "performance"
             onSelected: root.setProfile("performance")
           }
@@ -298,7 +298,7 @@ PanelWindow {
             icon: "󰾅"
             title: "Balanced"
             profileKey: "balanced"
-            accentColor: Theme.foam
+            accentColor: Theme.accent
             isActive: root.currentProfile === "balanced"
             onSelected: root.setProfile("balanced-battery")
           }
@@ -307,7 +307,7 @@ PanelWindow {
             icon: "󰾆"
             title: "Power Saver"
             profileKey: "power-saver"
-            accentColor: Theme.iris
+            accentColor: Theme.accent2
             isActive: root.currentProfile === "power-saver"
             onSelected: root.setProfile("power-saver")
           }

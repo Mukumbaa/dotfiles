@@ -143,7 +143,7 @@ Scope {
                 Text {
                   visible: modelData.appIcon === ""
                   text: "󰂚"
-                  color: Theme.foam
+                  color: Theme.accent
                   font.pixelSize: Theme.fontSize
                 }
 
@@ -175,7 +175,7 @@ Scope {
                   Text {
                     anchors.centerIn: parent
                     text: copyBtn.isCopied ? "󰄬" : "󰅍"
-                    color: copyBtn.isCopied ? Theme.foam : (copyMouse.containsMouse ? Theme.text : Theme.subtle)
+                    color: copyBtn.isCopied ? Theme.accent : (copyMouse.containsMouse ? Theme.text : Theme.subtle)
                     font.pixelSize: Theme.fontSizeSmall
                   }
 
@@ -195,7 +195,7 @@ Scope {
 
                 Text {
                   text: "󰅖"
-                  color: closeMouse.containsMouse ? Theme.love : Theme.subtle
+                  color: closeMouse.containsMouse ? Theme.error : Theme.subtle
                   font.pixelSize: Theme.fontSize
 
                   MouseArea {
@@ -265,12 +265,12 @@ Scope {
                     Layout.fillWidth: true
                     implicitHeight: 24
                     radius: Theme.radiusSmall
-                    color: actMouse.containsMouse ? Theme.overlay : Theme.base
+                    color: actMouse.containsMouse ? Theme.overlay : Theme.surface
 
                     Text {
                       anchors.centerIn: parent
                       text: modelData.text
-                      color: Theme.foam
+                      color: Theme.accent
                       font.family: Theme.fontFamily
                       font.pixelSize: Theme.fontSizePopup
                       font.bold: true

@@ -91,7 +91,7 @@ Item {
         width: parent.width * (BrightnessState.brightness / 100.0)
         height: parent.height
         radius: Theme.radiusSmall
-        color: Theme.gold
+        color: Theme.warning
       }
     }
 

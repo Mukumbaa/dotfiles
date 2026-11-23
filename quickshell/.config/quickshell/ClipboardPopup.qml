@@ -236,7 +236,7 @@ PanelWindow {
           implicitHeight: 42
           radius: Theme.radiusCard
           color: Theme.surface
-          border.color: searchInput.activeFocus ? Theme.foam : Theme.overlay
+          border.color: searchInput.activeFocus ? Theme.accent : Theme.border
           border.width: 1
 
           Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -249,7 +249,7 @@ PanelWindow {
 
             Text {
               text: "󰅌"
-              color: searchInput.text.length > 0 ? Theme.foam : Theme.subtle
+              color: searchInput.text.length > 0 ? Theme.accent : Theme.subtle
               font.family: Theme.fontFamily
               font.pixelSize: Theme.fontSizeLarge
             }
@@ -315,7 +315,7 @@ PanelWindow {
               implicitWidth: clearRow.implicitWidth + 10
               implicitHeight: 20
               radius: Theme.radiusSmall
-              color: clearMouse.containsMouse ? Theme.love : Theme.overlay
+              color: clearMouse.containsMouse ? Theme.error : Theme.overlay
 
               RowLayout {
                 id: clearRow
@@ -386,7 +386,7 @@ PanelWindow {
             property bool isHovered: itemMouse.containsMouse || deleteMouse.containsMouse
 
             color: isSelected ? Theme.overlay : (isHovered ? Theme.hover : "transparent")
-            border.color: isSelected ? Theme.iris : "transparent"
+            border.color: isSelected ? Theme.accent2 : "transparent"
             border.width: isSelected ? 1 : 0
 
             MouseArea {
@@ -421,9 +421,9 @@ PanelWindow {
                 visible: !thumbImg.visible
                 text: modelData.isImage ? "󰋩" : (modelData.isUrl ? "󰖟" : "󰅍")
                 color: {
-                  if (clipItem.isSelected) return Theme.foam
-                  if (modelData.isUrl) return Theme.foam
-                  if (modelData.isImage) return Theme.iris
+                  if (clipItem.isSelected) return Theme.accent2
+                  if (modelData.isUrl) return Theme.accent
+                  if (modelData.isImage) return Theme.accent2
                   return Theme.subtle
                 }
                 font.family: Theme.fontFamily
@@ -462,7 +462,7 @@ PanelWindow {
               Text {
                 visible: clipItem.isSelected
                 text: "󰌑"
-                color: Theme.iris
+                color: Theme.accent22
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
               }
@@ -473,7 +473,7 @@ PanelWindow {
                 implicitWidth: 22
                 implicitHeight: 22
                 radius: Theme.radiusSmall
-                color: deleteMouse.containsMouse ? Theme.love : "transparent"
+                color: deleteMouse.containsMouse ? Theme.error : "transparent"
 
                 Text {
                   anchors.centerIn: parent

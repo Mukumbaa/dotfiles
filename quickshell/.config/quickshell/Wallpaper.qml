@@ -109,7 +109,7 @@ Scope {
 
         WlrLayershell.layer: WlrLayer.Background
         exclusiveZone: -1
-        color: "black"
+        color: Theme.base
 
         Image {
           anchors.fill: parent

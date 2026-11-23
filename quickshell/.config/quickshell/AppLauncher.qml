@@ -146,7 +146,7 @@ PanelWindow {
 
       color: Theme.base
       radius: Theme.radius
-      border.color: Theme.overlay
+      border.color: Theme.border
       border.width: Theme.borderWidth
 
       MouseArea {
@@ -165,7 +165,7 @@ PanelWindow {
           implicitHeight: 42
           radius: Theme.radiusCard
           color: Theme.surface
-          border.color: searchInput.activeFocus ? Theme.foam : Theme.overlay
+          border.color: searchInput.activeFocus ? Theme.accent : Theme.border
           border.width: 1
 
           Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -178,7 +178,7 @@ PanelWindow {
 
             Text {
               text: "󰍉"
-              color: searchInput.text.length > 0 ? Theme.foam : Theme.subtle
+              color: searchInput.text.length > 0 ? Theme.accent : Theme.subtle
               font.pixelSize: Theme.fontSizeLarge
             }
 
@@ -280,7 +280,7 @@ PanelWindow {
             property bool isSelected: appListView.currentIndex === index
 
             color: isSelected ? Theme.overlay : (itemMouse.containsMouse ? Theme.hover : "transparent")
-            border.color: isSelected ? Theme.iris : "transparent"
+            border.color: isSelected ? Theme.accent2 : "transparent"
             border.width: isSelected ? 1 : 0
 
             RowLayout {
@@ -303,7 +303,7 @@ PanelWindow {
               Text {
                 visible: !appIcon.visible
                 text: " 󰀻 "
-                color: appItem.isSelected ? Theme.foam : Theme.subtle
+                color: appItem.isSelected ? Theme.accent2 : Theme.subtle
                 font.pixelSize: Theme.fontSizeTitle
               }
 
@@ -335,7 +335,7 @@ PanelWindow {
               Text {
                 visible: appItem.isSelected
                 text: "󰌑"
-                color: Theme.iris
+                color: Theme.accent22
                 font.pixelSize: Theme.fontSizeMedium
               }
             }

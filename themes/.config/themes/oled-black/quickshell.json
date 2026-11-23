@@ -5,10 +5,10 @@
   "overlay": "#1a1a22",
   "text": "#eeeeee",
   "subtle": "#9494a8",
-  "love": "#ff5454",
-  "gold": "#e3c78a",
-  "rose": "#79dac8",
-  "pine": "#8cc85f",
-  "foam": "#80a0ff",
-  "iris": "#ae81ff"
+  "error": "#ff5454",
+  "warning": "#e3c78a",
+  "accent3": "#79dac8",
+  "success": "#8cc85f",
+  "accent": "#80a0ff",
+  "accent2": "#ae81ff"
 }

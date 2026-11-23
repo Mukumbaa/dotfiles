@@ -61,25 +61,24 @@ QtObject {
   property color text: "#e0def4"
   property color subtle: "#908caa"
 
-  property color love: "#eb6f92"
-  property color gold: "#f6c177"
-  property color rose: "#ebbcba"
-  property color pine: "#31748f"
-  property color foam: "#9ccfd8"
-  property color iris: "#c4a7e7"
+  property color accent: "#9ccfd8"   // Accento principale (ex foam)
+  property color accent2: "#c4a7e7"  // Secondo accento (ex iris)
+  property color accent3: "#ebbcba"  // Terzo accento (ex rose)
+  property color error: "#eb6f92"    // Errori / Critico (ex love)
+  property color warning: "#f6c177"  // Avvisi / Luminosità (ex gold)
+  property color success: "#31748f"  // Positivo / Eco (ex pine)
 
   // Colori derivati in tempo reale
   readonly property color hover: Qt.rgba(1, 1, 1, 0.04)
   readonly property color hoverStrong: Qt.rgba(1, 1, 1, 0.08)
-  readonly property color backdrop: Qt.rgba(base.r * 0.35, base.g * 0.35, base.b * 0.35, 0.65)
-  readonly property color backdropDark: Qt.rgba(base.r * 0.35, base.g * 0.35, base.b * 0.35, 0.75)
-  // Bordo esterno neutro: miscela overlay + 25% di subtle (stacca anche sopra Alacritty/Neovim)
   readonly property color border: Qt.rgba(
     overlay.r * 0.75 + subtle.r * 0.25,
     overlay.g * 0.75 + subtle.g * 0.25,
     overlay.b * 0.75 + subtle.b * 0.25,
     1.0
   )
+  readonly property color backdrop: Qt.rgba(base.r * 0.35, base.g * 0.35, base.b * 0.35, 0.65)
+  readonly property color backdropDark: Qt.rgba(base.r * 0.35, base.g * 0.35, base.b * 0.35, 0.75)
 
   // Watcher live su ~/.cache/current-theme/quickshell.json
   readonly property string _themeJsonPath: (Quickshell.env("HOME") || "/home/mukumba") + "/.cache/current-theme/quickshell.json"
@@ -93,12 +92,12 @@ QtObject {
       if (d.overlay) overlay = d.overlay
       if (d.text) text = d.text
       if (d.subtle) subtle = d.subtle
-      if (d.love) love = d.love
-      if (d.gold) gold = d.gold
-      if (d.rose) rose = d.rose
-      if (d.pine) pine = d.pine
-      if (d.foam) foam = d.foam
-      if (d.iris) iris = d.iris
+      if (d.accent) accent = d.accent
+      if (d.accent2) accent2 = d.accent2
+      if (d.accent3) accent3 = d.accent3
+      if (d.error) error = d.error
+      if (d.warning) warning = d.warning
+      if (d.success) success = d.success
     } catch (e) {}
   }
 
@@ -110,4 +109,3 @@ QtObject {
     onFileChanged: reload()
   }
 }
-

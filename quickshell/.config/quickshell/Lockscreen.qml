@@ -114,14 +114,14 @@ Scope {
 
         Text {
           text: BatteryState.batteryLevel + "%"
-          color: (BatteryState.batteryLevel <= 20 && !BatteryState.isCharging) ? Theme.love : Theme.text
+          color: (BatteryState.batteryLevel <= 20 && !BatteryState.isCharging) ? Theme.error : Theme.text
           font.family: Theme.fontFamily
           font.pixelSize: Theme.fontSize
         }
 
         Text {
           text: BatteryState.batIcon
-          color: (BatteryState.batteryLevel <= 20 && !BatteryState.isCharging) ? Theme.love : (BatteryState.isCharging ? Theme.foam : Theme.text)
+          color: (BatteryState.batteryLevel <= 20 && !BatteryState.isCharging) ? Theme.error : (BatteryState.isCharging ? Theme.accent : Theme.text)
           font.family: Theme.fontFamily
           font.pixelSize: Theme.fontSizeIcon
         }
@@ -166,7 +166,7 @@ Scope {
           implicitHeight: 42
           radius: Theme.radiusPill
           color: Theme.surface
-          border.color: lockScope.errorMessage.length > 0 ? Theme.love : (lockScope.isAuthenticating ? Theme.gold : Theme.overlay)
+          border.color: lockScope.errorMessage.length > 0 ? Theme.error : (lockScope.isAuthenticating ? Theme.warning : Theme.border)
           border.width: Theme.borderWidth
 
           Behavior on border.color { ColorAnimation { duration: 150 } }
@@ -222,7 +222,7 @@ Scope {
             anchors.rightMargin: Theme.paddingWindow
             anchors.verticalCenter: parent.verticalCenter
             text: lockScope.isAuthenticating ? "󰑐" : "󰌾"
-            color: lockScope.isAuthenticating ? Theme.gold : (lockScope.errorMessage.length > 0 ? Theme.love : Theme.subtle)
+            color: lockScope.isAuthenticating ? Theme.warning : (lockScope.errorMessage.length > 0 ? Theme.error : Theme.subtle)
             font.pixelSize: Theme.fontSizeLarge
             rotation: 0
 
@@ -250,7 +250,7 @@ Scope {
         Text {
           Layout.alignment: Qt.AlignHCenter
           text: lockScope.errorMessage
-          color: Theme.love
+          color: Theme.error
           font.family: Theme.fontFamily
           font.pixelSize: Theme.fontSizePopup
           font.bold: true

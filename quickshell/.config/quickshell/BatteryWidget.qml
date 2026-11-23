@@ -15,7 +15,7 @@ MouseArea {
 
     Text {
       text: BatteryState.batteryLevel + "%"
-      color: (BatteryState.batteryLevel <= 20 && !BatteryState.isCharging) ? Theme.love : Theme.text
+      color: (BatteryState.batteryLevel <= 20 && !BatteryState.isCharging) ? Theme.error : Theme.text
       font.pixelSize: Theme.fontSize
       font.family: Theme.fontFamily
     }
@@ -23,8 +23,8 @@ MouseArea {
     Text {
       text: BatteryState.batIcon
       color: (BatteryState.batteryLevel <= 20 && !BatteryState.isCharging)
-      ? Theme.love
-      : (BatteryState.isCharging ? Theme.foam : Theme.text)
+      ? Theme.error
+      : (BatteryState.isCharging ? Theme.accent : Theme.text)
       font.pixelSize: Theme.fontSize
       font.family: Theme.fontFamily
     }

@@ -582,7 +582,7 @@ PanelWindow {
               text: "󰑐"
               color: {
                 let isScanning = ConnectionsState.currentTab === "wifi" ? wifiScanProc.running : btScanProc.running
-                if (isScanning) return (ConnectionsState.currentTab === "wifi" ? Theme.foam : Theme.iris)
+                if (isScanning) return (ConnectionsState.currentTab === "wifi" ? Theme.accent : Theme.accent2)
                 return Theme.subtle
               }
               font.pixelSize: Theme.fontSizePopup
@@ -612,7 +612,7 @@ PanelWindow {
           // Switch On/Off
           Rectangle {
             property bool isTabEnabled: ConnectionsState.currentTab === "wifi" ? root.wifiEnabled : root.btEnabled
-            property color accentColor: ConnectionsState.currentTab === "wifi" ? Theme.foam : Theme.iris
+            property color accentColor: ConnectionsState.currentTab === "wifi" ? Theme.accent : Theme.accent2
 
             implicitWidth: 36
             implicitHeight: 18
@@ -687,7 +687,7 @@ PanelWindow {
               implicitHeight: 32
               radius: Theme.radiusMedium
               color: Theme.surface
-              border.color: passInput.activeFocus ? Theme.foam : Theme.overlay
+              border.color: passInput.activeFocus ? Theme.accent : Theme.border
               border.width: 1
 
               TextInput {
@@ -729,7 +729,7 @@ PanelWindow {
                   anchors.centerIn: parent
                   font.family: Theme.fontFamily
                   text: root.showPassword ? "󰈉" : "󰈈"
-                  color: root.showPassword ? Theme.foam : Theme.subtle
+                  color: root.showPassword ? Theme.accent : Theme.subtle
                   font.pixelSize: Theme.fontSizePopup
                 }
 
@@ -746,7 +746,7 @@ PanelWindow {
             Text {
               visible: root.wifiErrorMsg.length > 0
               text: root.wifiErrorMsg
-              color: Theme.love
+              color: Theme.error
               font.family: Theme.fontFamily
               font.pixelSize: Theme.fontSizePopup
             }
@@ -775,7 +775,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 implicitHeight: 28
                 radius: Theme.radiusMedium
-                color: root.isConnectingWithPass ? Theme.overlay : Theme.foam
+                color: root.isConnectingWithPass ? Theme.overlay : Theme.accent
                 RowLayout {
                   anchors.centerIn: parent
                   spacing: Theme.spacingMedium
@@ -840,14 +840,14 @@ PanelWindow {
                 Text {
                   font.family: Theme.fontFamily
                   text: wifiItem.isBusy ? "󰑐" : (modelData.signal > 70 ? "󰤨" : (modelData.signal > 40 ? "󰤥" : "󰤟"))
-                  color: wifiItem.isBusy ? Theme.gold : (modelData.inUse ? Theme.foam : Theme.subtle)
+                  color: wifiItem.isBusy ? Theme.warning : (modelData.inUse ? Theme.accent : Theme.subtle)
                   font.pixelSize: Theme.fontSizePopup
                   RotationAnimation on rotation { running: wifiItem.isBusy; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
                 }
 
                 Text {
                   text: modelData.ssid
-                  color: modelData.inUse ? Theme.foam : Theme.text
+                  color: modelData.inUse ? Theme.accent : Theme.text
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSizePopup
                   font.bold: modelData.inUse
@@ -868,7 +868,7 @@ PanelWindow {
                     if (wifiItem.isBusy) return "Connecting..."
                     return modelData.inUse ? "Connected" : ""
                   }
-                  color: wifiItem.isBusy ? Theme.gold : Theme.foam
+                  color: wifiItem.isBusy ? Theme.warning : Theme.accent
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSizePopup
                   font.bold: true
@@ -881,7 +881,7 @@ PanelWindow {
                   implicitWidth: 22
                   implicitHeight: 22
                   radius: Theme.radiusSmall
-                  color: forgetWifiMouse.containsMouse ? Theme.love : "transparent"
+                  color: forgetWifiMouse.containsMouse ? Theme.error : "transparent"
 
                   Text {
                     font.family: Theme.fontFamily
@@ -953,7 +953,7 @@ PanelWindow {
                   Layout.alignment: Qt.AlignVCenter
                   font.family: Theme.fontFamily
                   text: devItem.isBusy ? "󰑐" : (modelData.connected ? "󰂱" : "󰂲")
-                  color: devItem.isBusy ? Theme.gold : (modelData.connected ? Theme.iris : Theme.subtle)
+                  color: devItem.isBusy ? Theme.warning : (modelData.connected ? Theme.accent2 : Theme.subtle)
                   font.pixelSize: Theme.fontSizePopup
                   RotationAnimation on rotation { running: devItem.isBusy; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
                 }
@@ -965,7 +965,7 @@ PanelWindow {
 
                   Text {
                     text: modelData.name
-                    color: modelData.connected ? Theme.iris : Theme.text
+                    color: modelData.connected ? Theme.accent2 : Theme.text
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizePopup
                     font.bold: modelData.connected
@@ -981,7 +981,7 @@ PanelWindow {
 
                     Text {
                       text: modelData.battery + "%"
-                      color: modelData.battery <= 20 ? Theme.love : Theme.foam
+                      color: modelData.battery <= 20 ? Theme.error : Theme.accent
                       font.family: Theme.fontFamily
                       font.pixelSize: Theme.fontSizePopup
                       font.bold: true
@@ -998,7 +998,7 @@ PanelWindow {
                         if (b >= 10) return "󰁺"
                         return "󰂎"
                       }
-                      color: modelData.battery <= 20 ? Theme.love : Theme.foam
+                      color: modelData.battery <= 20 ? Theme.error : Theme.accent
                       font.pixelSize: Theme.fontSizePopup
                       verticalAlignment: Text.AlignVCenter
                     }
@@ -1013,7 +1013,7 @@ PanelWindow {
                     if (devItem.isBusy) return modelData.connected ? "Disconnecting..." : "Connecting..."
                     return modelData.connected ? "Connected" : ""
                   }
-                  color: devItem.isBusy ? Theme.gold : Theme.iris
+                  color: devItem.isBusy ? Theme.warning : Theme.accent2
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSizePopup
                 }
@@ -1025,7 +1025,7 @@ PanelWindow {
                   implicitWidth: 22
                   implicitHeight: 22
                   radius: Theme.radiusSmall
-                  color: forgetBtMouse.containsMouse ? Theme.love : "transparent"
+                  color: forgetBtMouse.containsMouse ? Theme.error : "transparent"
                   Layout.alignment: Qt.AlignVCenter
 
                   Text {
@@ -1068,12 +1068,12 @@ PanelWindow {
                 Text {
                   font.family: Theme.fontFamily
                   visible: root.isBtScanning
-                  text: "󰑐"; color: Theme.iris; font.pixelSize: Theme.fontSizePopup
+                  text: "󰑐"; color: Theme.accent2; font.pixelSize: Theme.fontSizePopup
                   RotationAnimation on rotation { running: root.isBtScanning; loops: Animation.Infinite; from: 0; to: 360; duration: 800 }
                 }
                 Text {
                   text: root.isBtScanning ? "Searching" : "Search"
-                  color: Theme.iris
+                  color: Theme.accent2
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSizePopup
                   font.bold: true
@@ -1109,7 +1109,7 @@ PanelWindow {
 
                 Text { text: availItem.isBusy ? "󰑐" : "󰂲"; color: Theme.subtle; font.pixelSize: Theme.fontSizePopup; font.family: Theme.fontFamily }
                 Text { text: modelData.name; color: Theme.text; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSizePopup; Layout.fillWidth: true; elide: Text.ElideRight }
-                Text { text: availItem.isBusy ? "Pairing..." : "Pair"; color: Theme.iris; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSizePopup; font.bold: true }
+                Text { text: availItem.isBusy ? "Pairing..." : "Pair"; color: Theme.accent2; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSizePopup; font.bold: true }
               }
 
               MouseArea {

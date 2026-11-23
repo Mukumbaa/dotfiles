@@ -68,7 +68,7 @@ PanelWindow {
       "local tf=io.open(h..'/.config/themes/'..d..'/quickshell.json','r'); " +
       "if tf then local r=tf:read('*a'); tf:close(); " +
       "local function c(k) return r:match('\"'..k..'\"%s*:%s*\"([^\"]+)\"') or '#000000' end; " +
-      "print(d..'\\t'..(d==cur and '1' or '0')..'\\t'..c('base')..'\\t'..c('love')..'\\t'..c('gold')..'\\t'..c('pine')..'\\t'..c('foam')..'\\t'..c('iris')) " +
+      "print(d..'\\t'..(d==cur and '1' or '0')..'\\t'..c('base')..'\\t'..c('error')..'\\t'..c('warning')..'\\t'..c('success')..'\\t'..c('accent')..'\\t'..c('accent2')) " +
       "end end p:close() end"
     ]
     stdout: StdioCollector {
@@ -193,7 +193,7 @@ PanelWindow {
           implicitHeight: 42
           radius: Theme.radiusCard
           color: Theme.surface
-          border.color: searchInput.activeFocus ? Theme.foam : Theme.overlay
+          border.color: searchInput.activeFocus ? Theme.accent : Theme.border
           border.width: 1
 
           Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -206,7 +206,7 @@ PanelWindow {
 
             Text {
               text: ""
-              color: searchInput.text.length > 0 ? Theme.foam : Theme.subtle
+              color: searchInput.text.length > 0 ? Theme.accent : Theme.subtle
               font.family: Theme.fontFamily
               font.pixelSize: Theme.fontSizeLarge
             }
@@ -303,7 +303,7 @@ PanelWindow {
             property bool isCurrentActive: modelData.id === root.activeThemeId
 
             color: isSelected ? Theme.overlay : (itemMouse.containsMouse ? Theme.hover : "transparent")
-            border.color: isSelected ? Theme.iris : "transparent"
+            border.color: isSelected ? Theme.accent2 : "transparent"
             border.width: isSelected ? 1 : 0
 
             RowLayout {
@@ -356,14 +356,14 @@ PanelWindow {
                 implicitHeight: 18
                 radius: Theme.radiusSmall
                 color: Theme.surface
-                border.color: Theme.foam
+                border.color: Theme.accent
                 border.width: 1
 
                 Text {
                   id: activeText
                   anchors.centerIn: parent
                   text: "Active"
-                  color: Theme.foam
+                  color: Theme.accent
                   font.family: Theme.fontFamily
                   font.pixelSize: Theme.fontSizePopup
                   font.bold: true
@@ -374,7 +374,7 @@ PanelWindow {
               Text {
                 visible: themeItem.isSelected
                 text: "󰌑"
-                color: Theme.iris
+                color: Theme.accent22
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
               }
