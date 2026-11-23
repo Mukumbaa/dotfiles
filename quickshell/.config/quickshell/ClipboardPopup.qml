@@ -462,7 +462,7 @@ PanelWindow {
               Text {
                 visible: clipItem.isSelected
                 text: "󰌑"
-                color: Theme.accent22
+                color: Theme.accent2
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeMedium
               }

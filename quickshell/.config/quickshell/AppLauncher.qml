@@ -335,7 +335,7 @@ PanelWindow {
               Text {
                 visible: appItem.isSelected
                 text: "󰌑"
-                color: Theme.accent22
+                color: Theme.accent2
                 font.pixelSize: Theme.fontSizeMedium
               }
             }
